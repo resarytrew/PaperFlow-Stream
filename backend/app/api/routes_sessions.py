@@ -199,6 +199,77 @@ def delete_session(session_id: int, db: DbSession) -> None:
 
 # -------------------------------------------------------------------- sheets
 
+
+@router.get("/sessions/{session_id}/roster")
+def session_roster(session_id: int, db: DbSession) -> dict:
+    """Who handed in and who is still missing — the 'дособрать хвосты' view.
+
+    Counts non-deleted sheets per student of the session's class. Only
+    meaningful when the session is linked to a class.
+    """
+    session = get_session_or_404(db, session_id)
+    if not session.class_id:
+        return {"classLinked": False, "students": [], "missing": 0, "submitted": 0}
+
+    students = db.execute(
+        select(Student)
+        .where(Student.class_id == session.class_id, Student.is_active.is_(True))
+        .order_by(Student.last_name, Student.first_name, Student.external_id)
+    ).scalars().all()
+
+    counts: dict[int, dict] = {}
+    rows = db.execute(
+        select(ScannedSheet.student_id, ScannedSheet.scan_status, func.count(ScannedSheet.id))
+        .where(
+            ScannedSheet.session_id == session_id,
+            ScannedSheet.scan_status != ScanStatus.deleted.value,
+            ScannedSheet.student_id.is_not(None),
+        )
+        .group_by(ScannedSheet.student_id, ScannedSheet.scan_status)
+    ).all()
+    for student_id, scan_status, count in rows:
+        entry = counts.setdefault(student_id, {"total": 0, "ok": 0, "problem": 0})
+        entry["total"] += count
+        if scan_status == ScanStatus.ok.value:
+            entry["ok"] += count
+        elif scan_status in (
+            ScanStatus.low_quality.value,
+            ScanStatus.rescan_required.value,
+            ScanStatus.duplicate.value,
+        ):
+            entry["problem"] += count
+
+    roster = []
+    submitted = 0
+    for student in students:
+        entry = counts.get(student.id, {"total": 0, "ok": 0, "problem": 0})
+        status_label = "missing"
+        if entry["ok"] > 0:
+            status_label = "ok"
+            submitted += 1
+        elif entry["total"] > 0:
+            status_label = "problem"
+        roster.append(
+            {
+                "studentId": student.id,
+                "externalId": student.external_id,
+                "name": student.display_name,
+                "sheets": entry["total"],
+                "ok": entry["ok"],
+                "problem": entry["problem"],
+                "status": status_label,
+            }
+        )
+
+    return {
+        "classLinked": True,
+        "students": roster,
+        "submitted": submitted,
+        "missing": len([r for r in roster if r["status"] == "missing"]),
+        "totalStudents": len(roster),
+    }
+
+
 _FILTERS = {
     "all": None,
     "ok": ScanStatus.ok.value,

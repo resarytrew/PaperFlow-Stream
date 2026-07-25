@@ -19,6 +19,20 @@ from app.services.storage import get_storage
 logger = logging.getLogger(__name__)
 
 
+def _answer_verdict(recognition) -> str:
+    """RU label of the answer hint for flat exports ('' when not available)."""
+    if recognition is None or not recognition.analysis_json:
+        return ""
+    check = (recognition.analysis_json or {}).get("answerCheck") or {}
+    labels = {
+        "match": "совпадает",
+        "likely": "похоже",
+        "mismatch": "отличается",
+        "unknown": "",
+    }
+    return labels.get(check.get("verdict", "unknown"), "")
+
+
 def _sheet_rows(sheets: list[ScannedSheet]) -> list[dict]:
     rows: list[dict] = []
     for sheet in sheets:
@@ -46,6 +60,7 @@ def _sheet_rows(sheets: list[ScannedSheet]) -> list[dict]:
                 "ocr_confidence": (round(recognition.overall_confidence, 4) if recognition else ""),
                 "ocr_provider": (recognition.provider if recognition else ""),
                 "ocr_model": (recognition.model_name if recognition else ""),
+                "answer_verdict": _answer_verdict(recognition),
                 "teacher_text": (review.teacher_text if review else ""),
                 "review_decision": (review.decision if review else ""),
                 "review_comment": (review.comment if review else ""),

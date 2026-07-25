@@ -1,8 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api, sheetImageUrl, wsUrl } from "../api/client";
-import type { ScanSession, ScannedSheet, Student } from "../api/types";
+import type { AnswerCheck, ScanSession, ScannedSheet, Student } from "../api/types";
 import { Badge, RECOG_STATUS_RU, SCAN_STATUS_RU, useApi } from "../lib";
+
+const ANSWER_VERDICT_RU: Record<string, { label: string; color: string; icon: string }> = {
+  match: { label: "Совпадает с эталоном", color: "green", icon: "✓" },
+  likely: { label: "Похоже на эталон", color: "amber", icon: "≈" },
+  mismatch: { label: "Отличается от эталона", color: "red", icon: "✗" },
+  unknown: { label: "Эталон не задан", color: "gray", icon: "?" },
+};
 
 const TABS: { id: string; label: string }[] = [
   { id: "all", label: "Все" },
@@ -122,7 +129,15 @@ export default function ReviewPage() {
                 </div>
                 <div className="sub">
                   <Badge map={SCAN_STATUS_RU} value={s.scan_status} />{" "}
-                  {s.recognition && <Badge map={RECOG_STATUS_RU} value={s.recognition.status} />}
+                  {s.recognition && <Badge map={RECOG_STATUS_RU} value={s.recognition.status} />}{" "}
+                  {s.recognition?.analysis_json?.answerCheck && s.recognition.analysis_json.answerCheck.verdict !== "unknown" && (
+                    <span
+                      className={`badge ${ANSWER_VERDICT_RU[s.recognition.analysis_json.answerCheck.verdict]?.color ?? "gray"}`}
+                      title={ANSWER_VERDICT_RU[s.recognition.analysis_json.answerCheck.verdict]?.label}
+                    >
+                      {ANSWER_VERDICT_RU[s.recognition.analysis_json.answerCheck.verdict]?.icon}
+                    </span>
+                  )}
                 </div>
                 {s.recognition?.recognized_text && (
                   <div className="sub" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 200 }}>
@@ -173,6 +188,7 @@ export default function ReviewPage() {
                     </span>
                   </div>
                   {selected.recognition.error_message && <div className="error-box">{selected.recognition.error_message}</div>}
+                  <AnswerHint check={selected.recognition.analysis_json?.answerCheck} />
                 </>
               )}
 
@@ -253,5 +269,33 @@ export default function ReviewPage() {
         </div>
       </div>
     </>
+  );
+}
+
+/** Hint block: recognized/corrected answer vs the task's expected answer.
+ *  Never a grade — always rendered with the disclaimer. */
+function AnswerHint({ check }: { check?: AnswerCheck }) {
+  if (!check || check.verdict === "unknown") return null;
+  const info = ANSWER_VERDICT_RU[check.verdict] ?? ANSWER_VERDICT_RU.unknown;
+  return (
+    <div className="row mb" title={check.disclaimer}>
+      <span className="muted">Сверка с эталоном:</span>
+      <span className={`badge ${info.color}`}>
+        {info.icon} {info.label}
+      </span>
+      {check.editDistance !== null && check.editDistance > 0 && (
+        <span className="muted" style={{ fontSize: 12 }}>
+          расхождение: {check.editDistance} симв.
+        </span>
+      )}
+      {check.source === "teacher_text" && (
+        <span className="muted" style={{ fontSize: 12 }}>
+          по исправленному тексту
+        </span>
+      )}
+      <span className="muted" style={{ fontSize: 12 }}>
+        {check.disclaimer}
+      </span>
+    </div>
   );
 }

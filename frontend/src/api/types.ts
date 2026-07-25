@@ -70,6 +70,16 @@ export interface ScanSession {
   stats: SessionStats;
 }
 
+export interface AnswerCheck {
+  verdict: "match" | "likely" | "mismatch" | "unknown";
+  expectedNormalized: string;
+  recognizedNormalized: string;
+  numericMatch: boolean | null;
+  editDistance: number | null;
+  disclaimer: string;
+  source?: string;
+}
+
 export interface Recognition {
   id: number;
   recognized_text: string;
@@ -78,6 +88,7 @@ export interface Recognition {
   overall_confidence: number;
   line_results_json: unknown[] | null;
   warnings: string[] | null;
+  analysis_json: { answerCheck?: AnswerCheck; [key: string]: unknown } | null;
   status: string;
   error_message: string | null;
   attempts: number;
