@@ -17,7 +17,6 @@ from app.api.deps import (
     get_sheet_or_404,
     serialize_session,
     serialize_sheet,
-    session_stats,
 )
 from app.models import (
     ClassGroup,
@@ -178,11 +177,10 @@ def resume_session(session_id: int, db: DbSession, config: Config) -> ScanSessio
 @router.post("/sessions/{session_id}/complete", response_model=ScanSessionOut)
 def complete_session(session_id: int, db: DbSession) -> ScanSessionOut:
     session = get_session_or_404(db, session_id)
-    stats = session_stats(db, session)
-    target = SessionStatus.review.value if stats.pending_ocr or stats.needs_review else SessionStatus.completed.value
-    session = _set_status(db, session, target)
-    if target == SessionStatus.review.value:
-        session = _set_status(db, session, SessionStatus.completed.value) if False else session
+    # Completing always moves the session to "completed". Anything that still
+    # needs a teacher (pending OCR / needs_review) stays visible in the review
+    # queue — there is no separate "review" terminal status to get stuck in.
+    session = _set_status(db, session, SessionStatus.completed.value)
     scan_service.drop_runtime(session_id)
     return serialize_session(db, session)
 
@@ -332,6 +330,7 @@ def reprocess_sheet(sheet_id: int, db: DbSession, config: Config) -> ScannedShee
         duplicate = db.execute(
             select(ScannedSheet).where(
                 ScannedSheet.sheet_uid == payload.sheet_id,
+                ScannedSheet.session_id == sheet.session_id,
                 ScannedSheet.id != sheet.id,
                 ScannedSheet.scan_status != ScanStatus.deleted.value,
             ).order_by(ScannedSheet.id)

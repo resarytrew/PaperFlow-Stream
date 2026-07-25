@@ -72,7 +72,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
 @app.get("/api/health")
 def health() -> dict:
     from app.cv.qr import get_backend
-    from app.ocr.providers import LocalHandwritingProvider
+    from app.ocr.providers import get_provider
 
     qr_backends: dict[str, bool] = {}
     for name in ("opencv", "pyzbar", "zxing"):
@@ -88,7 +88,7 @@ def health() -> dict:
         "version": settings.version,
         "dataDir": str(settings.data_dir),
         "qrBackends": qr_backends,
-        "ocr": {"queue": ocr_queue.snapshot(), "local": LocalHandwritingProvider().describe()},
+        "ocr": {"queue": ocr_queue.snapshot(), "local": get_provider("local").describe()},
     }
 
 

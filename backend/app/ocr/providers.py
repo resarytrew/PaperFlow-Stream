@@ -92,12 +92,20 @@ class LocalHandwritingProvider(HandwritingRecognitionProvider):
     def available(self) -> bool:
         return self._ensure_engine() is not None
 
-    def describe(self) -> dict:
+    def _is_engine_loaded(self) -> bool:
+        """True only if the engine is already loaded (never triggers a load)."""
+        return self._attempted and self._engine is not None
+
+    def describe(self, load: bool = False) -> dict:
+        # Status endpoints must not pay the cost of loading the ONNX model, so by
+        # default we report the *already-loaded* state. The engine is loaded once,
+        # lazily, on the first real recognition request.
+        available = self.available if load else self._is_engine_loaded()
         return {
             "provider": self.name,
             "model": self.model_name,
-            "available": self.available,
-            "error": self._load_error,
+            "available": available,
+            "error": (self._load_error if load else (None if available else "engine not loaded")),
             "notes": (
                 "Локальный CPU-inference. Встроенная модель обучена преимущественно на "
                 "печатном тексте — рукописный русский распознаётся ограниченно."
@@ -383,10 +391,11 @@ def get_provider(name: str = "local", **kwargs) -> HandwritingRecognitionProvide
 
 
 def available_providers() -> list[dict]:
+    # Use the cached singleton instances so the OCR engine is loaded at most once.
     return [
-        LocalHandwritingProvider().describe(),
-        MockHandwritingProvider().describe(),
-        CloudHandwritingProvider().describe(),
+        get_provider("local").describe(),
+        get_provider("mock").describe(),
+        get_provider("cloud").describe(),
     ]
 
 
