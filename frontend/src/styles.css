@@ -486,3 +486,18 @@ h3.section {
 
 .kv dt { color: var(--text-dim); }
 .kv dd { margin: 0; }
+
+/* ------------------------------------------------------------------- print */
+
+@media print {
+  :root { color-scheme: light; }
+  body { background: #fff; color: #000; }
+  .sidebar, .no-print { display: none !important; }
+  .main { padding: 0; }
+  .panel, .stat-card { border-color: #bbb; background: #fff; }
+  table.data th, table.data td { border-bottom: 1px solid #ccc; color: #000; }
+  .stat-card .value { color: #000; }
+  .stat-card .label, .muted { color: #444; }
+  .badge { border: 1px solid #888; color: #000 !important; background: #fff !important; }
+  .error-box { background: #fff; border: 1px solid #c00; color: #900; }
+}

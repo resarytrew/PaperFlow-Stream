@@ -5,6 +5,7 @@ import FormsPage from "./pages/FormsPage";
 import SessionsPage from "./pages/SessionsPage";
 import ScanPage from "./pages/ScanPage";
 import ReviewPage from "./pages/ReviewPage";
+import SummaryPage from "./pages/SummaryPage";
 import CalibrationPage from "./pages/CalibrationPage";
 import SettingsPage from "./pages/SettingsPage";
 
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="/sessions" element={<SessionsPage />} />
           <Route path="/sessions/:id/scan" element={<ScanPage />} />
           <Route path="/sessions/:id/review" element={<ReviewPage />} />
+          <Route path="/sessions/:id/summary" element={<SummaryPage />} />
           <Route path="/catalog" element={<CatalogPage />} />
           <Route path="/forms" element={<FormsPage />} />
           <Route path="/calibration" element={<CalibrationPage />} />
