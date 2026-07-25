@@ -9,7 +9,7 @@ import time
 from datetime import datetime, timezone
 
 import cv2
-from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, HTTPException, Response, WebSocket, WebSocketDisconnect
 from sqlalchemy import select
 
 from app.api.deps import Config, DbSession, get_session_or_404, serialize_sheet
@@ -303,3 +303,72 @@ def export_diagnostics(session_id: int, db: DbSession) -> dict:
         "candidates": len(runtime.candidates),
         "logs": len(logs),
     }
+
+
+@router.get("/sessions/{session_id}/diagnostics/download")
+def download_diagnostics(session_id: int, db: DbSession) -> Response:
+    """One-click support bundle: recorded frames + logs + config as a ZIP.
+
+    The teacher presses one button and gets a file to attach to a support
+    message — no digging through server folders. Frames are cleared after
+    the download so the next recording starts clean.
+    """
+    import io
+    import zipfile
+
+    session = get_session_or_404(db, session_id)
+    runtime = scan_service.get_runtime(session_id)
+    if runtime is None:
+        raise HTTPException(status_code=400, detail="Сессия не активна — нечего выгружать")
+    if not runtime.diagnostic_frames and not runtime.candidates:
+        raise HTTPException(
+            status_code=400,
+            detail="Нет записанных кадров. Включите запись диагностики на экране сканирования и повторите проблемную подачу листа.",
+        )
+
+    logs = db.execute(
+        select(ScanLog).where(ScanLog.session_id == session_id).order_by(ScanLog.id.desc()).limit(50)
+    ).scalars().all()
+    report = {
+        "sessionId": session_id,
+        "title": session.title,
+        "exportedAt": datetime.now(timezone.utc).isoformat(),
+        "appVersion": get_settings().version,
+        "state": runtime.machine.snapshot(),
+        "counters": runtime.counters,
+        "config": runtime.config.model_dump(),
+        "logs": [
+            {
+                "sheetId": log.sheet_id,
+                "candidateScores": log.candidate_scores,
+                "selectedFrameIndex": log.selected_frame_index,
+                "qrResult": log.qr_result,
+                "durationMs": log.processing_duration_ms,
+                "message": log.message,
+                "events": log.events,
+            }
+            for log in logs
+        ],
+    }
+
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr("report.json", json.dumps(report, ensure_ascii=False, indent=2))
+        for index, frame in enumerate(runtime.diagnostic_frames):
+            ok, encoded = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 82])
+            if ok:
+                archive.writestr(f"stream/frame-{index:04d}.jpg", encoded.tobytes())
+        for index, candidate in enumerate(runtime.candidates):
+            ok, encoded = cv2.imencode(".jpg", candidate.frame, [cv2.IMWRITE_JPEG_QUALITY, 88])
+            if ok:
+                archive.writestr(f"candidates/candidate-{index:02d}.jpg", encoded.tobytes())
+
+    runtime.diagnostic_frames = []
+
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+    filename = f"paperflow_diagnostics_s{session_id}_{stamp}.zip"
+    return Response(
+        content=buffer.getvalue(),
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )

@@ -55,6 +55,8 @@ export default function ScanPage() {
   const [connected, setConnected] = useState(false);
   const [reconnecting, setReconnecting] = useState(false);
   const [soundOn, setSoundOn] = useState(true);
+  const [diagOn, setDiagOn] = useState(false);
+  const [diagBusy, setDiagBusy] = useState(false);
   const [scanning, setScanning] = useState(false);
   const scanningRef = useRef(false);
   const [prompt, setPrompt] = useState("ПОЛОЖИТЕ ЛИСТ");
@@ -365,6 +367,36 @@ export default function ScanPage() {
             >
               {soundOn ? "🔊" : "🔇"}
             </button>
+            <button
+              className={`btn${diagOn ? " danger" : ""}`}
+              title="Запись кадров для техподдержки: включите, повторите проблемную подачу листа, скачайте архив"
+              onClick={() => {
+                const next = !diagOn;
+                setDiagOn(next);
+                wsRef.current?.send(JSON.stringify({ type: "diagnostics", enabled: next }));
+              }}
+            >
+              {diagOn ? "⏺ Запись…" : "⏺ Диагностика"}
+            </button>
+            {diagOn && (
+              <button
+                className="btn"
+                disabled={diagBusy}
+                title="Скачать ZIP с кадрами и журналом для отправки в поддержку"
+                onClick={async () => {
+                  setDiagBusy(true);
+                  try {
+                    await api.download(`/sessions/${sessionId}/diagnostics/download`, `diagnostics_${sessionId}.zip`);
+                  } catch (e) {
+                    setWsError((e as Error).message);
+                  } finally {
+                    setDiagBusy(false);
+                  }
+                }}
+              >
+                {diagBusy ? "Сборка…" : "⬇ Скачать клип"}
+              </button>
+            )}
             <select
               value={camera.deviceId ?? ""}
               onChange={(e) => camera.start(e.target.value)}

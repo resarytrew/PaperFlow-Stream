@@ -155,7 +155,12 @@ export default function ReviewPage() {
             <div className="panel">
               <div className="row mb">
                 <strong>
-                  Лист #{selected.sequence_number} · {selected.student_name || "ученик не определён"}
+                  Лист #{selected.sequence_number} ·{" "}
+                  {selected.student_id ? (
+                    <Link to={`/students/${selected.student_id}`}>{selected.student_name}</Link>
+                  ) : (
+                    "ученик не определён"
+                  )}
                 </strong>
                 <Badge map={SCAN_STATUS_RU} value={selected.scan_status} />
                 {selected.recognition && <Badge map={RECOG_STATUS_RU} value={selected.recognition.status} />}
