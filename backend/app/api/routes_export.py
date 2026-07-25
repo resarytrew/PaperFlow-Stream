@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta, timezone
+from urllib.parse import quote
 
 from fastapi import APIRouter, HTTPException, Query, Response
 from sqlalchemy import func, select
@@ -42,6 +43,13 @@ def _stamp(session: ScanSession) -> str:
     return f"{session.id:04d}_{safe}_{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M')}"
 
 
+def _content_disposition(filename: str) -> str:
+    """RFC 5987 header value that survives non-ASCII (Cyrillic) file names."""
+    ascii_fallback = filename.encode("ascii", "replace").decode("ascii").replace('"', "_")
+    encoded = quote(filename, safe="")
+    return f"attachment; filename=\"{ascii_fallback}\"; filename*=UTF-8''{encoded}"
+
+
 @router.get("/sessions/{session_id}/export/csv")
 def export_csv(
     session_id: int,
@@ -55,7 +63,7 @@ def export_csv(
     return Response(
         content=data,
         media_type="text/csv; charset=utf-8",
-        headers={"Content-Disposition": f'attachment; filename="paperflow_{_stamp(session)}.csv"'},
+        headers={"Content-Disposition": _content_disposition(f"paperflow_{_stamp(session)}.csv")},
     )
 
 
@@ -72,7 +80,7 @@ def export_json(
     return Response(
         content=data,
         media_type="application/json; charset=utf-8",
-        headers={"Content-Disposition": f'attachment; filename="paperflow_{_stamp(session)}.json"'},
+        headers={"Content-Disposition": _content_disposition(f"paperflow_{_stamp(session)}.json")},
     )
 
 
@@ -92,7 +100,7 @@ def export_xlsx(
     return Response(
         content=data,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": f'attachment; filename="paperflow_{_stamp(session)}.xlsx"'},
+        headers={"Content-Disposition": _content_disposition(f"paperflow_{_stamp(session)}.xlsx")},
     )
 
 
@@ -121,7 +129,7 @@ def export_zip(
     return Response(
         content=data,
         media_type="application/zip",
-        headers={"Content-Disposition": f'attachment; filename="paperflow_{_stamp(session)}.zip"'},
+        headers={"Content-Disposition": _content_disposition(f"paperflow_{_stamp(session)}.zip")},
     )
 
 
@@ -176,11 +184,11 @@ def generate_forms(payload: FormGenerationRequest, db: DbSession) -> Response:
         raise HTTPException(status_code=500, detail=f"Ошибка генерации бланков: {exc}") from exc
 
     filename = f"forms_{class_group.name}_{task.external_id}_{len(specs)}.pdf"
-    safe = "".join(c if c.isalnum() or c in "-_." else "_" for c in filename)
+    headers = {"X-Form-Count": str(len(specs)), "Content-Disposition": _content_disposition(filename)}
     return Response(
         content=pdf,
         media_type="application/pdf",
-        headers={"Content-Disposition": f'attachment; filename="{safe}"', "X-Form-Count": str(len(specs))},
+        headers=headers,
     )
 
 
