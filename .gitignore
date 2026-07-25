@@ -48,3 +48,4 @@ Thumbs.db
 *.log
 .env
 .env.local
+*.tsbuildinfo

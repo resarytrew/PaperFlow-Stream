@@ -98,7 +98,8 @@ def estimate_skew(gray: np.ndarray, max_angle: float = 12.0) -> float:
     lines = cv2.HoughLinesP(binary, 1, np.pi / 360, threshold=90, minLineLength=int(gray.shape[1] * 0.25), maxLineGap=22)
     angles: list[float] = []
     if lines is not None:
-        for x1, y1, x2, y2 in lines[:, 0]:
+        # OpenCV 4.x returns shape (N, 1, 4); OpenCV 5.x may return (N, 4).
+        for x1, y1, x2, y2 in np.asarray(lines).reshape(-1, 4):
             if x2 == x1:
                 continue
             angle = math.degrees(math.atan2(float(y2 - y1), float(x2 - x1)))
