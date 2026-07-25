@@ -91,6 +91,11 @@ def api_client(_settings, tmp_path, monkeypatch):
 
     invalidate_cache()
 
+    # scanning runtimes are process-global; session ids repeat across tests
+    from app.services.scan_service import scan_service
+
+    scan_service._runtimes.clear()
+
     from fastapi.testclient import TestClient
 
     from app.main import app
@@ -99,6 +104,7 @@ def api_client(_settings, tmp_path, monkeypatch):
         yield client
 
     invalidate_cache()
+    scan_service._runtimes.clear()
     engine.dispose()
 
 
