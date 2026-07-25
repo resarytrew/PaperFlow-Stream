@@ -196,6 +196,72 @@ def delete_student(student_id: int, db: DbSession) -> None:
     db.commit()
 
 
+@router.get("/students/{student_id}/history")
+def student_history(student_id: int, db: DbSession, limit: int = 50) -> dict:
+    """Per-student progress across sessions ('динамика ученика').
+
+    All the student's sheets, newest first, with the answer-hint verdict and
+    teacher review — so the teacher can see «третий раз подряд ошибается».
+    """
+    student = db.get(Student, student_id)
+    if student is None:
+        raise HTTPException(status_code=404, detail="Ученик не найден")
+
+    sheets = db.execute(
+        select(ScannedSheet)
+        .where(
+            ScannedSheet.student_id == student_id,
+            ScannedSheet.scan_status != "deleted",
+        )
+        .order_by(ScannedSheet.created_at.desc())
+        .limit(min(limit, 200))
+    ).scalars().all()
+
+    history = []
+    verdict_counts = {"match": 0, "likely": 0, "mismatch": 0, "unknown": 0}
+    for sheet in sheets:
+        recognition = sheet.recognition
+        review = sheet.review
+        verdict = "unknown"
+        if recognition is not None:
+            check = (recognition.analysis_json or {}).get("answerCheck") or {}
+            verdict = check.get("verdict", "unknown")
+        verdict_counts[verdict] = verdict_counts.get(verdict, 0) + 1
+
+        answer = ""
+        if review is not None and review.teacher_text:
+            answer = review.teacher_text
+        elif recognition is not None:
+            answer = recognition.recognized_text
+
+        history.append(
+            {
+                "sheetId": sheet.id,
+                "sessionId": sheet.session_id,
+                "sessionTitle": sheet.session.title if sheet.session else "",
+                "taskTitle": sheet.task.title if sheet.task else None,
+                "taskExternalId": sheet.task.external_id if sheet.task else None,
+                "scannedAt": sheet.created_at.isoformat() if sheet.created_at else None,
+                "scanStatus": sheet.scan_status,
+                "quality": round(sheet.quality_score, 3),
+                "answer": answer,
+                "verdict": verdict,
+                "reviewed": review is not None,
+                "reviewDecision": review.decision if review else None,
+            }
+        )
+
+    checked = verdict_counts["match"] + verdict_counts["likely"] + verdict_counts["mismatch"]
+    return {
+        "student": serialize_student(student).model_dump(),
+        "sheets": history,
+        "verdicts": verdict_counts,
+        "totalSheets": len(history),
+        "matchRate": round(verdict_counts["match"] / checked, 3) if checked else None,
+        "disclaimer": "Сверка с эталоном — подсказка для учителя, не оценка.",
+    }
+
+
 # --------------------------------------------------------------------- tasks
 
 

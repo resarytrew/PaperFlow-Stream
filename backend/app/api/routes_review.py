@@ -16,6 +16,7 @@ from app.models import (
     ReviewDecision,
     ScanStatus,
     ScannedSheet,
+    Task,
 )
 from app.ocr.providers import available_providers
 from app.schemas import ReviewSubmit, ScannedSheetOut
@@ -183,6 +184,17 @@ def submit_review(sheet_id: int, payload: ReviewSubmit, db: DbSession) -> Scanne
             sheet.recognition.status = RecognitionStatus.needs_review.value
         elif payload.decision in ("accepted", "corrected"):
             sheet.recognition.status = RecognitionStatus.recognized.value
+
+        # The teacher's text is the ground truth — refresh the answer hint.
+        if payload.decision in ("accepted", "corrected") and sheet.task_id:
+            task = db.get(Task, sheet.task_id)
+            if task and task.expected_answer:
+                from app.ocr.answer_check import compare_answers
+
+                analysis = dict(sheet.recognition.analysis_json or {})
+                analysis["answerCheck"] = compare_answers(payload.teacher_text, task.expected_answer)
+                analysis["answerCheck"]["source"] = "teacher_text"
+                sheet.recognition.analysis_json = analysis
 
     db.commit()
     db.refresh(sheet)

@@ -17,6 +17,7 @@ from sqlalchemy import select
 from app.config import RuntimeConfig
 from app.db import SessionLocal
 from app.models import RecognitionResult, RecognitionStatus, ScannedSheet, Task
+from app.ocr.answer_check import compare_answers
 from app.ocr.confidence import analyse_text, classify_confidence
 from app.ocr.provider import RecognitionOutput
 from app.ocr.providers import get_provider
@@ -222,6 +223,12 @@ class OcrQueue:
         verdict = classify_confidence(output, config.ocr)
         analysis = analyse_text(output.text, expected_answer, config.ocr.keyword_analysis)
         analysis["confidence"] = verdict.to_dict()
+        # Answer hint: recognized text vs the task's expected answer.
+        # Blank sheets get an explicit mismatch only when an answer was expected.
+        if expected_answer:
+            analysis["answerCheck"] = compare_answers(
+                "" if output.is_blank else output.text, expected_answer
+            )
 
         if output.is_blank:
             status = RecognitionStatus.blank.value

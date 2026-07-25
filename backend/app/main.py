@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import logging
+import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.requests import Request
 
 from app.api import routes_camera, routes_catalog, routes_export, routes_review, routes_scan, routes_sessions
@@ -115,3 +118,39 @@ async def ocr_socket(websocket: WebSocket) -> None:
         logger.debug("ocr socket closed")
     finally:
         await hub.unsubscribe(OCR_TOPIC, websocket)
+
+
+# ------------------------------------------------------------------ frontend
+# In production the teacher runs a single process: the built SPA
+# (frontend/dist) is served straight from FastAPI, so http://localhost:8000
+# is all they need. During development the Vite dev server proxies /api.
+
+
+def _frontend_dist() -> Path | None:
+    override = os.getenv("PAPERFLOW_FRONTEND_DIST")
+    candidates = [Path(override)] if override else []
+    candidates.append(Path(__file__).resolve().parent.parent.parent / "frontend" / "dist")
+    for candidate in candidates:
+        if candidate.is_dir() and (candidate / "index.html").is_file():
+            return candidate
+    return None
+
+
+_dist = _frontend_dist()
+if _dist is not None:
+    # html=True serves index.html at "/"; the SPA uses hash routing, so no
+    # extra history-mode fallback is required.
+    app.mount("/", StaticFiles(directory=_dist, html=True), name="frontend")
+    logger.info("serving frontend from %s", _dist)
+else:  # pragma: no cover - depends on whether the SPA was built
+    @app.get("/")
+    def index_placeholder() -> JSONResponse:
+        return JSONResponse(
+            {
+                "app": settings.app_name,
+                "version": settings.version,
+                "hint": "Соберите интерфейс (cd frontend && npm run build) или откройте dev-сервер Vite на http://localhost:5173",
+                "api": "/api/health",
+            }
+        )
+

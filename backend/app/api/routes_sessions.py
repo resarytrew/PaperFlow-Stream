@@ -199,6 +199,158 @@ def delete_session(session_id: int, db: DbSession) -> None:
 
 # -------------------------------------------------------------------- sheets
 
+
+@router.get("/sessions/{session_id}/summary")
+def session_summary(session_id: int, db: DbSession) -> dict:
+    """One-page session wrap-up for the 'Итоги сессии' screen.
+
+    Aggregates scan quality, OCR/answer-hint verdicts and the roster.
+    Verdicts are hints — the payload carries the disclaimer explicitly.
+    """
+    session = get_session_or_404(db, session_id)
+
+    sheets = db.execute(
+        select(ScannedSheet)
+        .where(
+            ScannedSheet.session_id == session_id,
+            ScannedSheet.scan_status != ScanStatus.deleted.value,
+        )
+        .order_by(ScannedSheet.sequence_number)
+    ).scalars().all()
+
+    verdict_counts = {"match": 0, "likely": 0, "mismatch": 0, "unknown": 0}
+    blank = 0
+    reviewed = 0
+    corrected = 0
+    per_student: list[dict] = []
+
+    for sheet in sheets:
+        recognition = sheet.recognition
+        review = sheet.review
+        if review is not None:
+            reviewed += 1
+            if review.decision == "corrected":
+                corrected += 1
+
+        verdict = "unknown"
+        if recognition is not None:
+            if recognition.status == "blank":
+                blank += 1
+            check = (recognition.analysis_json or {}).get("answerCheck") or {}
+            verdict = check.get("verdict", "unknown")
+        verdict_counts[verdict] = verdict_counts.get(verdict, 0) + 1
+
+        answer_text = ""
+        if review is not None and review.teacher_text:
+            answer_text = review.teacher_text
+        elif recognition is not None:
+            answer_text = recognition.recognized_text
+
+        per_student.append(
+            {
+                "sheetId": sheet.id,
+                "number": sheet.sequence_number,
+                "student": sheet.student.display_name if sheet.student else None,
+                "externalId": sheet.student.external_id if sheet.student else None,
+                "scanStatus": sheet.scan_status,
+                "quality": round(sheet.quality_score, 3),
+                "answer": answer_text,
+                "verdict": verdict,
+                "confidence": round(recognition.overall_confidence, 3) if recognition else None,
+                "reviewed": review is not None,
+            }
+        )
+
+    quality_values = [s.quality_score for s in sheets]
+    started = session.started_at
+    completed = session.completed_at
+    duration_min = None
+    if started and completed and completed > started:
+        duration_min = round((completed - started).total_seconds() / 60.0, 1)
+
+    return {
+        "session": serialize_session(db, session).model_dump(),
+        "sheets": per_student,
+        "verdicts": verdict_counts,
+        "blank": blank,
+        "reviewed": reviewed,
+        "corrected": corrected,
+        "averageQuality": round(sum(quality_values) / len(quality_values), 3) if quality_values else 0.0,
+        "durationMinutes": duration_min,
+        "disclaimer": "Сверка с эталоном — подсказка для учителя, не оценка.",
+    }
+
+
+@router.get("/sessions/{session_id}/roster")
+def session_roster(session_id: int, db: DbSession) -> dict:
+    """Who handed in and who is still missing — the 'дособрать хвосты' view.
+
+    Counts non-deleted sheets per student of the session's class. Only
+    meaningful when the session is linked to a class.
+    """
+    session = get_session_or_404(db, session_id)
+    if not session.class_id:
+        return {"classLinked": False, "students": [], "missing": 0, "submitted": 0}
+
+    students = db.execute(
+        select(Student)
+        .where(Student.class_id == session.class_id, Student.is_active.is_(True))
+        .order_by(Student.last_name, Student.first_name, Student.external_id)
+    ).scalars().all()
+
+    counts: dict[int, dict] = {}
+    rows = db.execute(
+        select(ScannedSheet.student_id, ScannedSheet.scan_status, func.count(ScannedSheet.id))
+        .where(
+            ScannedSheet.session_id == session_id,
+            ScannedSheet.scan_status != ScanStatus.deleted.value,
+            ScannedSheet.student_id.is_not(None),
+        )
+        .group_by(ScannedSheet.student_id, ScannedSheet.scan_status)
+    ).all()
+    for student_id, scan_status, count in rows:
+        entry = counts.setdefault(student_id, {"total": 0, "ok": 0, "problem": 0})
+        entry["total"] += count
+        if scan_status == ScanStatus.ok.value:
+            entry["ok"] += count
+        elif scan_status in (
+            ScanStatus.low_quality.value,
+            ScanStatus.rescan_required.value,
+            ScanStatus.duplicate.value,
+        ):
+            entry["problem"] += count
+
+    roster = []
+    submitted = 0
+    for student in students:
+        entry = counts.get(student.id, {"total": 0, "ok": 0, "problem": 0})
+        status_label = "missing"
+        if entry["ok"] > 0:
+            status_label = "ok"
+            submitted += 1
+        elif entry["total"] > 0:
+            status_label = "problem"
+        roster.append(
+            {
+                "studentId": student.id,
+                "externalId": student.external_id,
+                "name": student.display_name,
+                "sheets": entry["total"],
+                "ok": entry["ok"],
+                "problem": entry["problem"],
+                "status": status_label,
+            }
+        )
+
+    return {
+        "classLinked": True,
+        "students": roster,
+        "submitted": submitted,
+        "missing": len([r for r in roster if r["status"] == "missing"]),
+        "totalStudents": len(roster),
+    }
+
+
 _FILTERS = {
     "all": None,
     "ok": ScanStatus.ok.value,
