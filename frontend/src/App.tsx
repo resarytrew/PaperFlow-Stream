@@ -1,6 +1,7 @@
 import { NavLink, Navigate, Route, Routes } from "react-router-dom";
 import DashboardPage from "./pages/DashboardPage";
 import CatalogPage from "./pages/CatalogPage";
+import StudentPage from "./pages/StudentPage";
 import FormsPage from "./pages/FormsPage";
 import SessionsPage from "./pages/SessionsPage";
 import ScanPage from "./pages/ScanPage";
@@ -41,6 +42,7 @@ export default function App() {
           <Route path="/sessions/:id/review" element={<ReviewPage />} />
           <Route path="/sessions/:id/summary" element={<SummaryPage />} />
           <Route path="/catalog" element={<CatalogPage />} />
+          <Route path="/students/:id" element={<StudentPage />} />
           <Route path="/forms" element={<FormsPage />} />
           <Route path="/calibration" element={<CalibrationPage />} />
           <Route path="/settings" element={<SettingsPage />} />

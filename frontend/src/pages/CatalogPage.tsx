@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { api } from "../api/client";
 import type { ClassGroup, Student, Task } from "../api/types";
 import { useApi } from "../lib";
@@ -162,7 +163,9 @@ export default function CatalogPage() {
                   {(students.data ?? []).map((s) => (
                     <tr key={s.id}>
                       <td>{s.external_id}</td>
-                      <td>{s.display_name}</td>
+                      <td>
+                        <Link to={`/students/${s.id}`}>{s.display_name}</Link>
+                      </td>
                       <td>
                         <button
                           className="btn small danger"

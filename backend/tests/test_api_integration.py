@@ -429,6 +429,91 @@ def test_roster_tracks_missing_students(api_client):
     assert roster["classLinked"] is False
 
 
+def test_student_history(api_client):
+    """Per-student progress endpoint aggregates verdicts across sessions."""
+    class_id, task_id, student_ids = _make_catalog(api_client)
+    session_id = _make_session(api_client, class_id, task_id)
+    _speed_up_scanning(api_client)
+    api_client.post(f"/api/sessions/{session_id}/start")
+
+    payload = {"version": 1, "studentId": "S-101", "classId": "7Б", "taskId": "T-042", "sheetId": "S-101-T-042-1"}
+    result = _scan_one_sheet(api_client, session_id, payload)
+    assert result is not None and result["result"]["success"]
+    sheet_id = result["result"]["sheetId"]
+
+    # run OCR so the sheet gets a verdict, then correct it to a match
+    api_client.post(f"/api/sheets/{sheet_id}/recognize")
+    for _ in range(100):
+        time.sleep(0.1)
+        sheet = api_client.get(f"/api/sheets/{sheet_id}").json()
+        recognition = sheet.get("recognition")
+        if recognition and recognition["status"] not in ("pending", "processing"):
+            break
+    api_client.post(
+        f"/api/sheets/{sheet_id}/review",
+        json={"decision": "corrected", "teacher_text": "x = 7", "comment": ""},
+    )
+
+    student_id = next(
+        s["id"] for s in api_client.get(f"/api/students?class_id={class_id}").json() if s["external_id"] == "S-101"
+    )
+    history = api_client.get(f"/api/students/{student_id}/history").json()
+    assert history["student"]["external_id"] == "S-101"
+    assert history["totalSheets"] == 1
+    assert history["verdicts"]["match"] == 1
+    assert history["matchRate"] == 1.0
+    row = history["sheets"][0]
+    assert row["answer"] == "x = 7"  # teacher text wins over OCR text
+    assert row["reviewed"] is True
+    assert row["sessionId"] == session_id
+
+    # unknown student -> 404
+    assert api_client.get("/api/students/99999/history").status_code == 404
+
+
+def test_diagnostics_download_bundle(api_client):
+    """One-click support ZIP: frames recorded during scanning + report."""
+    import io
+    import zipfile
+
+    class_id, task_id, _ = _make_catalog(api_client)
+    session_id = _make_session(api_client, class_id, task_id)
+    _speed_up_scanning(api_client)
+    api_client.post(f"/api/sessions/{session_id}/start")
+
+    # no runtime yet -> clear error
+    response = api_client.get(f"/api/sessions/{session_id}/diagnostics/download")
+    assert response.status_code == 400
+
+    # scan with the diagnostics recording enabled
+    sheet = render_sheet({"version": 1, "studentId": "S-101", "classId": "7Б", "taskId": "T-042", "sheetId": "S-101-T-042-d1"})
+    opts = SceneOptions()
+    frames = [empty_scene(opts, seed=i) for i in range(2)]
+    frames += [render_scene(sheet, opts, seed=7) for _ in range(10)]
+
+    with api_client.websocket_connect(f"/api/ws/sessions/{session_id}/scan") as ws:
+        assert ws.receive_json()["type"] == "ready"
+        ws.send_text(json.dumps({"type": "diagnostics", "enabled": True}))
+        assert ws.receive_json() == {"type": "diagnostics", "enabled": True}
+        for frame in frames:
+            ws.send_text(json.dumps({"type": "frame", "image": _data_url(frame)}))
+            while True:
+                message = ws.receive_json()
+                if message["type"] in ("state", "busy"):
+                    break
+
+    response = api_client.get(f"/api/sessions/{session_id}/diagnostics/download")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/zip"
+    archive = zipfile.ZipFile(io.BytesIO(response.content))
+    names = archive.namelist()
+    assert "report.json" in names
+    assert any(n.startswith("stream/") for n in names)
+    report = json.loads(archive.read("report.json"))
+    assert report["sessionId"] == session_id
+    assert "config" in report and "state" in report
+
+
 def test_dashboard_reflects_activity(api_client):
     class_id, task_id, _ = _make_catalog(api_client)
     session_id = _make_session(api_client, class_id, task_id)
