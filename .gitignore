@@ -1,0 +1,50 @@
+# ---------------------------------------------------------------- Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ------------------------------------------------------------------- Node
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.local
+
+# ------------------------------------------- Local data (never commit these)
+# Student images and the database stay on the teacher's machine only.
+backend/data/
+data/
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# Generated artefacts
+*.pdf
+!docs/**/*.pdf
+exports/
+diagnostics/
+
+# ------------------------------------------------------------------- Models
+# Optional YOLO / OCR weights are downloaded locally, not versioned.
+models/
+*.pt
+*.onnx
+
+# --------------------------------------------------------------------- Misc
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
+.env
+.env.local
