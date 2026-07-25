@@ -122,6 +122,9 @@ export default function SessionsPage() {
                       <Link className="btn small" to={`/sessions/${s.id}/review`}>
                         Проверка
                       </Link>
+                      <Link className="btn small" to={`/sessions/${s.id}/summary`}>
+                        Итоги
+                      </Link>
                       <button className="btn small" onClick={() => exportAs(s.id, "xlsx")} title="Экспорт XLSX">
                         XLSX
                       </button>

@@ -353,6 +353,50 @@ def test_ocr_mock_provider_end_to_end(api_client):
     assert response.json()["recognition"]["status"] == "blank"
 
 
+def test_session_summary(api_client):
+    """The 'Итоги сессии' endpoint aggregates verdicts, review and quality."""
+    class_id, task_id, _ = _make_catalog(api_client)
+    session_id = _make_session(api_client, class_id, task_id)
+    _speed_up_scanning(api_client)
+    api_client.post(f"/api/sessions/{session_id}/start")
+
+    payload = {"version": 1, "studentId": "S-101", "classId": "7Б", "taskId": "T-042", "sheetId": "S-101-T-042-1"}
+    result = _scan_one_sheet(api_client, session_id, payload)
+    assert result is not None and result["result"]["success"]
+    sheet_id = result["result"]["sheetId"]
+
+    # run OCR so the sheet gets an answerCheck (mock text -> mismatch)
+    api_client.post(f"/api/sheets/{sheet_id}/recognize")
+    for _ in range(100):
+        time.sleep(0.1)
+        sheet = api_client.get(f"/api/sheets/{sheet_id}").json()
+        recognition = sheet.get("recognition")
+        if recognition and recognition["status"] not in ("pending", "processing"):
+            break
+
+    summary = api_client.get(f"/api/sessions/{session_id}/summary").json()
+    assert summary["session"]["id"] == session_id
+    assert len(summary["sheets"]) == 1
+    assert summary["verdicts"]["mismatch"] == 1
+    assert summary["reviewed"] == 0
+    assert summary["averageQuality"] > 0.5
+    assert summary["disclaimer"]
+    row = summary["sheets"][0]
+    assert row["student"] == "Иванов Пётр"
+    assert row["verdict"] == "mismatch"
+
+    # teacher corrects to the right answer -> summary flips to match
+    api_client.post(
+        f"/api/sheets/{sheet_id}/review",
+        json={"decision": "corrected", "teacher_text": "x = 7", "comment": ""},
+    )
+    summary = api_client.get(f"/api/sessions/{session_id}/summary").json()
+    assert summary["verdicts"]["match"] == 1
+    assert summary["reviewed"] == 1
+    assert summary["corrected"] == 1
+    assert summary["sheets"][0]["answer"] == "x = 7"
+
+
 def test_roster_tracks_missing_students(api_client):
     """The 'кто не сдал' panel: submitted vs missing per class list."""
     class_id, task_id, student_ids = _make_catalog(api_client)

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, wsUrl } from "../api/client";
 import type { ScanResultMessage, ScanSession, ScanStateMessage } from "../api/types";
 import { captureFrame, useCamera } from "../hooks/useCamera";
@@ -32,6 +32,7 @@ interface Roster {
 export default function ScanPage() {
   const { id } = useParams();
   const sessionId = Number(id);
+  const navigate = useNavigate();
   const session = useApi<ScanSession>(() => api.get(`/sessions/${sessionId}`), [sessionId]);
   const roster = useApi<Roster>(() => api.get(`/sessions/${sessionId}/roster`), [sessionId]);
   const [sideTab, setSideTab] = useState<"recent" | "roster">("recent");
@@ -281,7 +282,7 @@ export default function ScanPage() {
     pauseScanning();
     try {
       await api.post(`/sessions/${sessionId}/complete`);
-      session.refresh();
+      navigate(`/sessions/${sessionId}/summary`);
     } catch (e) {
       setWsError((e as Error).message);
     }
