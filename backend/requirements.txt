@@ -1,0 +1,43 @@
+# PaperFlow Stream — backend dependencies (Python 3.11+)
+# Install:  python -m venv .venv && .venv/bin/pip install -r requirements.txt
+
+# --- Web framework -----------------------------------------------------
+fastapi>=0.115
+uvicorn[standard]>=0.32
+python-multipart>=0.0.9
+websockets>=13.0
+
+# --- Data layer --------------------------------------------------------
+SQLAlchemy>=2.0
+alembic>=1.13
+pydantic>=2.9
+pydantic-settings>=2.5
+
+# --- Computer vision ---------------------------------------------------
+# headless build: no libGL required, correct for a server/local API process
+opencv-python-headless>=4.10
+numpy>=1.26
+Pillow>=10.4
+
+# --- QR / forms --------------------------------------------------------
+qrcode>=7.4
+reportlab>=4.2
+
+# --- Handwriting recognition (0.2), local CPU inference ----------------
+# Ships its own ONNX weights; runs fully offline.
+rapidocr-onnxruntime>=1.3
+onnxruntime>=1.18
+
+# --- Exports -----------------------------------------------------------
+openpyxl>=3.1
+
+# --- Tests -------------------------------------------------------------
+pytest>=8.3
+pytest-asyncio>=0.24
+httpx>=0.27
+
+# --- Optional extras (not required; enable if you need them) -----------
+# pyzbar>=0.1.9          # alternative QR backend, needs system libzbar0
+# zxing-cpp>=2.2         # alternative QR backend
+# ultralytics>=8.3       # optional YOLO assist for hard detection cases
+# mediapipe>=0.10        # optional hand detection backend
