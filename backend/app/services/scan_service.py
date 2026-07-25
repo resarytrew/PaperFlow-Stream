@@ -454,10 +454,14 @@ class ScanService:
                 qr_status = QrStatus.mismatch.value
 
             # Duplicate detection by sheet_uid (section 6.10 / criterion 8).
+            # Scoped to the current session: the same student+task scanned in a
+            # *later* session (e.g. a retake) must not be flagged as a duplicate
+            # of the earlier session's sheet.
             existing = db.execute(
                 select(ScannedSheet)
                 .where(
                     ScannedSheet.sheet_uid == sheet_uid,
+                    ScannedSheet.session_id == session.id,
                     ScannedSheet.scan_status != ScanStatus.deleted.value,
                 )
                 .order_by(ScannedSheet.id)
