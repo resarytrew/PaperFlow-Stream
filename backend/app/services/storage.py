@@ -55,6 +55,10 @@ class SheetStorage:
     def __init__(self, root: Path | None = None) -> None:
         settings = get_settings()
         self.root = root or settings.sheets_dir
+        # The storage base is the parent "storage/" directory: sheet images,
+        # calibration references and diagnostics all live under it and DB rows
+        # store paths relative to this base.
+        self.base = self.root.parent if root is not None else settings.storage_dir
         self.root.mkdir(parents=True, exist_ok=True)
 
     def session_dir(self, session_id: int) -> Path:
@@ -82,16 +86,14 @@ class SheetStorage:
         return self.relative(path)
 
     def relative(self, path: Path) -> str:
-        settings = get_settings()
         try:
-            return path.relative_to(settings.storage_dir).as_posix()
+            return path.relative_to(self.base).as_posix()
         except ValueError:
             return path.as_posix()
 
     def absolute(self, relative_path: str) -> Path:
-        settings = get_settings()
-        candidate = (settings.storage_dir / relative_path).resolve()
-        storage_root = settings.storage_dir.resolve()
+        candidate = (self.base / relative_path).resolve()
+        storage_root = self.base.resolve()
         if not str(candidate).startswith(str(storage_root)):
             raise StorageError("path traversal detected")
         return candidate

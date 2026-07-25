@@ -3,11 +3,14 @@ import { Link, useParams } from "react-router-dom";
 import { api, wsUrl } from "../api/client";
 import type { ScanResultMessage, ScanSession, ScanStateMessage } from "../api/types";
 import { captureFrame, useCamera } from "../hooks/useCamera";
+import { playReconnected, playSuccess, playWarning, unlockAudio } from "../hooks/sounds";
 import { Badge, SESSION_STATUS_RU, useApi } from "../lib";
 
 const FRAME_INTERVAL_MS = 120; // ~8 fps to the analyser; capped further by "busy" flow control
 const FRAME_MAX_WIDTH = 1280;
 const FRAME_QUALITY = 0.8;
+const RECONNECT_BASE_MS = 800;
+const RECONNECT_MAX_MS = 8000;
 
 interface RecentSheet {
   id: number | null;
@@ -29,8 +32,16 @@ export default function ScanPage() {
   const wsRef = useRef<WebSocket | null>(null);
   const timerRef = useRef<number | null>(null);
   const awaitingRef = useRef(false);
+  const reconnectRef = useRef<{ attempt: number; timer: number | null; closed: boolean }>({
+    attempt: 0,
+    timer: null,
+    closed: false,
+  });
+  const soundRef = useRef(true);
 
   const [connected, setConnected] = useState(false);
+  const [reconnecting, setReconnecting] = useState(false);
+  const [soundOn, setSoundOn] = useState(true);
   const [scanning, setScanning] = useState(false);
   const scanningRef = useRef(false);
   const [prompt, setPrompt] = useState("ПОЛОЖИТЕ ЛИСТ");
@@ -115,16 +126,36 @@ export default function ScanPage() {
   }, []);
 
   const connect = useCallback(() => {
-    if (wsRef.current) wsRef.current.close();
+    if (wsRef.current) {
+      // deliberate replacement — don't let the old socket's onclose reconnect
+      wsRef.current.onclose = null;
+      wsRef.current.close();
+    }
     setWsError(null);
     const ws = new WebSocket(wsUrl(`/ws/sessions/${sessionId}/scan`));
     wsRef.current = ws;
 
-    ws.onopen = () => setConnected(true);
+    ws.onopen = () => {
+      const wasRetry = reconnectRef.current.attempt > 0;
+      reconnectRef.current.attempt = 0;
+      setConnected(true);
+      setReconnecting(false);
+      setWsError(null);
+      awaitingRef.current = false;
+      if (wasRetry) {
+        if (soundRef.current) playReconnected();
+        // scanning continues where it stopped: the runtime lives on the server
+        if (scanningRef.current) ws.send(JSON.stringify({ type: "resume" }));
+      }
+    };
     ws.onclose = () => {
       setConnected(false);
-      setScanning(false);
-      scanningRef.current = false;
+      if (reconnectRef.current.closed) return;
+      // exponential backoff auto-reconnect — a flaky cable must not end the session
+      const attempt = ++reconnectRef.current.attempt;
+      const delay = Math.min(RECONNECT_BASE_MS * 2 ** (attempt - 1), RECONNECT_MAX_MS);
+      setReconnecting(true);
+      reconnectRef.current.timer = window.setTimeout(connect, delay);
     };
     ws.onerror = () => setWsError("Соединение с сервером прервано.");
 
@@ -149,6 +180,10 @@ export default function ScanPage() {
         }
         case "scan_result": {
           const res = msg as ScanResultMessage;
+          if (soundRef.current) {
+            if (res.result.success) playSuccess();
+            else playWarning();
+          }
           setCounters(res.counters ?? {});
           setSpeed(res.speed ?? 0);
           setPrompt(res.prompt);
@@ -185,9 +220,15 @@ export default function ScanPage() {
   }, [sessionId, drawOverlay]);
 
   useEffect(() => {
+    reconnectRef.current.closed = false;
     connect();
     return () => {
-      wsRef.current?.close();
+      reconnectRef.current.closed = true;
+      if (reconnectRef.current.timer) window.clearTimeout(reconnectRef.current.timer);
+      if (wsRef.current) {
+        wsRef.current.onclose = null;
+        wsRef.current.close();
+      }
       if (timerRef.current) window.clearInterval(timerRef.current);
     };
   }, [connect]);
@@ -201,6 +242,7 @@ export default function ScanPage() {
   }, [sendFrame]);
 
   async function startScanning() {
+    unlockAudio(); // browsers allow sound only after a user gesture
     try {
       if (session.data?.status === "draft" || session.data?.status === "paused" || session.data?.status === "completed") {
         await api.post(`/sessions/${sessionId}/start`);
@@ -235,6 +277,21 @@ export default function ScanPage() {
   const total = counters.accepted ?? 0;
   const expected = session.data?.expected_sheet_count ?? 0;
 
+  // Space bar toggles start/pause — the teacher's hands are on the paper.
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if (event.code !== "Space") return;
+      const target = event.target as HTMLElement | null;
+      if (target && ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)) return;
+      event.preventDefault();
+      if (scanningRef.current) pauseScanning();
+      else void startScanning();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session.data?.status]);
+
   return (
     <>
       <h1 className="page-title">
@@ -247,7 +304,8 @@ export default function ScanPage() {
       </h1>
 
       {camera.error && <div className="error-box">{camera.error}</div>}
-      {wsError && <div className="error-box">{wsError}</div>}
+      {wsError && !reconnecting && <div className="error-box">{wsError}</div>}
+      {reconnecting && <div className="error-box">Связь с сервером потеряна — переподключение… Сканирование продолжится автоматически.</div>}
       {calibrated === false && (
         <div className="error-box">
           Камера не откалибрована — детекция будет менее надёжной. <Link to="/calibration">Пройти калибровку</Link>.
@@ -282,6 +340,17 @@ export default function ScanPage() {
             <button className="btn success" onClick={completeSession}>
               Завершить сессию
             </button>
+            <button
+              className="btn"
+              title={soundOn ? "Выключить звук" : "Включить звук"}
+              onClick={() => {
+                unlockAudio();
+                soundRef.current = !soundRef.current;
+                setSoundOn(soundRef.current);
+              }}
+            >
+              {soundOn ? "🔊" : "🔇"}
+            </button>
             <select
               value={camera.deviceId ?? ""}
               onChange={(e) => camera.start(e.target.value)}
@@ -298,6 +367,7 @@ export default function ScanPage() {
               {camera.resolution ? `${camera.resolution[0]}×${camera.resolution[1]}` : ""}
               {analysisMs ? ` · анализ ${analysisMs} мс` : ""}
               {connected ? "" : " · нет связи с сервером"}
+              {" · Пробел — старт/пауза"}
             </span>
           </div>
 

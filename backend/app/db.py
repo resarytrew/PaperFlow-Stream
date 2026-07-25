@@ -34,6 +34,19 @@ def _set_sqlite_pragma(dbapi_connection, connection_record) -> None:  # pragma: 
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.execute("PRAGMA journal_mode=WAL")
         cursor.close()
+        # SQLite's built-in lower()/upper() are ASCII-only, which breaks
+        # case-insensitive search for Cyrillic names. Override with Python's
+        # Unicode-aware implementations.
+        dbapi_connection.create_function("lower", 1, _unicode_lower)
+        dbapi_connection.create_function("upper", 1, _unicode_upper)
+
+
+def _unicode_lower(value):  # pragma: no cover - trivial
+    return value.lower() if isinstance(value, str) else value
+
+
+def _unicode_upper(value):  # pragma: no cover - trivial
+    return value.upper() if isinstance(value, str) else value
 
 
 def get_db() -> Iterator[Session]:
