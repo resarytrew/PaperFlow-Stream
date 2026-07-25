@@ -21,10 +21,22 @@ interface RecentSheet {
   at: number;
 }
 
+interface Roster {
+  classLinked: boolean;
+  students: { studentId: number; externalId: string; name: string; sheets: number; ok: number; problem: number; status: string }[];
+  submitted: number;
+  missing: number;
+  totalStudents: number;
+}
+
 export default function ScanPage() {
   const { id } = useParams();
   const sessionId = Number(id);
   const session = useApi<ScanSession>(() => api.get(`/sessions/${sessionId}`), [sessionId]);
+  const roster = useApi<Roster>(() => api.get(`/sessions/${sessionId}/roster`), [sessionId]);
+  const [sideTab, setSideTab] = useState<"recent" | "roster">("recent");
+  const rosterRefreshRef = useRef<(() => void) | null>(null);
+  rosterRefreshRef.current = roster.refresh;
 
   const camera = useCamera();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -203,6 +215,7 @@ export default function ScanPage() {
               ...old,
             ].slice(0, 30),
           );
+          rosterRefreshRef.current?.();
           break;
         }
         case "busy":
@@ -395,19 +408,57 @@ export default function ScanPage() {
         </div>
 
         <div className="panel">
-          <h3 style={{ marginTop: 0 }}>Последние листы</h3>
-          <div className="recent-sheets">
-            {recent.length === 0 && <span className="muted">Отсканированные листы появятся здесь.</span>}
-            {recent.map((r) => (
-              <div key={`${r.at}-${r.id}`} className={`recent-sheet${r.ok ? "" : " warn"}`}>
-                {r.thumbnail ? <img src={r.thumbnail} alt="" /> : <div style={{ width: 46, height: 62 }} />}
-                <div className="meta">
-                  <div className="name">{r.label}</div>
-                  <div className="sub">{r.sub}</div>
-                </div>
-              </div>
-            ))}
+          <div className="tabs" style={{ marginBottom: 10 }}>
+            <button className={`tab${sideTab === "recent" ? " active" : ""}`} onClick={() => setSideTab("recent")}>
+              Последние листы
+            </button>
+            <button className={`tab${sideTab === "roster" ? " active" : ""}`} onClick={() => { setSideTab("roster"); roster.refresh(); }}>
+              Кто не сдал{roster.data?.classLinked ? ` (${roster.data.missing})` : ""}
+            </button>
           </div>
+
+          {sideTab === "recent" && (
+            <div className="recent-sheets">
+              {recent.length === 0 && <span className="muted">Отсканированные листы появятся здесь.</span>}
+              {recent.map((r) => (
+                <div key={`${r.at}-${r.id}`} className={`recent-sheet${r.ok ? "" : " warn"}`}>
+                  {r.thumbnail ? <img src={r.thumbnail} alt="" /> : <div style={{ width: 46, height: 62 }} />}
+                  <div className="meta">
+                    <div className="name">{r.label}</div>
+                    <div className="sub">{r.sub}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {sideTab === "roster" && (
+            <div className="recent-sheets">
+              {!roster.data?.classLinked && <span className="muted">Сессия не привязана к классу.</span>}
+              {roster.data?.classLinked && (
+                <>
+                  <div className="muted" style={{ fontSize: 13 }}>
+                    Сдали {roster.data.submitted} из {roster.data.totalStudents}
+                  </div>
+                  {roster.data.students
+                    .filter((s) => s.status !== "ok")
+                    .map((s) => (
+                      <div key={s.studentId} className="recent-sheet warn" style={{ borderLeftColor: s.status === "missing" ? "var(--amber)" : "var(--red)" }}>
+                        <div className="meta">
+                          <div className="name">{s.name}</div>
+                          <div className="sub">
+                            {s.status === "missing" ? "лист не отсканирован" : `есть проблемные листы: ${s.problem}`}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  {roster.data.students.every((s) => s.status === "ok") && (
+                    <div className="ok-box" style={{ marginBottom: 0 }}>Все работы собраны ✓</div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </>

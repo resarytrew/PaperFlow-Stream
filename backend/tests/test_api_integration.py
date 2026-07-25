@@ -324,14 +324,65 @@ def test_ocr_mock_provider_end_to_end(api_client):
     assert recognition["recognized_text"].strip()
     assert 0.0 < recognition["overall_confidence"] <= 1.0
 
+    # answer hint: the task has expected_answer="x = 7"; the mock text is
+    # history phrases, so the verdict must be an honest mismatch with evidence
+    analysis = recognition.get("analysis_json") or {}
+    check = analysis.get("answerCheck")
+    assert check is not None, "answerCheck missing from analysis"
+    assert check["verdict"] == "mismatch"
+    assert check["disclaimer"]
+
     counts = api_client.get(f"/api/sessions/{session_id}/review/counts").json()
     assert counts["all"] == 1
     assert (counts["high_confidence"] + counts["needs_review"] + counts["low_confidence"]) >= 1
+
+    # teacher corrects the text to the right answer -> hint recomputed
+    response = api_client.post(
+        f"/api/sheets/{sheet_id}/review",
+        json={"decision": "corrected", "teacher_text": "х = 7", "comment": ""},  # Cyrillic х
+    )
+    assert response.status_code == 200
+    check = (response.json()["recognition"]["analysis_json"] or {}).get("answerCheck")
+    assert check is not None
+    assert check["verdict"] == "match"
+    assert check["source"] == "teacher_text"
 
     # blank override flips the verdict without deleting anything
     response = api_client.post(f"/api/sheets/{sheet_id}/blank-override?is_blank=true")
     assert response.status_code == 200
     assert response.json()["recognition"]["status"] == "blank"
+
+
+def test_roster_tracks_missing_students(api_client):
+    """The 'кто не сдал' panel: submitted vs missing per class list."""
+    class_id, task_id, student_ids = _make_catalog(api_client)
+    session_id = _make_session(api_client, class_id, task_id)
+    _speed_up_scanning(api_client)
+    api_client.post(f"/api/sessions/{session_id}/start")
+
+    # before any scan: everyone is missing
+    roster = api_client.get(f"/api/sessions/{session_id}/roster").json()
+    assert roster["classLinked"] is True
+    assert roster["totalStudents"] == 2
+    assert roster["submitted"] == 0
+    assert roster["missing"] == 2
+
+    # S-101 hands in a sheet
+    payload = {"version": 1, "studentId": "S-101", "classId": "7Б", "taskId": "T-042", "sheetId": "S-101-T-042-1"}
+    result = _scan_one_sheet(api_client, session_id, payload)
+    assert result is not None and result["result"]["success"]
+
+    roster = api_client.get(f"/api/sessions/{session_id}/roster").json()
+    assert roster["submitted"] == 1
+    assert roster["missing"] == 1
+    by_ext = {s["externalId"]: s for s in roster["students"]}
+    assert by_ext["S-101"]["status"] == "ok"
+    assert by_ext["S-102"]["status"] == "missing"
+
+    # a session without a class reports classLinked=False
+    bare = api_client.post("/api/sessions", json={"title": "Без класса"}).json()
+    roster = api_client.get(f"/api/sessions/{bare['id']}/roster").json()
+    assert roster["classLinked"] is False
 
 
 def test_dashboard_reflects_activity(api_client):
