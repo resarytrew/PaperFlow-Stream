@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import os
 import socket
 import subprocess
@@ -18,11 +19,13 @@ import threading
 import time
 import urllib.request
 import webbrowser
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from urllib.parse import urlsplit
 
 DEFAULT_PORT = 17841
 DEFAULT_HOST = "127.0.0.1"
+LOGGER_NAME = "paperflow.desktop"
 
 
 def default_data_dir() -> Path:
@@ -37,6 +40,52 @@ def default_data_dir() -> Path:
 
 def desktop_config_path(data_dir: Path) -> Path:
     return data_dir / "hub" / "desktop.json"
+
+
+def desktop_log_path(data_dir: Path) -> Path:
+    return data_dir / "logs" / "hub.log"
+
+
+def configure_desktop_logging(data_dir: Path) -> Path:
+    """Configure process logging without relying on console streams.
+
+    PyInstaller windowed executables set ``sys.stdout`` and ``sys.stderr`` to
+    ``None``. Uvicorn's default colour formatter probes ``stdout.isatty()``, so
+    the desktop host supplies its own file handler and later starts Uvicorn with
+    ``log_config=None``.
+    """
+
+    log_path = desktop_log_path(data_dir)
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+
+    root = logging.getLogger()
+    marker = str(log_path.resolve())
+    already_configured = any(
+        isinstance(handler, RotatingFileHandler)
+        and getattr(handler, "baseFilename", "") == marker
+        for handler in root.handlers
+    )
+    if not already_configured:
+        handler = RotatingFileHandler(
+            log_path,
+            maxBytes=5 * 1024 * 1024,
+            backupCount=3,
+            encoding="utf-8",
+        )
+        handler.setFormatter(
+            logging.Formatter(
+                "%(asctime)s %(levelname)s %(name)s %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S",
+            )
+        )
+        root.addHandler(handler)
+
+    root.setLevel(logging.INFO)
+    for logger_name in ("uvicorn", "uvicorn.error", "uvicorn.access", LOGGER_NAME):
+        logger = logging.getLogger(logger_name)
+        logger.setLevel(logging.INFO)
+        logger.propagate = True
+    return log_path
 
 
 def load_desktop_config(data_dir: Path) -> dict:
@@ -156,6 +205,21 @@ def build_tray_icon():
     return image
 
 
+def build_uvicorn_config(*, port: int):
+    """Create a console-independent Uvicorn configuration."""
+
+    import uvicorn
+
+    return uvicorn.Config(
+        "app.main:app",
+        host=DEFAULT_HOST,
+        port=port,
+        log_level="info",
+        access_log=False,
+        log_config=None,
+    )
+
+
 def run_tray(server, *, web_url: str, local_url: str, data_dir: Path) -> None:
     try:
         import pystray
@@ -208,16 +272,13 @@ def run_server(*, port: int, web_url: str, data_dir: Path, background: bool) -> 
     configure_environment(data_dir=data_dir, port=port, web_url=web_url)
     import uvicorn
 
-    config = uvicorn.Config(
-        "app.main:app",
-        host=DEFAULT_HOST,
-        port=port,
-        log_level="info",
-        access_log=False,
-    )
+    config = build_uvicorn_config(port=port)
     server = uvicorn.Server(config)
     local_url = f"http://{DEFAULT_HOST}:{port}"
 
+    logging.getLogger(LOGGER_NAME).info(
+        "Starting PaperFlow Hub on %s (background=%s)", local_url, background
+    )
     if background:
         run_tray(server, web_url=web_url, local_url=local_url, data_dir=data_dir)
     else:
@@ -251,6 +312,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     data_dir = args.data_dir.expanduser().resolve()
+    configure_desktop_logging(data_dir)
     saved = load_desktop_config(data_dir)
 
     if args.set_web_url:
@@ -270,5 +332,30 @@ def main(argv: list[str] | None = None) -> int:
     return run_server(port=args.port, web_url=web_url, data_dir=data_dir, background=args.background)
 
 
+def show_startup_error(error: BaseException) -> None:
+    logging.getLogger(LOGGER_NAME).exception("PaperFlow Hub failed to start", exc_info=error)
+    if sys.platform != "win32":
+        return
+    try:
+        import ctypes
+
+        ctypes.windll.user32.MessageBoxW(  # type: ignore[attr-defined]
+            0,
+            "PaperFlow Hub не удалось запустить.\n\n"
+            f"{type(error).__name__}: {error}\n\n"
+            f"Диагностика: {desktop_log_path(default_data_dir())}",
+            "PaperFlow Hub",
+            0x10,
+        )
+    except Exception:
+        pass
+
+
 if __name__ == "__main__":
-    raise SystemExit(main())
+    try:
+        raise SystemExit(main())
+    except BaseException as exc:
+        if isinstance(exc, (KeyboardInterrupt, SystemExit)):
+            raise
+        show_startup_error(exc)
+        raise
