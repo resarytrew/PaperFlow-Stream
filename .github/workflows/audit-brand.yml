@@ -1,4 +1,4 @@
-name: Audit legacy branding
+name: Verify Chistovik tag
 
 on:
   push:
@@ -9,28 +9,31 @@ on:
 
 permissions:
   contents: write
+  actions: read
 
 jobs:
-  audit:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - name: Find legacy brand references
+      - name: Capture tag workflow status
+        env:
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          grep -RInE 'PaperFlow|PAPERFLOW|paperflow' . \
-            --exclude-dir=.git \
-            --exclude=brand-audit.txt \
-            --exclude=package-lock.json \
-            > brand-audit.txt || true
-          cat brand-audit.txt
-      - name: Commit audit report
+          gh run list --repo "$GITHUB_REPOSITORY" --workflow extract-rebrand-error.yml --limit 5 --json databaseId,status,conclusion,headSha,url,createdAt > tag-status.json
+          run_id=$(python -c 'import json; d=json.load(open("tag-status.json")); print(d[0]["databaseId"] if d else "")')
+          if [ -n "$run_id" ]; then
+            gh run view "$run_id" --repo "$GITHUB_REPOSITORY" --log > tag-log.txt 2>&1 || true
+          fi
+      - name: Commit verification
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add brand-audit.txt
-          git commit -m "chore: record legacy brand references"
+          git add tag-status.json tag-log.txt
+          git commit -m "chore: verify Chistovik release tag"
+          git pull --rebase origin main
           git push
