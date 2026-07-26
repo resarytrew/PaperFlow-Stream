@@ -1,0 +1,511 @@
+rebrand	Set up job	﻿2026-07-26T10:11:08.9660363Z Current runner version: '2.336.0'
+rebrand	Set up job	2026-07-26T10:11:08.9686730Z ##[group]Runner Image Provisioner
+rebrand	Set up job	2026-07-26T10:11:08.9687775Z Hosted Compute Agent
+rebrand	Set up job	2026-07-26T10:11:08.9688384Z Version: 20260707.563
+rebrand	Set up job	2026-07-26T10:11:08.9688999Z Commit: 02667638d2b423fbc733a8e32a88b44996a3ba6e
+rebrand	Set up job	2026-07-26T10:11:08.9689838Z Build Date: 2026-07-07T19:33:50Z
+rebrand	Set up job	2026-07-26T10:11:08.9690573Z Worker ID: {82687969-fb5e-4cf5-8d92-6d1748031a41}
+rebrand	Set up job	2026-07-26T10:11:08.9691362Z Azure Region: centralus
+rebrand	Set up job	2026-07-26T10:11:08.9691985Z ##[endgroup]
+rebrand	Set up job	2026-07-26T10:11:08.9693330Z ##[group]Operating System
+rebrand	Set up job	2026-07-26T10:11:08.9694034Z Ubuntu
+rebrand	Set up job	2026-07-26T10:11:08.9694582Z 24.04.4
+rebrand	Set up job	2026-07-26T10:11:08.9695528Z LTS
+rebrand	Set up job	2026-07-26T10:11:08.9696146Z ##[endgroup]
+rebrand	Set up job	2026-07-26T10:11:08.9696912Z ##[group]Runner Image
+rebrand	Set up job	2026-07-26T10:11:08.9697569Z Image: ubuntu-24.04
+rebrand	Set up job	2026-07-26T10:11:08.9698164Z Version: 20260720.247.2
+rebrand	Set up job	2026-07-26T10:11:08.9699278Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260720.247/images/ubuntu/Ubuntu2404-Readme.md
+rebrand	Set up job	2026-07-26T10:11:08.9701066Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260720.247
+rebrand	Set up job	2026-07-26T10:11:08.9702056Z ##[endgroup]
+rebrand	Set up job	2026-07-26T10:11:08.9703200Z ##[group]GITHUB_TOKEN Permissions
+rebrand	Set up job	2026-07-26T10:11:08.9705210Z Contents: write
+rebrand	Set up job	2026-07-26T10:11:08.9705856Z Metadata: read
+rebrand	Set up job	2026-07-26T10:11:08.9706625Z ##[endgroup]
+rebrand	Set up job	2026-07-26T10:11:08.9708814Z Secret source: Actions
+rebrand	Set up job	2026-07-26T10:11:08.9710000Z Prepare workflow directory
+rebrand	Set up job	2026-07-26T10:11:09.0053197Z Prepare all required actions
+rebrand	Set up job	2026-07-26T10:11:09.0095495Z Getting action download info
+rebrand	Set up job	2026-07-26T10:11:09.2612820Z Download action repository 'actions/checkout@v6' (SHA:d23441a48e516b6c34aea4fa41551a30e30af803)
+rebrand	Set up job	2026-07-26T10:11:09.6817960Z Download action repository 'actions/setup-python@v6' (SHA:ece7cb06caefa5fff74198d8649806c4678c61a1)
+rebrand	Set up job	2026-07-26T10:11:09.7916455Z Download action repository 'actions/setup-node@v6' (SHA:249970729cb0ef3589644e2896645e5dc5ba9c38)
+rebrand	Set up job	2026-07-26T10:11:10.4008980Z Complete job name: rebrand
+rebrand	Run actions/checkout@v6	﻿2026-07-26T10:11:10.4907670Z ##[group]Run actions/checkout@v6
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.4908981Z with:
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.4909659Z   fetch-depth: 0
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.4910435Z   repository: resarytrew/PaperFlow-Stream
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.4918215Z   token: ***
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.4918969Z   ssh-strict: true
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.4919655Z   ssh-user: git
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.4920337Z   persist-credentials: true
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.4921145Z   clean: true
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.4921707Z   sparse-checkout-cone-mode: true
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.4922292Z   fetch-tags: false
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.4922767Z   show-progress: true
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.4923322Z   lfs: false
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.4923753Z   submodules: false
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.4924237Z   set-safe-directory: true
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.4924746Z   allow-unsafe-pr-checkout: false
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.4925698Z ##[endgroup]
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.5966777Z Syncing repository: resarytrew/PaperFlow-Stream
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.5969647Z ##[group]Getting Git version info
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.5970941Z Working directory is '/home/runner/work/PaperFlow-Stream/PaperFlow-Stream'
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.5972914Z [command]/usr/bin/git version
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6014077Z git version 2.54.0
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6038792Z ##[endgroup]
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6054071Z Temporarily overriding HOME='/home/runner/work/_temp/90c3a5d5-5297-4cda-a86d-86b8ffe92d2f' before making global git config changes
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6056500Z Adding repository directory to the temporary git global config as a safe directory
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6060455Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/PaperFlow-Stream/PaperFlow-Stream
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6111371Z Deleting the contents of '/home/runner/work/PaperFlow-Stream/PaperFlow-Stream'
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6116664Z ##[group]Determining repository object format
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6119849Z ##[endgroup]
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6126849Z ##[group]Initializing the repository
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6128546Z [command]/usr/bin/git init /home/runner/work/PaperFlow-Stream/PaperFlow-Stream
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6221197Z hint: Using 'master' as the name for the initial branch. This default branch name
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6222463Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6223419Z hint: to use in all of your new repositories, which will suppress this warning,
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6224152Z hint: call:
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6224558Z hint:
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6225075Z hint: 	git config --global init.defaultBranch <name>
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6225698Z hint:
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6226808Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6228279Z hint: 'development'. The just-created branch can be renamed via this command:
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6229424Z hint:
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6230446Z hint: 	git branch -m <name>
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6231234Z hint:
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6232167Z hint: Disable this message with "git config set advice.defaultBranchName false"
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6233937Z Initialized empty Git repository in /home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git/
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6245933Z [command]/usr/bin/git remote add origin https://github.com/resarytrew/PaperFlow-Stream
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6325228Z ##[endgroup]
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6326679Z ##[group]Disabling automatic garbage collection
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6330134Z [command]/usr/bin/git config --local gc.auto 0
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6366391Z ##[endgroup]
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6367612Z ##[group]Setting up auth
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6368491Z Removing SSH command configuration
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6374611Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6415089Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6760177Z Removing HTTP extra header
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6766634Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.6808331Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.7063504Z Removing includeIf entries pointing to credentials config files
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.7071633Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.7111529Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.7357790Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-ba6a6471-0470-41d8-8e53-57bc6fdaee85.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.7405373Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git.path /home/runner/work/_temp/git-credentials-ba6a6471-0470-41d8-8e53-57bc6fdaee85.config
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.7443281Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-ba6a6471-0470-41d8-8e53-57bc6fdaee85.config
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.7480564Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-ba6a6471-0470-41d8-8e53-57bc6fdaee85.config
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.7517749Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-ba6a6471-0470-41d8-8e53-57bc6fdaee85.config
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.7552980Z ##[endgroup]
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.7553827Z ##[group]Fetching the repository
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:10.7561456Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:11.2351776Z From https://github.com/resarytrew/PaperFlow-Stream
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:11.2354159Z  * [new branch]      arena/019f97a7-paperflow-stream -> origin/arena/019f97a7-paperflow-stream
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:11.2356491Z  * [new branch]      arena/019f97f2-paperflow-stream -> origin/arena/019f97f2-paperflow-stream
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:11.2358512Z  * [new branch]      arena/019f9863-paperflow-stream -> origin/arena/019f9863-paperflow-stream
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:11.2360620Z  * [new branch]      arena/019f9c65-paperflow-stream -> origin/arena/019f9c65-paperflow-stream
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:11.2362410Z  * [new branch]      main         -> origin/main
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:11.2363557Z  * [new tag]         v0.3.0-pilot -> v0.3.0-pilot
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:11.2364693Z  * [new tag]         v0.3.1-pilot -> v0.3.1-pilot
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:11.2395687Z [command]/usr/bin/git branch --list --remote origin/main
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:11.2432265Z   origin/main
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:11.2445474Z [command]/usr/bin/git rev-parse refs/remotes/origin/main
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:11.2475074Z 7d441f65742437cbe8aff010e2fa6ac111754f49
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:11.2482036Z ##[endgroup]
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:11.2484372Z ##[group]Determining the checkout info
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:11.2487483Z ##[endgroup]
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:11.2489241Z [command]/usr/bin/git sparse-checkout disable
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:11.2541997Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:11.2578739Z ##[group]Checking out the ref
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:11.2581746Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:11.2734561Z Switched to a new branch 'main'
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:11.2736933Z branch 'main' set up to track 'origin/main'.
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:11.2746678Z ##[endgroup]
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:11.2795594Z [command]/usr/bin/git log -1 --format=%H
+rebrand	Run actions/checkout@v6	2026-07-26T10:11:11.2829292Z 7d441f65742437cbe8aff010e2fa6ac111754f49
+rebrand	Run actions/setup-python@v6	﻿2026-07-26T10:11:11.3273062Z ##[group]Run actions/setup-python@v6
+rebrand	Run actions/setup-python@v6	2026-07-26T10:11:11.3274301Z with:
+rebrand	Run actions/setup-python@v6	2026-07-26T10:11:11.3275170Z   python-version: 3.11
+rebrand	Run actions/setup-python@v6	2026-07-26T10:11:11.3276479Z   check-latest: false
+rebrand	Run actions/setup-python@v6	2026-07-26T10:11:11.3287031Z   token: ***
+rebrand	Run actions/setup-python@v6	2026-07-26T10:11:11.3287970Z   update-environment: true
+rebrand	Run actions/setup-python@v6	2026-07-26T10:11:11.3289049Z   allow-prereleases: false
+rebrand	Run actions/setup-python@v6	2026-07-26T10:11:11.3290100Z   freethreaded: false
+rebrand	Run actions/setup-python@v6	2026-07-26T10:11:11.3291061Z ##[endgroup]
+rebrand	Run actions/setup-python@v6	2026-07-26T10:11:11.4600182Z ##[group]Installed versions
+rebrand	Run actions/setup-python@v6	2026-07-26T10:11:11.5805555Z Successfully set up CPython (3.11.15)
+rebrand	Run actions/setup-python@v6	2026-07-26T10:11:11.5808032Z ##[endgroup]
+rebrand	Run actions/setup-node@v6	﻿2026-07-26T10:11:11.6121795Z ##[group]Run actions/setup-node@v6
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:11.6123445Z with:
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:11.6124813Z   node-version: 22
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:11.6126384Z   cache: npm
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:11.6127762Z   cache-dependency-path: frontend/package-lock.json
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:11.6129683Z   check-latest: false
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:11.6143109Z   token: ***
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:11.6144380Z   package-manager-cache: true
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:11.6145831Z env:
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:11.6147496Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.15/x64
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:11.6149545Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib/pkgconfig
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:11.6151569Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:11.6153119Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:11.6154665Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:11.6156447Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:11.6157951Z ##[endgroup]
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:11.7644434Z Found in cache @ /opt/hostedtoolcache/node/22.23.1/x64
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:11.7647337Z ##[group]Environment details
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:23.8919945Z node: v22.23.1
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:23.8920576Z npm: 10.9.8
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:23.8920947Z yarn: 1.22.22
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:23.8922684Z ##[endgroup]
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:23.8942347Z [command]/opt/hostedtoolcache/node/22.23.1/x64/bin/npm config get cache
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:24.7454415Z /home/runner/.npm
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:24.8815074Z Cache hit for: node-cache-Linux-x64-npm-87748f027701b8160af8724379cce09ca7c5bde57fafe69784f41c105dfb5332
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:25.6142380Z Received 16674221 of 16674221 (100.0%), 26.3 MBs/sec
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:25.6143733Z Cache Size: ~16 MB (16674221 B)
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:25.6173267Z [command]/usr/bin/tar -xf /home/runner/work/_temp/6e978f5e-cda6-4bed-8e99-5f8ceb4a09cc/cache.tzst -P -C /home/runner/work/PaperFlow-Stream/PaperFlow-Stream --use-compress-program unzstd
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:25.6607730Z Cache restored successfully
+rebrand	Run actions/setup-node@v6	2026-07-26T10:11:25.6624400Z Cache restored from key: node-cache-Linux-x64-npm-87748f027701b8160af8724379cce09ca7c5bde57fafe69784f41c105dfb5332
+rebrand	Apply product rebrand	﻿2026-07-26T10:11:25.6792611Z ##[group]Run python - <<'PY'
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6793479Z ^[[36;1mpython - <<'PY'^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6793757Z ^[[36;1mfrom pathlib import Path^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6794094Z ^[[36;1mimport re^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6794318Z ^[[36;1m^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6794522Z ^[[36;1mroot = Path(".")^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6794775Z ^[[36;1mexcluded = {^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6795101Z ^[[36;1m    Path(".github/workflows/rebrand-chistovik.yml"),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6795540Z ^[[36;1m    Path(".github/workflows/audit-brand.yml"),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6795866Z ^[[36;1m    Path("brand-audit.txt"),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6796480Z ^[[36;1m    Path("brand-audit-after.txt"),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6796841Z ^[[36;1m}^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6797287Z ^[[36;1mtext_suffixes = {".py", ".ts", ".tsx", ".js", ".json", ".html", ".md", ".txt", ".yml", ".yaml", ".sh", ".bat", ".iss", ".spec", ".ini"}^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6797803Z ^[[36;1m^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6798069Z ^[[36;1mdef write(path: str | Path, text: str) -> None:^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6798482Z ^[[36;1m    Path(path).write_text(text, encoding="utf-8")^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6798788Z ^[[36;1m^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6799129Z ^[[36;1mdef edit(path: str | Path, replacements: list[tuple[str, str]]) -> None:^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6799567Z ^[[36;1m    p = Path(path)^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6799846Z ^[[36;1m    text = p.read_text(encoding="utf-8")^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6800181Z ^[[36;1m    for old, new in replacements:^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6800509Z ^[[36;1m        text = text.replace(old, new)^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6800811Z ^[[36;1m    write(p, text)^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6801054Z ^[[36;1m^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6801386Z ^[[36;1m# Replace the visible product name while preserving protocol headers,^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6801918Z ^[[36;1m# environment variables, repository slug and lowercase compatibility keys.^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6802340Z ^[[36;1mfor path in root.rglob("*"):^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6802729Z ^[[36;1m    if not path.is_file() or path in excluded or ".git" in path.parts:^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6803099Z ^[[36;1m        continue^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6803589Z ^[[36;1m    if path.suffix.lower() not in text_suffixes and path.name not in {"README.md", ".env.example", ".env.production"}:^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6804095Z ^[[36;1m        continue^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6804313Z ^[[36;1m    try:^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6804566Z ^[[36;1m        text = path.read_text(encoding="utf-8")^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6804904Z ^[[36;1m    except UnicodeDecodeError:^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6805178Z ^[[36;1m        continue^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6805394Z ^[[36;1m^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6805595Z ^[[36;1m    protected = {^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6805866Z ^[[36;1m        "__PF_REPO__": "PaperFlow-Stream",^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6806399Z ^[[36;1m        "__PF_HEADER__": "X-PaperFlow",^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6806696Z ^[[36;1m    }^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6806938Z ^[[36;1m    for token, value in protected.items():^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6807256Z ^[[36;1m        text = text.replace(value, token)^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6807536Z ^[[36;1m^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6807731Z ^[[36;1m    for old, new in (^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6808031Z ^[[36;1m        ("PaperFlow Hybrid Local Hub", "Чистовик"),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6808392Z ^[[36;1m        ("PaperFlow Hybrid Hub", "Чистовик"),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6808728Z ^[[36;1m        ("PaperFlow Personal Hub", "Чистовик"),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6809260Z ^[[36;1m        ("PaperFlow Stream", "Чистовик"),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6809564Z ^[[36;1m        ("PaperFlow Web", "Чистовик"),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6809856Z ^[[36;1m        ("PaperFlow Hub", "Чистовик"),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6810120Z ^[[36;1m    ):^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6810353Z ^[[36;1m        text = text.replace(old, new)^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6810704Z ^[[36;1m    text = re.sub(r"\bPaperFlow\b", "Чистовик", text)^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6811016Z ^[[36;1m^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6811248Z ^[[36;1m    for token, value in protected.items():^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6811571Z ^[[36;1m        text = text.replace(token, value)^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6812029Z ^[[36;1m^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6812326Z ^[[36;1m    text = text.replace("PaperFlowHubSetup", "ChistovikSetup")^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6812774Z ^[[36;1m    text = text.replace("PaperFlowHub.exe", "Chistovik.exe")^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6813215Z ^[[36;1m    text = text.replace("dist\\PaperFlowHub", "dist\\Chistovik")^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6813685Z ^[[36;1m    text = text.replace("dist/PaperFlowHub", "dist/Chistovik")^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6814204Z ^[[36;1m    text = text.replace("PaperFlowHub-Windows", "Chistovik-Windows")^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6814726Z ^[[36;1m    text = text.replace("paperflow-icon.svg", "chistovik-icon.svg")^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6815181Z ^[[36;1m    text = text.replace("paperflow-web-v1", "chistovik-web-v2")^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6815655Z ^[[36;1m    text = text.replace("paperflow.example.ru", "chistovik.example.ru")^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6816397Z ^[[36;1m    text = text.replace("web.paperflow.example", "web.chistovik.example")^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6816986Z ^[[36;1m    text = text.replace("paperflow.school.local", "chistovik.school.local")^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6817555Z ^[[36;1m    text = text.replace("paperflow-pilot.vercel.app", "chistovik-pilot.vercel.app")^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6818072Z ^[[36;1m    text = text.replace("app.paperflow.ru", "app.chistovik.ru")^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6818495Z ^[[36;1m    text = text.replace("paperflow-web", "chistovik-web")^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6818871Z ^[[36;1m    write(path, text)^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6819117Z ^[[36;1m^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6819438Z ^[[36;1m# Keep the established data directory and protocol keys so 0.3.1 data,^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6819962Z ^[[36;1m# browser pairing and installed clients continue to work after the rebrand.^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6820380Z ^[[36;1medit("backend/app/desktop.py", [^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6820751Z ^[[36;1m    ('return root / "Чистовик"', 'return root / "PaperFlow"'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6821456Z ^[[36;1m    ('return Path.home() / "Library" / "Application Support" / "Чистовик"', 'return Path.home() / "Library" / "Application Support" / "PaperFlow"'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6822276Z ^[[36;1m    ('return payload.get("product") == "Чистовик"', 'return payload.get("product") in {"Чистовик", "PaperFlow Hub"}'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6822881Z ^[[36;1m    ('"PaperFlowHub",\n        image,', '"Chistovik",\n        image,'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6823536Z ^[[36;1m    ('pystray.MenuItem("Открыть Чистовик", open_web, default=True)', 'pystray.MenuItem("Открыть Чистовик", open_web, default=True)'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6824179Z ^[[36;1m    ('description="Чистовик"', 'description="Локальный модуль «Чистовик»"'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6824575Z ^[[36;1m])^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6824772Z ^[[36;1m^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6825001Z ^[[36;1medit("frontend/src/hub/runtime.ts", [^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6825664Z ^[[36;1m    ('const DEFAULT_WORKSPACE = "personal";', 'const DEFAULT_WORKSPACE = "personal";\nconst SUPPORTED_PRODUCTS = new Set(["Чистовик", "PaperFlow Hub"]);'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6826922Z ^[[36;1m    ('if (info.product !== "Чистовик" || info.protocolVersion !== 1) {', 'if (!SUPPORTED_PRODUCTS.has(info.product) || info.protocolVersion !== 1) {'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6827595Z ^[[36;1m    ('Чистовик ответил с кодом', 'Локальный модуль «Чистовик» ответил с кодом'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6828018Z ^[[36;1m    ('Чистовик не найден', 'Локальный модуль «Чистовик» не найден'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6828624Z ^[[36;1m    ('Адрес Hub должен указывать', 'Адрес локального модуля должен указывать'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6829072Z ^[[36;1m    ('Чистовик ещё не подключён', 'Локальный модуль «Чистовик» ещё не подключён'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6829415Z ^[[36;1m])^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6829612Z ^[[36;1m^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6829820Z ^[[36;1medit("frontend/src/App.tsx", [^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6830137Z ^[[36;1m    ('Paper<span>Flow</span> Web', 'Чистовик'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6830606Z ^[[36;1m    ('Hub {hub.connection?.info.version}', 'Локальный модуль {hub.connection?.info.version}'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6831224Z ^[[36;1m    ('Отключить Hub', 'Отключить модуль'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6831502Z ^[[36;1m])^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6831689Z ^[[36;1m^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6831928Z ^[[36;1medit("frontend/src/hub/HubProvider.tsx", [^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6832376Z ^[[36;1m    ('const REQUIRED_HUB_VERSION = "0.3.1";', 'const REQUIRED_HUB_VERSION = "0.3.2";'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6832971Z ^[[36;1m    ('v0.3.1-pilot/ChistovikSetup-0.3.1.exe', 'v0.3.2-pilot/ChistovikSetup-0.3.2.exe'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6833488Z ^[[36;1m    ('releases/tag/v0.3.1-pilot', 'releases/tag/v0.3.2-pilot'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6834118Z ^[[36;1m    ('Hub найден, но этот адрес Чистовик ещё не подтверждён.', 'Локальный модуль найден, но этот адрес «Чистовика» ещё не подтверждён.'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6834643Z ^[[36;1m    ('Локальный Чистовик', 'Локальный модуль «Чистовик»'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6835044Z ^[[36;1m    ('Hub уже установлен — проверить', 'Чистовик уже установлен — проверить'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6835473Z ^[[36;1m    ('Ожидаю запуск Hub.', 'Ожидаю запуск «Чистовика».'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6835813Z ^[[36;1m    ('Hub найден.', 'Чистовик найден.'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6836134Z ^[[36;1m    ('Адрес локального Hub', 'Адрес локального модуля'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6836606Z ^[[36;1m    ('локальный Hub', 'локальный модуль'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6836957Z ^[[36;1m    ('PaperFlowHubSetup.exe', 'ChistovikSetup.exe'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6837315Z ^[[36;1m])^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6837506Z ^[[36;1m^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6837988Z ^[[36;1medit("frontend/index.html", [('<meta name="theme-color" content="#15202b" />', '<meta name="theme-color" content="#171918" />')])^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6838520Z ^[[36;1m^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6838812Z ^[[36;1mmanifest = Path("frontend/public/manifest.webmanifest")^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6839176Z ^[[36;1mwrite(manifest, '''{^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6839437Z ^[[36;1m  "name": "Чистовик",^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6839690Z ^[[36;1m  "short_name": "Чистовик",^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6840080Z ^[[36;1m  "description": "Локальное сканирование и проверка письменных работ",^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6840449Z ^[[36;1m  "start_url": "/",^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6840701Z ^[[36;1m  "display": "standalone",^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6840980Z ^[[36;1m  "background_color": "#f3f1ec",^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6841265Z ^[[36;1m  "theme_color": "#171918",^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6841524Z ^[[36;1m  "icons": [^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6841742Z ^[[36;1m    {^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6841975Z ^[[36;1m      "src": "/chistovik-icon.svg",^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6842272Z ^[[36;1m      "sizes": "any",^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6842537Z ^[[36;1m      "type": "image/svg+xml",^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6842816Z ^[[36;1m      "purpose": "any maskable"^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6843094Z ^[[36;1m    }^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6843299Z ^[[36;1m  ]^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6843487Z ^[[36;1m}^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6843676Z ^[[36;1m''')^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6843868Z ^[[36;1m^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6844549Z ^[[36;1mwrite("frontend/public/chistovik-icon.svg", '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Чистовик">^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6845281Z ^[[36;1m  <rect width="512" height="512" rx="96" fill="#F3F1EC"/>^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6845760Z ^[[36;1m  <path d="M112 104h72v136h144V104h72v304h-72v-96H112V104z" fill="#171918"/>^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6846317Z ^[[36;1m  <path d="M328 312h72v96h-72z" fill="#3157FF"/>^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6846778Z ^[[36;1m</svg>^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6846989Z ^[[36;1m''')^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6847289Z ^[[36;1mold_icon = Path("frontend/public/paperflow-icon.svg")^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6847645Z ^[[36;1mif old_icon.exists():^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6847902Z ^[[36;1m    old_icon.unlink()^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6848139Z ^[[36;1m^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6848569Z ^[[36;1medit("frontend/src/pages/SettingsPage.tsx", [('"paperflow_backup.zip"', '"chistovik_backup.zip"')])^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6849425Z ^[[36;1medit("backend/app/api/routes_scan.py", [('f"paperflow_diagnostics_s{session_id}_{stamp}.zip"', 'f"chistovik_diagnostics_s{session_id}_{stamp}.zip"')])^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6850429Z ^[[36;1medit("backend/app/api/routes_export.py", [('f"paperflow_{_stamp(session)}.', 'f"chistovik_{_stamp(session)}.')])^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6851240Z ^[[36;1medit("backend/app/api/routes_maintenance.py", [('f"paperflow_backup_{stamp}.zip"', 'f"chistovik_backup_{stamp}.zip"')])^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6851787Z ^[[36;1m^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6852000Z ^[[36;1medit("backend/app/main.py", [^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6852328Z ^[[36;1m    ('title="Чистовик API"', 'title="Чистовик API"'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6852796Z ^[[36;1m    ('description="Локальный контур Чистовик:', 'description="Локальный контур «Чистовика»:'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6853303Z ^[[36;1m    ('Откройте облачный Чистовик', 'Откройте веб-приложение «Чистовик»'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6853637Z ^[[36;1m])^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6853858Z ^[[36;1medit("backend/app/config.py", [^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6854211Z ^[[36;1m    ('app_name: str = "Чистовик"', 'app_name: str = "Чистовик"'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6854626Z ^[[36;1m    ('version: str = "0.3.1"', 'version: str = "0.3.2"'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6854940Z ^[[36;1m])^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6855175Z ^[[36;1medit("backend/app/api/routes_hub.py", [^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6855602Z ^[[36;1m    ('<title>Подключение Чистовик</title>', '<title>Подключение к «Чистовику»</title>'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6856095Z ^[[36;1m    ('<h1>Подключение к Чистовик</h1>', '<h1>Подключение к «Чистовику»</h1>'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6856850Z ^[[36;1m    ('открытым Чистовик', 'открытым приложением «Чистовик»'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6857230Z ^[[36;1m    ('в окне Чистовик', 'в окне «Чистовика»'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6857514Z ^[[36;1m])^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6857704Z ^[[36;1m^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6857956Z ^[[36;1medit("packaging/windows/PaperFlowHub.spec", [^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6858320Z ^[[36;1m    ('name="PaperFlowHub"', 'name="Chistovik"'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6858632Z ^[[36;1m])^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6858901Z ^[[36;1medit("packaging/windows/PaperFlowHub.iss", [^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6859316Z ^[[36;1m    ('#define MyAppName "Чистовик"', '#define MyAppName "Чистовик"'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6859784Z ^[[36;1m    ('#define MyAppVersion "0.3.1"', '#define MyAppVersion "0.3.2"'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6860275Z ^[[36;1m    ('#define MyAppPublisher "Чистовик"', '#define MyAppPublisher "Чистовик"'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6861031Z ^[[36;1m    ('#define MyAppExeName "Chistovik.exe"', '#define MyAppExeName "Chistovik.exe"'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6861572Z ^[[36;1m    ('VersionInfoVersion=0.3.1.0', 'VersionInfoVersion=0.3.2.0'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6862174Z ^[[36;1m    ('DefaultDirName={localappdata}\\Programs\\Чистовик', 'DefaultDirName={localappdata}\\Programs\\Чистовик'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6862941Z ^[[36;1m    ('OutputBaseFilename=ChistovikSetup-{#MyAppVersion}', 'OutputBaseFilename=ChistovikSetup-{#MyAppVersion}'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6863539Z ^[[36;1m    ('Name: "{group}\\Чистовик"', 'Name: "{group}\\Чистовик"'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6864126Z ^[[36;1m    ('Name: "{userdesktop}\\Чистовик"', 'Name: "{userdesktop}\\Чистовик"'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6864567Z ^[[36;1m    ('Создать ярлык Чистовик', 'Создать ярлык «Чистовик»'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6864943Z ^[[36;1m    ('Запустить Чистовик', 'Запустить «Чистовик»'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6865244Z ^[[36;1m])^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6865457Z ^[[36;1m^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6865717Z ^[[36;1m# Update release names and versioned public links.^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6866688Z ^[[36;1mfor path in [^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6867012Z ^[[36;1m    Path(".github/workflows/release-personal-hub.yml"),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6867372Z ^[[36;1m    Path("frontend/.env.example"),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6867691Z ^[[36;1m    Path("frontend/.env.production"),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6868013Z ^[[36;1m    Path("docs/VERCEL_DEPLOYMENT.md"),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6868330Z ^[[36;1m    Path("README.md"),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6868627Z ^[[36;1m    Path("deploy/yandex-cloud/README.md"),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6868938Z ^[[36;1m]:^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6869154Z ^[[36;1m    if not path.exists():^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6869420Z ^[[36;1m        continue^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6869716Z ^[[36;1m    text = path.read_text(encoding="utf-8")^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6870082Z ^[[36;1m    text = text.replace("v0.3.1-pilot", "v0.3.2-pilot")^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6870548Z ^[[36;1m    text = re.sub(r"ChistovikSetup-0\.3\.[01]", "ChistovikSetup-0.3.2", text)^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6871095Z ^[[36;1m    text = text.replace("VersionInfoVersion=0.3.1.0", "VersionInfoVersion=0.3.2.0")^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6871525Z ^[[36;1m    write(path, text)^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6871766Z ^[[36;1m^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6872040Z ^[[36;1medit(".github/workflows/release-personal-hub.yml", [^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6872452Z ^[[36;1m    ('name: Build Personal Hub', 'name: Build Chistovik'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6872869Z ^[[36;1m    ('Build Чистовик assets', 'Build Chistovik web assets'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6873413Z ^[[36;1m    ('$health.product -eq "Чистовик"', '$health.product -in @("Чистовик", "PaperFlow Hub")'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6873956Z ^[[36;1m    ('--title "Чистовик $RELEASE_TAG"', '--title "Чистовик $RELEASE_TAG"'),^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6874328Z ^[[36;1m])^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6874522Z ^[[36;1m^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6874845Z ^[[36;1m# Keep legacy test fixtures where they validate protocol compatibility,^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6875381Z ^[[36;1m# but update expectations for the current product response and executable.^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6876006Z ^[[36;1medit("backend/tests/test_desktop_host.py", [('or "PaperFlowHub" in command', 'or "Chistovik" in command')])^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6876762Z ^[[36;1m^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6877031Z ^[[36;1m# Update old installer examples that predate 0.3.1.^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6877574Z ^[[36;1mfor path in [Path("README.md"), Path("deploy/yandex-cloud/README.md"), Path("docs/VERCEL_DEPLOYMENT.md")]:^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6878071Z ^[[36;1m    if path.exists():^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6878384Z ^[[36;1m        text = path.read_text(encoding="utf-8")^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6878836Z ^[[36;1m        text = text.replace("ChistovikSetup-0.3.0.exe", "ChistovikSetup-0.3.2.exe")^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6879450Z ^[[36;1m        text = text.replace("ChistovikSetup-0.3.0.exe.sha256", "ChistovikSetup-0.3.2.exe.sha256")^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6880147Z ^[[36;1m        write(path, text)^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.6880405Z ^[[36;1mPY^[[0m
+rebrand	Apply product rebrand	2026-07-26T10:11:25.7377404Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+rebrand	Apply product rebrand	2026-07-26T10:11:25.7377844Z env:
+rebrand	Apply product rebrand	2026-07-26T10:11:25.7378163Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.15/x64
+rebrand	Apply product rebrand	2026-07-26T10:11:25.7378614Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib/pkgconfig
+rebrand	Apply product rebrand	2026-07-26T10:11:25.7379046Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+rebrand	Apply product rebrand	2026-07-26T10:11:25.7379433Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+rebrand	Apply product rebrand	2026-07-26T10:11:25.7379822Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+rebrand	Apply product rebrand	2026-07-26T10:11:25.7380477Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib
+rebrand	Apply product rebrand	2026-07-26T10:11:25.7380817Z ##[endgroup]
+rebrand	Verify frontend and Python syntax	﻿2026-07-26T10:11:26.7115023Z ##[group]Run cd frontend
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:26.7115357Z ^[[36;1mcd frontend^[[0m
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:26.7115602Z ^[[36;1mnpm ci^[[0m
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:26.7115828Z ^[[36;1mnpm run build^[[0m
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:26.7116423Z ^[[36;1mcd ..^[[0m
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:26.7116791Z ^[[36;1mpython -m compileall -q backend/app^[[0m
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:26.7165847Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:26.7166442Z env:
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:26.7166752Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.15/x64
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:26.7167209Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib/pkgconfig
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:26.7167660Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:26.7168051Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:26.7168447Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:26.7168848Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:26.7169187Z ##[endgroup]
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:31.1092505Z 
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:31.1101637Z added 71 packages, and audited 72 packages in 4s
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:31.1102150Z 
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:31.1102479Z 7 packages are looking for funding
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:31.1103073Z   run `npm fund` for details
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:31.1373101Z 
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:31.1374159Z 4 vulnerabilities (3 moderate, 1 high)
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:31.1374852Z 
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:31.1375532Z To address issues that do not require attention, run:
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:31.1376573Z   npm audit fix
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:31.1376987Z 
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:31.1377559Z To address all issues (including breaking changes), run:
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:31.1378344Z   npm audit fix --force
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:31.1378796Z 
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:31.1379199Z Run `npm audit` for details.
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:31.3479234Z 
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:31.3480359Z > paperflow-stream-frontend@0.2.0 build
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:31.3481021Z > tsc -b && vite build
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:31.3481296Z 
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:36.1643396Z ^[[36mvite v5.4.21 ^[[32mbuilding for production...^[[36m^[[39m
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:36.2712270Z transforming...
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:37.1913683Z ^[[32m✓^[[39m 51 modules transformed.
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:37.3418876Z rendering chunks...
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:37.3485204Z computing gzip size...
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:37.5858607Z ^[[2mdist/^[[22m^[[32mindex.html                 ^[[39m^[[1m^[[2m  0.55 kB^[[22m^[[1m^[[22m^[[2m │ gzip:  0.34 kB^[[22m
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:37.5860150Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[35mindex-DhhaW4Cq.css  ^[[39m^[[1m^[[2m 16.34 kB^[[22m^[[1m^[[22m^[[2m │ gzip:  4.20 kB^[[22m
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:37.5861710Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mindex-BcQd8ilU.js   ^[[39m^[[1m^[[2m256.28 kB^[[22m^[[1m^[[22m^[[2m │ gzip: 82.71 kB^[[22m
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:37.5862566Z ^[[32m✓ built in 1.40s^[[39m
+rebrand	Record remaining legacy references	﻿2026-07-26T10:11:38.0622183Z ##[group]Run grep -RInE 'PaperFlow|PAPERFLOW|paperflow' . \
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0622671Z ^[[36;1mgrep -RInE 'PaperFlow|PAPERFLOW|paperflow' . \^[[0m
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0623024Z ^[[36;1m  --exclude-dir=.git \^[[0m
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0623310Z ^[[36;1m  --exclude=brand-audit.txt \^[[0m
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0623607Z ^[[36;1m  --exclude=brand-audit-after.txt \^[[0m
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0623911Z ^[[36;1m  --exclude=package-lock.json \^[[0m
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0624207Z ^[[36;1m  --exclude=rebrand-chistovik.yml \^[[0m
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0624681Z ^[[36;1m  --exclude=audit-brand.yml \^[[0m
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0624974Z ^[[36;1m  > brand-audit-after.txt || true^[[0m
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0673494Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0673850Z env:
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0674133Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.15/x64
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0674565Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib/pkgconfig
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0674988Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0675411Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0675810Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0676367Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0676703Z ##[endgroup]
+rebrand	Commit rebrand	﻿2026-07-26T10:11:38.1848014Z ##[group]Run git config user.name "github-actions[bot]"
+rebrand	Commit rebrand	2026-07-26T10:11:38.1848455Z ^[[36;1mgit config user.name "github-actions[bot]"^[[0m
+rebrand	Commit rebrand	2026-07-26T10:11:38.1848920Z ^[[36;1mgit config user.email "41898282+github-actions[bot]@users.noreply.github.com"^[[0m
+rebrand	Commit rebrand	2026-07-26T10:11:38.1849337Z ^[[36;1mgit add -A^[[0m
+rebrand	Commit rebrand	2026-07-26T10:11:38.1849628Z ^[[36;1mgit commit -m "feat: rebrand PaperFlow as Chistovik"^[[0m
+rebrand	Commit rebrand	2026-07-26T10:11:38.1849962Z ^[[36;1mgit push^[[0m
+rebrand	Commit rebrand	2026-07-26T10:11:38.1898959Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+rebrand	Commit rebrand	2026-07-26T10:11:38.1899314Z env:
+rebrand	Commit rebrand	2026-07-26T10:11:38.1899590Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.15/x64
+rebrand	Commit rebrand	2026-07-26T10:11:38.1900034Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib/pkgconfig
+rebrand	Commit rebrand	2026-07-26T10:11:38.1900455Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+rebrand	Commit rebrand	2026-07-26T10:11:38.1900835Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+rebrand	Commit rebrand	2026-07-26T10:11:38.1901223Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+rebrand	Commit rebrand	2026-07-26T10:11:38.1901643Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib
+rebrand	Commit rebrand	2026-07-26T10:11:38.1901975Z ##[endgroup]
+rebrand	Commit rebrand	2026-07-26T10:11:38.2375687Z [main 58a0021] feat: rebrand PaperFlow as Chistovik
+rebrand	Commit rebrand	2026-07-26T10:11:38.2376649Z  46 files changed, 371 insertions(+), 208 deletions(-)
+rebrand	Commit rebrand	2026-07-26T10:11:38.2377253Z  create mode 100644 brand-audit-after.txt
+rebrand	Commit rebrand	2026-07-26T10:11:38.2377898Z  create mode 100644 frontend/public/chistovik-icon.svg
+rebrand	Commit rebrand	2026-07-26T10:11:38.2378684Z  delete mode 100644 frontend/public/paperflow-icon.svg
+rebrand	Commit rebrand	2026-07-26T10:11:39.2321738Z To https://github.com/resarytrew/PaperFlow-Stream
+rebrand	Commit rebrand	2026-07-26T10:11:39.2323291Z  ! [remote rejected] main -> main (refusing to allow a GitHub App to create or update workflow `.github/workflows/deploy-web-yandex.yml` without `workflows` permission)
+rebrand	Commit rebrand	2026-07-26T10:11:39.2324826Z error: failed to push some refs to 'https://github.com/resarytrew/PaperFlow-Stream'
+rebrand	Commit rebrand	2026-07-26T10:11:39.2353343Z ##[error]Process completed with exit code 1.
+rebrand	Post Run actions/checkout@v6	﻿2026-07-26T10:11:39.2497326Z Post job cleanup.
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.3385823Z [command]/usr/bin/git version
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.3433604Z git version 2.54.0
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.3507989Z Temporarily overriding HOME='/home/runner/work/_temp/e3d0e96c-6425-4daa-bc9c-57e414eb4e7c' before making global git config changes
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.3509867Z Adding repository directory to the temporary git global config as a safe directory
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.3514202Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/PaperFlow-Stream/PaperFlow-Stream
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.3559042Z Removing SSH command configuration
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.3567638Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.3605171Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.3885835Z Removing HTTP extra header
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.3892352Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.3934936Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4217198Z Removing includeIf entries pointing to credentials config files
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4226731Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4259645Z includeif.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git.path
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4261101Z includeif.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git/worktrees/*.path
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4262312Z includeif.gitdir:/github/workspace/.git.path
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4263321Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4270997Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git.path
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4301701Z /home/runner/work/_temp/git-credentials-ba6a6471-0470-41d8-8e53-57bc6fdaee85.config
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4315068Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git.path /home/runner/work/_temp/git-credentials-ba6a6471-0470-41d8-8e53-57bc6fdaee85.config
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4365343Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git/worktrees/*.path
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4399609Z /home/runner/work/_temp/git-credentials-ba6a6471-0470-41d8-8e53-57bc6fdaee85.config
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4412498Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-ba6a6471-0470-41d8-8e53-57bc6fdaee85.config
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4457387Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4488861Z /github/runner_temp/git-credentials-ba6a6471-0470-41d8-8e53-57bc6fdaee85.config
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4497968Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-ba6a6471-0470-41d8-8e53-57bc6fdaee85.config
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4538979Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4567437Z /github/runner_temp/git-credentials-ba6a6471-0470-41d8-8e53-57bc6fdaee85.config
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4576653Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-ba6a6471-0470-41d8-8e53-57bc6fdaee85.config
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4617781Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4863945Z Removing credentials config '/home/runner/work/_temp/git-credentials-ba6a6471-0470-41d8-8e53-57bc6fdaee85.config'
+rebrand	Complete job	﻿2026-07-26T10:11:39.5030613Z Cleaning up orphan processes
