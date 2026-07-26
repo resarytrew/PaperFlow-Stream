@@ -1,4 +1,4 @@
-name: Update Chistovik download link
+name: Finalize Chistovik naming
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  update:
+  finalize:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -24,36 +24,53 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Use existing public release
+      - name: Finalize visible naming
         shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
-          path = Path("frontend/src/hub/HubProvider.tsx")
+
+          for filename in ("frontend/package.json", "frontend/package-lock.json"):
+              path = Path(filename)
+              text = path.read_text(encoding="utf-8")
+              text = text.replace('"paperflow-stream-frontend"', '"chistovik-frontend"')
+              path.write_text(text, encoding="utf-8")
+
+          path = Path("README.md")
           text = path.read_text(encoding="utf-8")
-          text = text.replace(
-              "releases/download/v0.3.2-pilot/ChistovikSetup-0.3.2.exe",
-              "releases/download/v0.3.1-pilot/ChistovikSetup-0.3.2.exe",
-          )
-          text = text.replace(
-              "releases/tag/v0.3.2-pilot",
-              "releases/tag/v0.3.1-pilot",
-          )
+          replacements = [
+              ("- **Чистовик** — браузерный/PWA-интерфейс", "- **Веб-приложение «Чистовик»** — браузерный/PWA-интерфейс"),
+              ("- **Чистовик** — локальный FastAPI/OpenCV/OCR-сервис", "- **Локальный модуль «Чистовик»** — FastAPI/OpenCV/OCR-сервис"),
+              ("внутри Hub.", "внутри локального модуля."),
+              ("Персональный Hub откроется", "Локальный модуль «Чистовик» откроется"),
+              ("# backend / Hub", "# backend / локальный модуль"),
+              ("## Personal Hub для Windows", "## Локальный модуль для Windows"),
+              ("запускает Hub без консоли", "запускает локальный модуль без консоли"),
+              ("подключиться к локальному HTTP Hub", "подключиться к локальному HTTP-модулю"),
+              ("для School Hub в LAN", "для школьного модуля в локальной сети"),
+              ("в Hub:", "в локальном модуле:"),
+              ("внутренних адресам.", "внутренним адресам."),
+              ("## Подготовка к School Hub", "## Подготовка к школьной установке"),
+              ("School mode", "Школьный режим"),
+              ("production Origin в Hub", "production Origin в локальном модуле"),
+          ]
+          for old, new in replacements:
+              text = text.replace(old, new)
           path.write_text(text, encoding="utf-8")
           PY
 
-      - name: Build frontend
+      - name: Verify frontend
         working-directory: frontend
         run: |
           npm ci
           npm run build
 
-      - name: Commit download link
+      - name: Commit final naming
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add frontend/src/hub/HubProvider.tsx
-          git commit -m "fix: use public release for Chistovik 0.3.2"
+          git add README.md frontend/package.json frontend/package-lock.json
+          git commit -m "docs: finalize Chistovik naming"
           git pull --rebase origin main
           git push
