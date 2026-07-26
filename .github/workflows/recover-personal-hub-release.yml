@@ -1,0 +1,76 @@
+name: Recover Personal Hub Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/recover-personal-hub-release.yml
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish-built-installer:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    env:
+      SOURCE_RUN_ID: "30193451370"
+      RELEASE_TAG: "v0.3.0-pilot"
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Capture failed release step log
+        shell: bash
+        run: |
+          mkdir -p ci-release-status
+          gh run view "$SOURCE_RUN_ID" --repo "$GITHUB_REPOSITORY" --log-failed > ci-release-status/publish-failure.log 2>&1 || true
+
+      - name: Download successfully built installer artifact
+        shell: bash
+        run: |
+          mkdir -p release
+          gh run download "$SOURCE_RUN_ID" --repo "$GITHUB_REPOSITORY" --name PaperFlowHub-Windows --dir release
+          find release -maxdepth 2 -type f -print | sort | tee ci-release-status/downloaded-assets.txt
+          test -f release/PaperFlowHubSetup.exe
+          test -f release/PaperFlowHubSetup.exe.sha256
+
+      - name: Publish or replace pilot release assets
+        id: publish
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t assets < <(find release -maxdepth 1 -type f \( -name 'PaperFlowHubSetup*.exe' -o -name 'PaperFlowHubSetup*.exe.sha256' \) -print | sort)
+          if [ "${#assets[@]}" -lt 2 ]; then
+            echo "Expected installer assets were not found" >&2
+            exit 1
+          fi
+
+          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "${assets[@]}" --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$RELEASE_TAG" "${assets[@]}" \
+              --repo "$GITHUB_REPOSITORY" \
+              --target main \
+              --title "PaperFlow Hub $RELEASE_TAG" \
+              --generate-notes \
+              --latest
+          fi
+
+          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json url,tagName,isLatest > ci-release-status/release.json
+
+      - name: Record recovery result
+        if: always()
+        shell: bash
+        run: |
+          cat > ci-release-status/recovery.txt <<EOF
+          source_run=$SOURCE_RUN_ID
+          publish_outcome=${{ steps.publish.outcome }}
+          recovery_run=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          EOF
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f ci-release-status
+          git commit -m "ci: record Personal Hub release recovery"
+          git push origin HEAD:main
