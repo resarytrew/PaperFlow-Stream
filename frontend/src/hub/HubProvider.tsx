@@ -1,4 +1,4 @@
-import { createContext, type ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, type ChangeEvent, type ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import {
   beginPairing,
   clearHubConnection,
@@ -138,7 +138,7 @@ export function HubConnectionGate({ children }: { children: ReactNode }) {
               <span>Адрес локального Hub</span>
               <input
                 value={url}
-                onChange={(event) => setUrl(event.target.value)}
+                onChange={(event: ChangeEvent<HTMLInputElement>) => setUrl(event.target.value)}
                 placeholder="https://127.0.0.1:17841"
                 style={{ padding: 12, border: "1px solid #cbd4da", borderRadius: 10 }}
               />
@@ -185,7 +185,7 @@ export function HubConnectionGate({ children }: { children: ReactNode }) {
             <div style={{ display: "flex", gap: 10 }}>
               <input
                 value={code}
-                onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
+                onChange={(event: ChangeEvent<HTMLInputElement>) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
                 inputMode="numeric"
                 autoComplete="one-time-code"
                 placeholder="000000"
