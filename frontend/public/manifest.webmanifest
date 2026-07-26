@@ -1,11 +1,14 @@
 {
+  "id": "/",
   "name": "Чистовик",
   "short_name": "Чистовик",
-  "description": "Локальное сканирование и проверка письменных работ",
+  "description": "Потоковое сканирование и проверка письменных работ",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#f3f1ec",
-  "theme_color": "#171918",
+  "background_color": "#eeece5",
+  "theme_color": "#171c19",
+  "categories": ["education", "productivity"],
   "icons": [
     {
       "src": "/chistovik-icon.svg",
