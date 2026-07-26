@@ -13,11 +13,20 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.requests import Request
 
-from app.api import routes_camera, routes_catalog, routes_export, routes_review, routes_scan, routes_sessions
+from app.api import (
+    routes_camera,
+    routes_catalog,
+    routes_export,
+    routes_maintenance,
+    routes_review,
+    routes_scan,
+    routes_sessions,
+)
 from app.config import get_settings
 from app.db import SessionLocal, init_db
 from app.services.events import OCR_TOPIC, hub
 from app.services.ocr_queue import ocr_queue
+from app.services.ocr_recovery import recover_interrupted_ocr_jobs
 from app.services.settings_service import load_config
 
 settings = get_settings()
@@ -41,7 +50,14 @@ async def lifespan(app: FastAPI):
         ensure_default_template(db)
 
     await ocr_queue.start(config.ocr.concurrency)
-    logger.info("%s %s ready — data dir: %s", settings.app_name, settings.version, settings.data_dir)
+    recovered = recover_interrupted_ocr_jobs()
+    logger.info(
+        "%s %s ready — data dir: %s; recovered OCR jobs: %s",
+        settings.app_name,
+        settings.version,
+        settings.data_dir,
+        recovered,
+    )
     try:
         yield
     finally:
@@ -101,6 +117,7 @@ app.include_router(routes_scan.router, prefix="/api")
 app.include_router(routes_camera.router, prefix="/api")
 app.include_router(routes_review.router, prefix="/api")
 app.include_router(routes_export.router, prefix="/api")
+app.include_router(routes_maintenance.router, prefix="/api")
 
 
 @app.websocket("/api/ws/ocr")
@@ -153,4 +170,3 @@ else:  # pragma: no cover - depends on whether the SPA was built
                 "api": "/api/health",
             }
         )
-
