@@ -22,10 +22,14 @@ from app.cv.synthetic import SceneOptions, empty_scene, render_scene, render_she
 # --------------------------------------------------------------------- utils
 
 
-def _data_url(frame) -> str:
+def _jpeg_bytes(frame) -> bytes:
     ok, buf = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 88])
     assert ok
-    return "data:image/jpeg;base64," + base64.b64encode(buf).decode()
+    return buf.tobytes()
+
+
+def _data_url(frame) -> str:
+    return "data:image/jpeg;base64," + base64.b64encode(_jpeg_bytes(frame)).decode()
 
 
 def _make_catalog(client) -> tuple[int, int, list[int]]:
@@ -83,7 +87,14 @@ def _speed_up_scanning(client) -> None:
     assert response.status_code == 200, response.text
 
 
-def _scan_one_sheet(client, session_id: int, payload: dict | None, *, seed: int = 7) -> dict | None:
+def _scan_one_sheet(
+    client,
+    session_id: int,
+    payload: dict | None,
+    *,
+    seed: int = 7,
+    binary: bool = False,
+) -> dict | None:
     """Drive the scan WebSocket with synthetic frames until a scan_result."""
     sheet = render_sheet(payload)  # payload=None renders a sheet without a QR
     opts = SceneOptions()
@@ -98,7 +109,10 @@ def _scan_one_sheet(client, session_id: int, payload: dict | None, *, seed: int 
         assert ready["type"] == "ready"
 
         for frame in frames:
-            ws.send_text(json.dumps({"type": "frame", "image": _data_url(frame)}))
+            if binary:
+                ws.send_bytes(_jpeg_bytes(frame))
+            else:
+                ws.send_text(json.dumps({"type": "frame", "image": _data_url(frame)}))
             while True:
                 message = ws.receive_json()
                 if message["type"] == "state":
@@ -241,6 +255,27 @@ def test_full_scan_review_export_flow(api_client):
     response = api_client.post(f"/api/sessions/{session_id}/complete")
     assert response.status_code == 200
     assert response.json()["status"] == "completed"
+
+
+def test_binary_websocket_frame_transport(api_client):
+    """Frontend scan stream sends raw JPEG bytes; legacy base64 JSON remains covered elsewhere."""
+    class_id, task_id, _ = _make_catalog(api_client)
+    session_id = _make_session(api_client, class_id, task_id)
+    _speed_up_scanning(api_client)
+    api_client.post(f"/api/sessions/{session_id}/start")
+
+    payload = {
+        "version": 1,
+        "studentId": "S-102",
+        "classId": "7Б",
+        "taskId": "T-042",
+        "sheetId": "S-102-T-042-bin",
+    }
+    result = _scan_one_sheet(api_client, session_id, payload, binary=True)
+
+    assert result is not None, "binary scan_result was never produced"
+    assert result["result"]["success"] is True, result
+    assert result["result"]["sheetUid"] == "S-102-T-042-bin"
 
 
 def test_duplicate_sheet_is_flagged(api_client):
@@ -481,7 +516,14 @@ def test_diagnostics_download_bundle(api_client):
     _speed_up_scanning(api_client)
     api_client.post(f"/api/sessions/{session_id}/start")
 
-    # no runtime yet -> clear error
+    # diagnostics are privacy-gated by default
+    response = api_client.get(f"/api/sessions/{session_id}/diagnostics/download")
+    assert response.status_code == 403
+
+    response = api_client.patch("/api/settings", json={"privacy": {"diagnostics_recording_enabled": True}})
+    assert response.status_code == 200, response.text
+
+    # no runtime yet -> clear error once diagnostics are explicitly enabled
     response = api_client.get(f"/api/sessions/{session_id}/diagnostics/download")
     assert response.status_code == 400
 

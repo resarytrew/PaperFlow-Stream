@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, wsUrl } from "../api/client";
 import type { ScanResultMessage, ScanSession, ScanStateMessage } from "../api/types";
-import { captureFrame, useCamera } from "../hooks/useCamera";
+import { captureFrameBlob, useCamera } from "../hooks/useCamera";
 import { playReconnected, playSuccess, playWarning, unlockAudio } from "../hooks/sounds";
 import { Badge, SESSION_STATUS_RU, useApi } from "../lib";
 
@@ -134,10 +134,25 @@ export default function ScanPage() {
     const ws = wsRef.current;
     const video = videoRef.current;
     if (!ws || ws.readyState !== WebSocket.OPEN || !video || awaitingRef.current || !scanningRef.current) return;
-    const dataUrl = captureFrame(video, FRAME_MAX_WIDTH, FRAME_QUALITY);
-    if (!dataUrl) return;
+
+    // Binary WebSocket frame: avoids base64 JSON overhead for every camera frame.
     awaitingRef.current = true;
-    ws.send(JSON.stringify({ type: "frame", image: dataUrl }));
+    void captureFrameBlob(video, FRAME_MAX_WIDTH, FRAME_QUALITY)
+      .then((blob) => {
+        const current = wsRef.current;
+        if (!blob || !current || current.readyState !== WebSocket.OPEN || !scanningRef.current) {
+          awaitingRef.current = false;
+          return;
+        }
+        try {
+          current.send(blob);
+        } catch {
+          awaitingRef.current = false;
+        }
+      })
+      .catch(() => {
+        awaitingRef.current = false;
+      });
   }, []);
 
   const connect = useCallback(() => {

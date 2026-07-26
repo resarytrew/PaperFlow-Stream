@@ -127,6 +127,7 @@ export interface ScannedSheet {
   normalized_image_path: string | null;
   enhanced_image_path: string | null;
   answer_crop_path: string | null;
+  answer_crops_json?: { index: number; label: string; path: string; region: Record<string, unknown> }[] | null;
 }
 
 export interface Dashboard {

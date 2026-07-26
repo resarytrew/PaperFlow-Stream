@@ -80,6 +80,7 @@ class StabilityConfig(BaseModel):
     warning_hold_ms: int = Field(1500, ge=0, le=10000)
     sharpness_reference: float = Field(140.0, gt=1.0)
     qr_timeout_ms: int = Field(900, ge=50, le=10000)
+    qr_readability_every_n_frames: int = Field(4, ge=1, le=60)
 
 
 class NormalizationConfig(BaseModel):

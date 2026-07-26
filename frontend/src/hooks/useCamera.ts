@@ -66,22 +66,31 @@ export function useCamera(preferredWidth = 1920, preferredHeight = 1080) {
   return { devices, deviceId, stream, error, resolution, start, stop, setDeviceId } as const;
 }
 
-/** Grab the current video frame as a JPEG data URL. */
-export function captureFrame(video: HTMLVideoElement, maxWidth: number, quality: number): string | null {
+let captureCanvas: HTMLCanvasElement | undefined;
+
+function drawFrame(video: HTMLVideoElement, maxWidth: number): HTMLCanvasElement | null {
   if (!video.videoWidth || !video.videoHeight) return null;
   const scale = Math.min(1, maxWidth / video.videoWidth);
   const w = Math.round(video.videoWidth * scale);
   const h = Math.round(video.videoHeight * scale);
-  const canvas = captureFrame._canvas ?? (captureFrame._canvas = document.createElement("canvas"));
+  const canvas = captureCanvas ?? (captureCanvas = document.createElement("canvas"));
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
   ctx.drawImage(video, 0, 0, w, h);
-  return canvas.toDataURL("image/jpeg", quality);
+  return canvas;
 }
-// eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace captureFrame {
-  // eslint-disable-next-line no-var
-  export var _canvas: HTMLCanvasElement | undefined;
+
+/** Grab the current video frame as a JPEG data URL (legacy JSON transport). */
+export function captureFrame(video: HTMLVideoElement, maxWidth: number, quality: number): string | null {
+  const canvas = drawFrame(video, maxWidth);
+  return canvas ? canvas.toDataURL("image/jpeg", quality) : null;
+}
+
+/** Grab the current video frame as a JPEG Blob for binary WebSocket transport. */
+export function captureFrameBlob(video: HTMLVideoElement, maxWidth: number, quality: number): Promise<Blob | null> {
+  const canvas = drawFrame(video, maxWidth);
+  if (!canvas) return Promise.resolve(null);
+  return new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", quality));
 }

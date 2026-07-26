@@ -247,6 +247,7 @@ class ScannedSheetOut(ORMBase):
     normalized_image_path: str | None
     enhanced_image_path: str | None
     answer_crop_path: str | None
+    answer_crops_json: list | None = None
     thumbnail_path: str | None
     qr_payload: dict | None
     qr_status: str
