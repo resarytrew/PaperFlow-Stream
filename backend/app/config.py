@@ -114,10 +114,28 @@ class OcrConfig(BaseModel):
     keyword_analysis: bool = True
 
 
+class VisionOcrConfig(BaseModel):
+    """Yandex Vision OCR integration settings.
+
+    The provider is privacy-gated separately. By default it is inactive and no
+    student image leaves the computer.
+    """
+
+    provider: str = "yandex"
+    endpoint: str = "https://ocr.api.cloud.yandex.net/ocr/v1/recognizeText"
+    api_key: str = ""
+    folder_id: str = ""
+    model: str = "page"
+    mime_type: str = "image/jpeg"
+    mock_mode: bool = False
+
+
 class PrivacyConfig(BaseModel):
     file_retention_days: int = Field(180, ge=0, le=3650)
     anonymise_logs: bool = True
     allow_cloud_providers: bool = False
+    vision_ocr_enabled: bool = False
+    vision_send_full_sheet: bool = False
     diagnostics_recording_enabled: bool = False
     diagnostics_max_clip_frames: int = Field(120, ge=10, le=2000)
 
@@ -131,6 +149,7 @@ class RuntimeConfig(BaseModel):
     normalization: NormalizationConfig = NormalizationConfig()
     quality_weights: QualityWeights = QualityWeights()
     ocr: OcrConfig = OcrConfig()
+    vision_ocr: VisionOcrConfig = VisionOcrConfig()
     privacy: PrivacyConfig = PrivacyConfig()
 
 

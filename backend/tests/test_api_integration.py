@@ -476,6 +476,39 @@ def test_ocr_mock_provider_end_to_end(api_client):
     assert response.json()["recognition"]["status"] == "blank"
 
 
+def test_yandex_vision_ocr_mock_requires_privacy_and_updates_recognition(api_client):
+    class_id, task_id, _ = _make_catalog(api_client)
+    session_id = _make_session(api_client, class_id, task_id)
+    _speed_up_scanning(api_client)
+    api_client.post(f"/api/sessions/{session_id}/start")
+
+    payload = {"version": 1, "studentId": "S-102", "classId": "7Б", "taskId": "T-042", "sheetId": "S-102-T-042-vision"}
+    result = _scan_one_sheet(api_client, session_id, payload)
+    assert result is not None and result["result"]["success"]
+    sheet_id = result["result"]["sheetId"]
+
+    response = api_client.post(f"/api/sheets/{sheet_id}/recognize-vision")
+    assert response.status_code == 403
+
+    response = api_client.patch(
+        "/api/settings",
+        json={
+            "privacy": {"allow_cloud_providers": True, "vision_ocr_enabled": True},
+            "vision_ocr": {"mock_mode": True, "endpoint": "mock://yandex-vision"},
+        },
+    )
+    assert response.status_code == 200, response.text
+
+    response = api_client.post(f"/api/sheets/{sheet_id}/recognize-vision")
+    assert response.status_code == 200, response.text
+    recognition = response.json()["recognition"]
+    assert recognition["provider"] == "vision"
+    assert recognition["model_name"] == "Yandex Vision OCR"
+    assert "Yandex Vision OCR mock" in recognition["recognized_text"]
+    assert recognition["overall_confidence"] == pytest.approx(0.91)
+    assert recognition["analysis_json"]["vision"]["mockMode"] is True
+
+
 def test_session_summary(api_client):
     """The 'Итоги сессии' endpoint aggregates verdicts, review and quality."""
     class_id, task_id, _ = _make_catalog(api_client)

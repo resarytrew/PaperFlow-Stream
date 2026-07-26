@@ -20,7 +20,7 @@ from app.models import RecognitionResult, RecognitionStatus, ScannedSheet, Task
 from app.ocr.answer_check import compare_answers
 from app.ocr.confidence import analyse_text, classify_confidence
 from app.ocr.provider import RecognitionOutput
-from app.ocr.providers import get_provider
+from app.ocr.providers import get_provider, vision_provider_kwargs
 from app.services.events import OCR_TOPIC, hub, session_topic
 from app.services.settings_service import load_config
 from app.services.storage import get_storage
@@ -197,7 +197,8 @@ class OcrQueue:
 
         provider_name = config.ocr.provider
         try:
-            provider = get_provider(provider_name)
+            kwargs = vision_provider_kwargs(config) if provider_name in {"vision", "yandex_vision"} else {}
+            provider = get_provider(provider_name, **kwargs)
         except Exception as exc:
             await self._finish_failed(sheet_id, session_id, f"Провайдер «{provider_name}» недоступен: {exc}")
             return
