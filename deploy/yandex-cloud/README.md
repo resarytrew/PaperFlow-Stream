@@ -22,7 +22,7 @@ export AWS_SECRET_ACCESS_KEY=...
 # Только для первоначальной настройки публичного static bucket:
 export YC_MAKE_BUCKET_PUBLIC=true
 
-./deploy/yandex-cloud/deploy-web.sh
+bash deploy/yandex-cloud/deploy-web.sh
 ```
 
 После первого deploy верни `YC_MAKE_BUCKET_PUBLIC=false`. Лучше ограничить
