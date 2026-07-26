@@ -9,6 +9,10 @@ on:
         default: "v0.3.0-pilot"
         type: string
   push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/release-personal-hub.yml
     tags:
       - "v*"
 
@@ -121,8 +125,10 @@ jobs:
         run: |
           if ("${{ github.ref_type }}" -eq "tag") {
             $tag = "${{ github.ref_name }}"
-          } else {
+          } elseif ("${{ github.event_name }}" -eq "workflow_dispatch") {
             $tag = "${{ inputs.release_tag }}"
+          } else {
+            $tag = "v0.3.0-pilot"
           }
           "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
