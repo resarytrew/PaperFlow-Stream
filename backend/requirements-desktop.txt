@@ -1,0 +1,5 @@
+-r requirements.txt
+
+# Personal Hub desktop shell and release packaging
+pystray>=0.19.5,<0.20
+pyinstaller>=6.11,<7
