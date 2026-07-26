@@ -13,6 +13,7 @@ OpenCV, OCR, SQLite, изображения работ, ФИО, ответы и 
 - Vite build `npm run build` с выходом в `dist`;
 - PWA manifest и service worker;
 - автоматическое обнаружение локального Hub;
+- экран установки Hub и диагностики подключения;
 - pairing, отдельные API/media-токены и workspace scope.
 
 Никакие секреты для обычного deploy не требуются.
@@ -42,20 +43,16 @@ Node.js Version: 22.x
 Для стандартного Personal Hub добавлять переменные в Vercel не обязательно:
 безопасные значения уже находятся в `frontend/.env.production`.
 
-Итоговые публичные параметры сборки:
-
 ```text
 VITE_PAPERFLOW_UI_MODE=cloud
 VITE_PAPERFLOW_HUB_URLS=https://127.0.0.1:17841,https://localhost:17841,http://127.0.0.1:17841,http://localhost:17841
 VITE_PAPERFLOW_ALLOWED_HUB_HOSTS=
+VITE_PAPERFLOW_HUB_DOWNLOAD_URL=https://github.com/resarytrew/PaperFlow-Stream/releases/latest/download/PaperFlowHubSetup.exe
+VITE_PAPERFLOW_HUB_RELEASES_URL=https://github.com/resarytrew/PaperFlow-Stream/releases/latest
 ```
 
-Переменные `VITE_*` видны в браузере. В них запрещено добавлять:
-
-- API-ключ Yandex Vision;
-- service-account credentials;
-- пароли и signing keys;
-- ФИО, классы, ответы, OCR или другие ученические данные.
+Переменные `VITE_*` видны в браузере. В них запрещено добавлять API-ключи,
+пароли, signing keys и любые ученические данные.
 
 Для будущего School Hub можно переопределить
 `VITE_PAPERFLOW_ALLOWED_HUB_HOSTS`, например:
@@ -66,65 +63,63 @@ paperflow.school.local
 
 Для LAN Hub должен использоваться доверенный HTTPS-адрес.
 
-## Привязка Vercel-домена к Personal Hub
+## Первый запуск учителем
 
-После первого production deploy Vercel выдаст постоянный адрес, например:
+1. Учитель открывает production-сайт на Vercel.
+2. PaperFlow ищет Hub на локальных адресах.
+3. Если Hub отсутствует, интерфейс показывает кнопку **Скачать PaperFlow Hub для Windows**.
+4. Учитель устанавливает модуль и запускает его в системном трее.
+5. Страница автоматически повторяет подключение каждые несколько секунд.
+6. Hub разрешает незнакомому HTTPS Origin только публичные discovery/pairing endpoints.
+7. Учитель открывает локальную страницу кода и видит точный домен, запросивший доступ.
+8. После ввода кода Origin сохраняется как доверенный клиент, привязанный к токенам и workspace.
+9. Только после этого становятся доступны приватные API, изображения, экспорт и WebSocket.
+
+Generic installer больше не требует заранее прошивать конкретный Vercel-домен.
+Ручной параметр `--set-web-url` остаётся доступен для управляемых школьных
+развёртываний, но для обычного Personal Hub он необязателен.
+
+## Публикация установщика
+
+Workflow `.github/workflows/release-personal-hub.yml`:
+
+- запускает security-тесты;
+- собирает frontend и Windows Hub;
+- формирует Inno Setup installer;
+- создаёт стабильный файл `PaperFlowHubSetup.exe`;
+- формирует SHA-256;
+- публикует файлы в GitHub Release.
+
+При ручном запуске workflow использует тег `v0.3.0-pilot`, если не указан другой.
+При наличии signing secrets установщик подписывается. Без них Windows может
+показать SmartScreen для неизвестного издателя — это ожидаемо для пилотной сборки.
+
+Стабильная ссылка интерфейса всегда указывает на:
 
 ```text
-https://paperflow-stream.vercel.app
+https://github.com/resarytrew/PaperFlow-Stream/releases/latest/download/PaperFlowHubSetup.exe
 ```
-
-Этот точный Origin нужно сохранить в установленном Hub:
-
-```powershell
-PaperFlowHub.exe --set-web-url "https://paperflow-stream.vercel.app"
-```
-
-После изменения перезапусти PaperFlow Hub. При новой установке адрес можно
-передать установщику:
-
-```text
-PaperFlowHubSetup-0.3.0.exe /WebUrl=https://paperflow-stream.vercel.app
-```
-
-Hub разрешает только точный Origin. Это намеренно защищает локальные данные от
-посторонних сайтов.
 
 ## Production и Preview deployments
 
 Для реальной работы используй стабильный Production URL. Каждый Vercel Preview
-имеет отдельный Origin, поэтому он не получает доступ к Hub автоматически.
-
-Не добавляй wildcard `*.vercel.app` в разрешённые Origins. Для тестирования
-конкретного Preview временно добавляй только его полный HTTPS Origin, а затем
-удаляй подключение через раздел настроек PaperFlow.
-
-## Пользовательский сценарий
-
-1. Учитель устанавливает PaperFlow Hub один раз.
-2. Hub запускается в фоне и слушает `127.0.0.1:17841`.
-3. Учитель открывает production-сайт на Vercel.
-4. Браузер запрашивает разрешение на доступ к локальной сети/loopback.
-5. PaperFlow показывает локальный шестизначный код pairing.
-6. После подтверждения интерфейс работает с локальным Hub.
-7. Ученические данные не отправляются в Vercel.
-
-Для пилота рекомендуется Chrome или Edge на Windows 10/11.
+имеет отдельный Origin и должен пройти собственный pairing. Не добавляй wildcard
+`*.vercel.app`: точный Origin сохраняется автоматически только после локального
+подтверждения пользователем.
 
 ## Проверка после deploy
 
 Проверь:
 
-1. Главная страница открывается без 404.
-2. Обновление страницы и переход по hash-маршрутам работают.
-3. `manifest.webmanifest` загружается.
-4. `sw.js` имеет `Cache-Control: no-cache, no-store, must-revalidate`.
-5. В DevTools → Network нет запросов с изображениями или ученическими JSON на
-   домены `vercel.app`.
-6. Запросы приложения идут напрямую к `127.0.0.1:17841` или другому разрешённому
-   локальному Hub.
-7. При остановленном Hub интерфейс показывает экран подключения, а не пытается
-   использовать облачный backend.
+1. При остановленном Hub показана кнопка скачивания и понятная диагностика.
+2. После запуска Hub страница переходит к безопасному pairing.
+3. Локальная страница кода показывает текущий Vercel Origin.
+4. Без pairing приватный `/api` возвращает отказ.
+5. После pairing открываются dashboard, камера и OCR.
+6. В DevTools → Network нет запросов с изображениями или ученическими JSON на домены `vercel.app`.
+7. `manifest.webmanifest` загружается, а `sw.js` имеет `Cache-Control: no-cache, no-store, must-revalidate`.
+
+Для пилота рекомендуется Chrome или Edge на Windows 10/11.
 
 ## Что нельзя разворачивать на Vercel
 
@@ -150,5 +145,5 @@ Hub разрешает только точный Origin. Это намеренн
 https://app.paperflow.ru
 ```
 
-После смены домена обязательно обнови Web URL в Hub и выполни pairing заново.
-Старое подключение можно отозвать в настройках PaperFlow.
+Новый домен пройдёт отдельный pairing. Старое подключение можно отозвать в
+настройках PaperFlow; wildcard-доверие между доменами не используется.
