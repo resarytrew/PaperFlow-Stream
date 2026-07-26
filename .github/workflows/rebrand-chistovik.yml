@@ -1,4 +1,4 @@
-name: Apply Chistovik rebrand
+name: Polish Chistovik copy
 
 on:
   push:
@@ -11,16 +11,12 @@ permissions:
   contents: write
 
 jobs:
-  rebrand:
+  polish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.11"
 
       - uses: actions/setup-node@v6
         with:
@@ -28,43 +24,44 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Apply product rebrand
-        run: python scripts/rebrand_chistovik.py
-
-      - name: Verify frontend and Python syntax
+      - name: Polish user-facing copy
         shell: bash
         run: |
-          cd frontend
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("frontend/src/hub/HubProvider.tsx")
+          text = path.read_text(encoding="utf-8")
+          replacements = [
+              ("Локальный Hub пока не отвечает.", "Локальный модуль пока не отвечает."),
+              ("Обнови Hub до актуальной версии", "Обнови «Чистовик» до актуальной версии"),
+              ("Ищу защищённый Hub на этом компьютере или в школьной сети…", "Ищу локальный модуль «Чистовик» на этом компьютере или в школьной сети…"),
+              ("Для другой ОС Hub пока запускается из исходного кода.", "Для другой ОС локальный модуль пока запускается из исходного кода."),
+              ("ChistovikSetup-0.3.1.exe", "ChistovikSetup-0.3.2.exe"),
+              ("релиз 0.3.1", "релиз 0.3.2"),
+              ("Диагностика и ручной адрес Hub", "Диагностика и ручной адрес локального модуля"),
+              ("Осталось подтвердить этот адрес Чистовик локальным кодом.", "Осталось подтвердить подключение этого адреса к «Чистовику» локальным кодом."),
+              ("текущий адрес Чистовик", "текущий адрес веб-приложения «Чистовик»"),
+          ]
+          for old, new in replacements:
+              if old not in text:
+                  print(f"Already replaced or not found: {old}")
+              text = text.replace(old, new)
+          path.write_text(text, encoding="utf-8")
+          PY
+
+      - name: Build frontend
+        working-directory: frontend
+        run: |
           npm ci
           npm run build
-          cd ..
-          python -m compileall -q backend/app
 
-      - name: Record remaining legacy references
-        shell: bash
-        run: |
-          grep -RInE 'PaperFlow|PAPERFLOW|paperflow' . \
-            --exclude-dir=.git \
-            --exclude=brand-audit.txt \
-            --exclude=brand-audit-after.txt \
-            --exclude=package-lock.json \
-            --exclude=rebrand-chistovik.yml \
-            --exclude=audit-brand.yml \
-            --exclude=capture-rebrand-status.yml \
-            --exclude=extract-rebrand-error.yml \
-            --exclude=rebrand_chistovik.py \
-            --exclude=rebrand-status.json \
-            --exclude=rebrand-log.txt \
-            --exclude=rebrand-error.txt \
-            > brand-audit-after.txt || true
-          rm -f scripts/rebrand_chistovik.py
-
-      - name: Commit rebrand
+      - name: Commit polished copy and build
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "feat: rebrand PaperFlow as Chistovik"
+          git add frontend/src/hub/HubProvider.tsx frontend/dist
+          git commit -m "fix: polish Chistovik onboarding copy"
           git pull --rebase origin main
           git push
