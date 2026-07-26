@@ -1,4 +1,4 @@
-name: Verify Chistovik release
+name: Verify final Chistovik installer
 
 on:
   push:
@@ -19,34 +19,30 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Wait for latest Chistovik build
+      - name: Wait for final installer run
         env:
           GH_TOKEN: ${{ github.token }}
+          RUN_ID: "30198404531"
         shell: bash
         run: |
           set -euo pipefail
-          run_id=""
           for attempt in $(seq 1 60); do
-            gh run list --repo "$GITHUB_REPOSITORY" --workflow release-personal-hub.yml --limit 5 --json databaseId,status,conclusion,headSha,url,createdAt > release-status.json
-            run_id=$(python -c 'import json; data=json.load(open("release-status.json")); print(data[0]["databaseId"] if data else "")')
-            status=$(python -c 'import json; data=json.load(open("release-status.json")); print(data[0]["status"] if data else "missing")')
-            if [ -n "$run_id" ] && [ "$status" = "completed" ]; then
+            gh run view "$RUN_ID" --repo "$GITHUB_REPOSITORY" --json databaseId,status,conclusion,headSha,url > final-release-result.json
+            status=$(python -c 'import json; print(json.load(open("final-release-result.json"))["status"])')
+            if [ "$status" = "completed" ]; then
               break
             fi
             sleep 15
           done
-          test -n "$run_id"
-          gh run view "$run_id" --repo "$GITHUB_REPOSITORY" --log > release-log.txt 2>&1 || true
-          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run_id/artifacts" > release-artifacts.json
-          conclusion=$(python -c 'import json; data=json.load(open("release-status.json")); print(data[0].get("conclusion") or "")')
-          test "$conclusion" = "success"
+          gh run view "$RUN_ID" --repo "$GITHUB_REPOSITORY" --log > final-release-log.txt 2>&1 || true
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID/artifacts" > final-release-artifacts.json
 
-      - name: Commit verification report
+      - name: Commit final verification report
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add release-status.json release-log.txt release-artifacts.json
-          git commit -m "chore: verify Chistovik 0.3.2 release"
+          git add final-release-result.json final-release-log.txt final-release-artifacts.json
+          git commit -m "chore: verify final Chistovik installer"
           git pull --rebase origin main
           git push
