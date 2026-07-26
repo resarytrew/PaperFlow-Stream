@@ -1,4 +1,4 @@
-name: Deploy PaperFlow Web to Yandex Cloud
+name: Deploy Chistovik to Yandex Cloud
 
 on:
   workflow_dispatch:
@@ -28,7 +28,7 @@ jobs:
       - name: Install AWS CLI
         run: python -m pip install --upgrade awscli
 
-      - name: Upload static PaperFlow Web only
+      - name: Upload static Chistovik web app
         env:
           YC_WEB_BUCKET: ${{ secrets.YC_WEB_BUCKET }}
           AWS_ACCESS_KEY_ID: ${{ secrets.YC_STATIC_ACCESS_KEY }}
