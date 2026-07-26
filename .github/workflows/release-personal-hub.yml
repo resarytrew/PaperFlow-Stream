@@ -23,9 +23,9 @@ jobs:
   windows-installer:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: pip
@@ -33,7 +33,7 @@ jobs:
             backend/requirements.txt
             backend/requirements-desktop.txt
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: "22"
           cache: npm
@@ -111,7 +111,7 @@ jobs:
           $stableHash = (Get-FileHash $stableInstaller -Algorithm SHA256).Hash.ToLowerInvariant()
           "$stableHash  PaperFlowHubSetup.exe" | Set-Content "$stableInstaller.sha256"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: PaperFlowHub-Windows
           path: |
@@ -134,15 +134,27 @@ jobs:
 
       - name: Publish public GitHub Release
         if: steps.release.outputs.tag != ''
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.release.outputs.tag }}
-          target_commitish: ${{ github.sha }}
-          name: PaperFlow Hub ${{ steps.release.outputs.tag }}
-          generate_release_notes: true
-          make_latest: true
-          files: |
-            release/PaperFlowHubSetup.exe
-            release/PaperFlowHubSetup.exe.sha256
-            release/PaperFlowHubSetup-*.exe
-            release/PaperFlowHubSetup-*.exe.sha256
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          $assets = @(
+            "release/PaperFlowHubSetup.exe",
+            "release/PaperFlowHubSetup.exe.sha256",
+            (Get-ChildItem release\PaperFlowHubSetup-*.exe | Select-Object -First 1).FullName,
+            (Get-ChildItem release\PaperFlowHubSetup-*.exe.sha256 | Select-Object -First 1).FullName
+          )
+
+          gh release view $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $env:RELEASE_TAG @assets --repo $env:GITHUB_REPOSITORY --clobber
+          } else {
+            gh release create $env:RELEASE_TAG @assets `
+              --repo $env:GITHUB_REPOSITORY `
+              --target $env:GITHUB_SHA `
+              --title "PaperFlow Hub $env:RELEASE_TAG" `
+              --generate-notes `
+              --latest
+          }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
