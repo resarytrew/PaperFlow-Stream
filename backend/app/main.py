@@ -105,7 +105,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
 
 @app.get("/api/health")
 def health() -> dict:
-    """Public liveness probe without paths, student data or local configuration."""
+    """Public liveness probe without paths, job history or student data."""
     from app.cv.qr import get_backend
     from app.ocr.providers import get_provider
 
@@ -118,6 +118,7 @@ def health() -> dict:
         except Exception:
             qr_backends[name] = False
 
+    queue = ocr_queue.snapshot()
     return {
         "status": "ok",
         "product": "PaperFlow Hub",
@@ -125,7 +126,12 @@ def health() -> dict:
         "protocolVersion": 1,
         "deploymentMode": settings.hub_mode,
         "qrBackends": qr_backends,
-        "ocr": {"queue": ocr_queue.snapshot(), "local": get_provider("local").describe()},
+        "ocr": {
+            "running": bool(queue.get("running")),
+            "workers": int(queue.get("workers", 0)),
+            "pending": int(queue.get("pending", 0)),
+            "local": get_provider("local").describe(),
+        },
     }
 
 
