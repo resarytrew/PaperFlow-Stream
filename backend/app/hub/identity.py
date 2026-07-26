@@ -18,6 +18,7 @@ from typing import Any
 from app.config import Settings, get_settings
 
 _LAST_SEEN_WRITE_INTERVAL = timedelta(minutes=5)
+_MAX_PAIRING_ATTEMPTS = 5
 
 
 def _utcnow() -> datetime:
@@ -60,6 +61,7 @@ class _Challenge:
     client_name: str
     workspace_id: str
     expires_at: datetime
+    attempts: int = 0
 
 
 class HubIdentityStore:
@@ -136,6 +138,13 @@ class HubIdentityStore:
     def start_pairing(self, *, origin: str, client_name: str, workspace_id: str) -> _Challenge:
         with self._lock:
             self._prune()
+            # One live challenge per browser origin/workspace prevents an
+            # allowed-but-compromised frontend from accumulating brute-force windows.
+            self._challenges = {
+                key: value
+                for key, value in self._challenges.items()
+                if not (value.origin == origin and value.workspace_id == workspace_id)
+            }
             challenge = _Challenge(
                 id=secrets.token_urlsafe(18),
                 code=f"{secrets.randbelow(1_000_000):06d}",
@@ -172,6 +181,10 @@ class HubIdentityStore:
             if not hmac.compare_digest(challenge.workspace_id, workspace_id):
                 raise ValueError("Рабочее пространство не совпадает")
             if not hmac.compare_digest(challenge.code, code.strip()):
+                challenge.attempts += 1
+                if challenge.attempts >= _MAX_PAIRING_ATTEMPTS:
+                    self._challenges.pop(challenge_id, None)
+                    raise ValueError("Код подключения заблокирован. Начните подключение заново")
                 raise ValueError("Неверный код подключения")
 
             token = secrets.token_urlsafe(48)
