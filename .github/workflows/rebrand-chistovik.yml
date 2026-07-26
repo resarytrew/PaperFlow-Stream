@@ -44,8 +44,6 @@ jobs:
               ("текущий адрес Чистовик", "текущий адрес веб-приложения «Чистовик»"),
           ]
           for old, new in replacements:
-              if old not in text:
-                  print(f"Already replaced or not found: {old}")
               text = text.replace(old, new)
           path.write_text(text, encoding="utf-8")
           PY
@@ -56,12 +54,12 @@ jobs:
           npm ci
           npm run build
 
-      - name: Commit polished copy and build
+      - name: Commit polished copy
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add frontend/src/hub/HubProvider.tsx frontend/dist
+          git add frontend/src/hub/HubProvider.tsx
           git commit -m "fix: polish Chistovik onboarding copy"
           git pull --rebase origin main
           git push
