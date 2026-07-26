@@ -42,6 +42,10 @@ export interface PairingChallenge {
   devCode?: string;
 }
 
+export type HubRequestInit = RequestInit & {
+  targetAddressSpace?: "loopback" | "local";
+};
+
 const SELECTED_HUB_KEY = "paperflow.hub.url";
 const TOKEN_PREFIX = "paperflow.hub.token.";
 const MEDIA_TOKEN_PREFIX = "paperflow.hub.media-token.";
@@ -56,8 +60,12 @@ function normalizeUrl(value: string): string {
   return url.toString().replace(/\/$/, "");
 }
 
+function normalizedHost(hostname: string): string {
+  return hostname.toLowerCase().replace(/^\[|\]$/g, "");
+}
+
 function isLoopback(hostname: string): boolean {
-  const host = hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  const host = normalizedHost(hostname);
   return host === "localhost" || host === "::1" || host.startsWith("127.");
 }
 
@@ -81,7 +89,7 @@ function explicitAllowedHosts(): Set<string> {
 export function isAllowedHubUrl(value: string): boolean {
   try {
     const url = new URL(value);
-    const host = url.hostname.toLowerCase();
+    const host = normalizedHost(url.hostname);
     const privateHost =
       isLoopback(host) ||
       isPrivateIpv4(host) ||
@@ -93,6 +101,19 @@ export function isAllowedHubUrl(value: string): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * Opt into the browser Local Network Access permission model. Browsers that do
+ * not yet implement targetAddressSpace ignore the extra dictionary member.
+ */
+export function withHubNetworkAccess(baseUrl: string, init: RequestInit = {}): HubRequestInit {
+  const url = new URL(baseUrl);
+  const host = normalizedHost(url.hostname);
+  const result: HubRequestInit = { ...init };
+  if (isLoopback(host)) result.targetAddressSpace = "loopback";
+  else if (isPrivateIpv4(host) || host.endsWith(".local")) result.targetAddressSpace = "local";
+  return result;
 }
 
 function uiMode(): "local" | "cloud" {
@@ -131,7 +152,12 @@ function candidateUrls(): string[] {
   values.push(...configured);
 
   if (uiMode() === "local") values.push(window.location.origin);
-  values.push("https://127.0.0.1:17841", "https://localhost:17841");
+  values.push(
+    "https://127.0.0.1:17841",
+    "https://localhost:17841",
+    "http://127.0.0.1:17841",
+    "http://localhost:17841",
+  );
 
   return [...new Set(values.map(normalizeUrl))].filter(isAllowedHubUrl);
 }
@@ -150,12 +176,15 @@ export async function probeHub(baseUrl: string): Promise<HubConnection> {
     throw new Error("Адрес Hub должен указывать на этот компьютер или частную школьную сеть");
   }
 
-  const response = await fetch(`${normalized}/api/hub/info`, {
-    method: "GET",
-    mode: "cors",
-    cache: "no-store",
-    headers: hubHeaders(normalized),
-  });
+  const response = await fetch(
+    `${normalized}/api/hub/info`,
+    withHubNetworkAccess(normalized, {
+      method: "GET",
+      mode: "cors",
+      cache: "no-store",
+      headers: hubHeaders(normalized),
+    }),
+  );
   if (!response.ok) throw new Error(`PaperFlow Hub ответил с кодом ${response.status}`);
   const info = (await response.json()) as HubInfo;
   if (info.product !== "PaperFlow Hub" || info.protocolVersion !== 1) {
@@ -193,19 +222,22 @@ export async function discoverHub(): Promise<HubConnection> {
 }
 
 export async function beginPairing(connection: HubConnection, clientName = "PaperFlow Web"): Promise<PairingChallenge> {
-  const response = await fetch(`${connection.baseUrl}/api/hub/pair/start`, {
-    method: "POST",
-    mode: "cors",
-    cache: "no-store",
-    headers: {
-      "Content-Type": "application/json",
-      "X-PaperFlow-Workspace": connection.workspaceId,
-    },
-    body: JSON.stringify({
-      client_name: clientName,
-      workspace_id: connection.workspaceId,
+  const response = await fetch(
+    `${connection.baseUrl}/api/hub/pair/start`,
+    withHubNetworkAccess(connection.baseUrl, {
+      method: "POST",
+      mode: "cors",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+        "X-PaperFlow-Workspace": connection.workspaceId,
+      },
+      body: JSON.stringify({
+        client_name: clientName,
+        workspace_id: connection.workspaceId,
+      }),
     }),
-  });
+  );
   if (!response.ok) {
     const body = await response.json().catch(() => null);
     throw new Error(body?.detail ?? "Не удалось начать подключение к Hub");
@@ -218,20 +250,23 @@ export async function finishPairing(
   challenge: PairingChallenge,
   code: string,
 ): Promise<HubConnection> {
-  const response = await fetch(`${connection.baseUrl}/api/hub/pair/confirm`, {
-    method: "POST",
-    mode: "cors",
-    cache: "no-store",
-    headers: {
-      "Content-Type": "application/json",
-      "X-PaperFlow-Workspace": connection.workspaceId,
-    },
-    body: JSON.stringify({
-      challenge_id: challenge.challengeId,
-      code,
-      workspace_id: connection.workspaceId,
+  const response = await fetch(
+    `${connection.baseUrl}/api/hub/pair/confirm`,
+    withHubNetworkAccess(connection.baseUrl, {
+      method: "POST",
+      mode: "cors",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+        "X-PaperFlow-Workspace": connection.workspaceId,
+      },
+      body: JSON.stringify({
+        challenge_id: challenge.challengeId,
+        code,
+        workspace_id: connection.workspaceId,
+      }),
     }),
-  });
+  );
   if (!response.ok) {
     const body = await response.json().catch(() => null);
     throw new Error(body?.detail ?? "Код подключения не принят");
