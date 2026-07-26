@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
-# PaperFlow Stream — one-command launcher (Linux / macOS).
-#
-# Creates the Python environment on first run, builds the web UI if Node.js
-# is available, then starts a single local server and opens the browser.
-# Everything stays on this computer.
+# PaperFlow Hybrid Hub — one-command launcher (Linux / macOS).
+# Development launcher; production cloud pairing requires locally trusted HTTPS.
 
 set -euo pipefail
 cd "$(dirname "$0")"
 
-PORT="${PAPERFLOW_PORT:-8000}"
+PORT="${PAPERFLOW_PORT:-${PAPERFLOW_HUB_PORT:-17841}}"
+export PAPERFLOW_HUB_PORT="${PORT}"
+export PAPERFLOW_HUB_PUBLIC_URL="${PAPERFLOW_HUB_PUBLIC_URL:-http://127.0.0.1:${PORT}}"
 PY="${PYTHON:-python3}"
 
 say() { printf '\033[1;34m[PaperFlow]\033[0m %s\n' "$*"; }
@@ -44,7 +43,7 @@ if [ ! -f frontend/dist/index.html ]; then
 fi
 
 # ---------------------------------------------------------------- run
-say "Запускаю сервер на http://localhost:${PORT}"
+say "Запускаю персональный Hub на http://localhost:${PORT}"
 ( sleep 2
   if command -v xdg-open >/dev/null 2>&1; then xdg-open "http://localhost:${PORT}" >/dev/null 2>&1 || true
   elif command -v open >/dev/null 2>&1; then open "http://localhost:${PORT}" || true
