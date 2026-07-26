@@ -3,10 +3,14 @@
 from __future__ import annotations
 
 import json
+import sys
 
 from app.desktop import (
+    build_uvicorn_config,
     cloud_origin,
+    configure_desktop_logging,
     configure_environment,
+    desktop_log_path,
     load_desktop_config,
     save_desktop_config,
     windows_autostart_command,
@@ -52,3 +56,16 @@ def test_autostart_command_uses_background_mode():
     command = windows_autostart_command()
     assert "--background" in command
     assert "app.desktop" in command or "PaperFlowHub" in command
+
+
+def test_windowed_hub_does_not_require_console_streams(tmp_path, monkeypatch):
+    monkeypatch.setattr(sys, "stdout", None)
+    monkeypatch.setattr(sys, "stderr", None)
+
+    log_path = configure_desktop_logging(tmp_path)
+    config = build_uvicorn_config(port=17841)
+
+    assert log_path == desktop_log_path(tmp_path)
+    assert log_path.parent.is_dir()
+    assert config.log_config is None
+    assert config.access_log is False
