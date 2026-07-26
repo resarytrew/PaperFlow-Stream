@@ -1,12 +1,12 @@
 @echo off
-rem PaperFlow Stream - one-command launcher (Windows).
-rem Creates the Python environment on first run, builds the web UI if
-rem Node.js is available, then starts a single local server and opens
-rem the browser. Everything stays on this computer.
+rem PaperFlow Hybrid Hub - one-command development launcher for Windows.
+rem Production cloud pairing requires the signed installer and trusted HTTPS.
 
 setlocal
 cd /d "%~dp0"
-if "%PAPERFLOW_PORT%"=="" set PAPERFLOW_PORT=8000
+if "%PAPERFLOW_PORT%"=="" set PAPERFLOW_PORT=17841
+set PAPERFLOW_HUB_PORT=%PAPERFLOW_PORT%
+if "%PAPERFLOW_HUB_PUBLIC_URL%"=="" set PAPERFLOW_HUB_PUBLIC_URL=http://127.0.0.1:%PAPERFLOW_PORT%
 
 if not exist backend\.venv\Scripts\python.exe (
     echo [PaperFlow] Pervyj zapusk: sozdaju okruzhenie Python...
@@ -34,7 +34,7 @@ if not exist frontend\dist\index.html (
     )
 )
 
-echo [PaperFlow] Server: http://localhost:%PAPERFLOW_PORT%
+echo [PaperFlow] Personal Hub: http://localhost:%PAPERFLOW_PORT%
 start "" /b cmd /c "timeout /t 2 >nul & start http://localhost:%PAPERFLOW_PORT%"
 
 cd backend
