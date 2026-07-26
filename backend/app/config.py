@@ -18,6 +18,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 BASE_DIR = Path(__file__).resolve().parent.parent
 DEFAULT_DATA_DIR = BASE_DIR / "data"
 
+# Raised only by the release that contains the real workspace-scoped schema,
+# tenant predicates, users and audit log. An environment variable alone must
+# never be able to turn the current personal database into a fake School Hub.
+SCHOOL_TENANCY_SCHEMA_VERSION = 0
+
 
 class QualityWeights(BaseModel):
     """Weights used by :func:`app.cv.quality.compute_quality_score`."""
@@ -199,8 +204,8 @@ class Settings(BaseSettings):
     hub_token_ttl_days: int = Field(default=365, ge=1, le=3650)
     hub_pairing_dev_echo_code: bool = False
 
-    # This guard prevents an operator from enabling school mode before the
-    # workspace-scoped schema and user administration migration is installed.
+    # This flag is consumed only after the release itself declares a supported
+    # tenant schema version. It cannot bypass the code-level capability guard.
     hub_school_tenancy_enabled: bool = False
 
     # Backward-compatible local development origins.
@@ -211,9 +216,11 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_deployment_mode(self) -> "Settings":
-        if self.hub_mode == "school" and not self.hub_school_tenancy_enabled:
+        if self.hub_mode == "school" and (
+            not self.hub_school_tenancy_enabled or SCHOOL_TENANCY_SCHEMA_VERSION < 1
+        ):
             raise ValueError(
-                "school mode is blocked until workspace-scoped persistence and user administration are enabled"
+                "school mode is blocked until this release contains workspace-scoped persistence, users and audit"
             )
         return self
 
