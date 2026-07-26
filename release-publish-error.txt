@@ -1,0 +1,40 @@
+windows-installer	Publish public GitHub Release	﻿2026-07-26T10:22:00.3209631Z ##[group]Run set -euo pipefail
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3210250Z ^[[36;1mset -euo pipefail^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3210828Z ^[[36;1mmapfile -t assets < <(find release -maxdepth 1 -type f \( -name 'ChistovikSetup*.exe' -o -name 'ChistovikSetup*.exe.sha256' \) -print | sort)^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3211425Z ^[[36;1mtest "${#assets[@]}" -ge 2^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3211673Z ^[[36;1m^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3212022Z ^[[36;1mif gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3212581Z ^[[36;1m  gh release upload "$RELEASE_TAG" "${assets[@]}" --repo "$GITHUB_REPOSITORY" --clobber^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3213022Z ^[[36;1m  gh release edit "$RELEASE_TAG" \^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3213339Z ^[[36;1m    --repo "$GITHUB_REPOSITORY" \^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3213611Z ^[[36;1m    --draft=false \^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3213872Z ^[[36;1m    --prerelease=false \^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3214117Z ^[[36;1m    --latest^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3214341Z ^[[36;1melse^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3214635Z ^[[36;1m  gh release create "$RELEASE_TAG" "${assets[@]}" \^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3214961Z ^[[36;1m    --repo "$GITHUB_REPOSITORY" \^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3215248Z ^[[36;1m    --target "$GITHUB_SHA" \^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3215526Z ^[[36;1m    --title "Чистовик $RELEASE_TAG" \^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3215826Z ^[[36;1m    --generate-notes \^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3216072Z ^[[36;1m    --latest^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3216272Z ^[[36;1mfi^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3216464Z ^[[36;1m^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3216981Z ^[[36;1mrelease_state="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,isPrerelease --jq '"\(.isDraft) \(.isPrerelease)"')"^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3217621Z ^[[36;1mtest "$release_state" = "false false"^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3217888Z ^[[36;1m^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3218324Z ^[[36;1mpublished_assets="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name')"^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3218829Z ^[[36;1mfor asset in "${assets[@]}"; do^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3219206Z ^[[36;1m  grep -Fx "$(basename "$asset")" <<< "$published_assets" >/dev/null^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3219545Z ^[[36;1mdone^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3231720Z shell: C:\Program Files\Git\bin\bash.EXE --noprofile --norc -e -o pipefail {0}
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3232111Z env:
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3232393Z   pythonLocation: C:\hostedtoolcache\windows\Python\3.11.9\x64
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3232839Z   PKG_CONFIG_PATH: C:\hostedtoolcache\windows\Python\3.11.9\x64/lib/pkgconfig
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3233270Z   Python_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.11.9\x64
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3233679Z   Python2_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.11.9\x64
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3234224Z   Python3_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.11.9\x64
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3237114Z   GH_TOKEN: ***
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3237338Z   RELEASE_TAG: v0.3.2-pilot
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:00.3237573Z ##[endgroup]
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:04.9988538Z HTTP 403: Resource not accessible by integration (https://api.github.com/repos/resarytrew/PaperFlow-Stream/releases)
+windows-installer	Publish public GitHub Release	2026-07-26T10:22:05.0127056Z ##[error]Process completed with exit code 1.
