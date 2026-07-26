@@ -220,14 +220,29 @@ def build_uvicorn_config(*, port: int):
     )
 
 
+def run_uvicorn_server(server) -> None:
+    """Run Uvicorn and persist exceptions hidden by a windowed executable."""
+
+    try:
+        server.run()
+    except BaseException:
+        logging.getLogger(LOGGER_NAME).exception("Uvicorn server process crashed")
+        raise
+
+
 def run_tray(server, *, web_url: str, local_url: str, data_dir: Path) -> None:
     try:
         import pystray
     except ImportError:
-        server.run()
+        run_uvicorn_server(server)
         return
 
-    thread = threading.Thread(target=server.run, name="paperflow-hub", daemon=True)
+    thread = threading.Thread(
+        target=run_uvicorn_server,
+        args=(server,),
+        name="paperflow-hub",
+        daemon=True,
+    )
     thread.start()
     if not wait_until_ready(server.config.port):
         server.should_exit = True
@@ -282,7 +297,12 @@ def run_server(*, port: int, web_url: str, data_dir: Path, background: bool) -> 
     if background:
         run_tray(server, web_url=web_url, local_url=local_url, data_dir=data_dir)
     else:
-        thread = threading.Thread(target=server.run, name="paperflow-hub", daemon=True)
+        thread = threading.Thread(
+            target=run_uvicorn_server,
+            args=(server,),
+            name="paperflow-hub",
+            daemon=True,
+        )
         thread.start()
         if not wait_until_ready(port):
             server.should_exit = True
