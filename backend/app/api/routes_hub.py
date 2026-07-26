@@ -9,8 +9,8 @@ from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
-from app.hub.context import HubContext
 from app.config import Settings, get_settings
+from app.hub.context import HubContext
 from app.hub.identity import get_hub_identity_store
 
 router = APIRouter(prefix="/hub", tags=["hub"])
@@ -87,7 +87,7 @@ def hub_info(request: Request) -> dict:
             "required": authorization_required,
             "authorized": not authorization_required or client is not None,
             "tokenHeader": "X-PaperFlow-Hub-Token",
-            "webSocketQueryParameter": "hub_token",
+            "webSocketSubprotocol": "paperflow-auth.<token>",
             "pairingSupported": True,
         },
         "capabilities": {
@@ -131,8 +131,12 @@ def start_pairing(payload: PairStartIn, request: Request) -> dict:
 
 
 @router.get("/pair/display/{challenge_id}", response_class=HTMLResponse)
-def display_pairing_code(challenge_id: str) -> HTMLResponse:
+def display_pairing_code(challenge_id: str, request: Request) -> HTMLResponse:
     """Local confirmation page opened by the teacher in a separate tab."""
+    fetch_mode = request.headers.get("sec-fetch-mode")
+    if request.headers.get("origin") or (fetch_mode and fetch_mode != "navigate"):
+        raise HTTPException(status_code=403, detail="Код подключения доступен только при локальном открытии страницы")
+
     code = get_hub_identity_store().pending_pairing_code(challenge_id)
     if code is None:
         raise HTTPException(status_code=404, detail="Код подключения истёк или не существует")
