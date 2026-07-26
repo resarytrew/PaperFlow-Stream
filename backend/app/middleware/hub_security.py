@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ipaddress
 import json
 from urllib.parse import urlsplit
 
@@ -23,6 +24,30 @@ _WEBSOCKET_TOKEN_PREFIX = "paperflow-auth."
 
 def _normalise_origin(origin: str) -> str:
     return origin.rstrip("/")
+
+
+def _is_loopback_host(hostname: str | None) -> bool:
+    if not hostname:
+        return False
+    if hostname.lower() == "localhost":
+        return True
+    try:
+        return ipaddress.ip_address(hostname).is_loopback
+    except ValueError:
+        return False
+
+
+def _is_secure_bootstrap_origin(origin: str) -> bool:
+    """Allow discovery/pairing from HTTPS or a local development origin only."""
+    try:
+        parsed = urlsplit(origin)
+    except ValueError:
+        return False
+    if not parsed.hostname or parsed.username or parsed.password:
+        return False
+    if parsed.scheme == "https":
+        return True
+    return parsed.scheme == "http" and _is_loopback_host(parsed.hostname)
 
 
 def _bearer_token(headers: Headers) -> str:
@@ -62,7 +87,14 @@ class HubSecurityMiddleware:
             if value
         }
 
-    def _origin_allowed(self, origin: str | None, headers: Headers) -> bool:
+    def _origin_allowed(
+        self,
+        origin: str | None,
+        headers: Headers,
+        *,
+        path: str,
+        workspace_id: str,
+    ) -> bool:
         if not origin:
             return True
         origin = _normalise_origin(origin)
@@ -70,9 +102,19 @@ class HubSecurityMiddleware:
             return True
         host = headers.get("host", "")
         try:
-            return urlsplit(origin).netloc == host
+            if urlsplit(origin).netloc == host:
+                return True
         except ValueError:
             return False
+
+        # A new deployment (Vercel, custom domain, future School portal) may
+        # discover the Hub and start pairing without being preconfigured. The
+        # code is still displayed only on a local top-level page, and no private
+        # endpoint is opened until the exact Origin is persisted as a client.
+        if path in _PUBLIC_PATHS and _is_secure_bootstrap_origin(origin):
+            return True
+
+        return self.identity.has_paired_origin(origin=origin, workspace_id=workspace_id)
 
     def _requires_auth(self, origin: str | None, headers: Headers) -> bool:
         if self.settings.hub_require_pairing:
@@ -127,7 +169,17 @@ class HubSecurityMiddleware:
         if origin:
             origin = _normalise_origin(origin)
 
-        if not self._origin_allowed(origin, headers):
+        query = QueryParams(scope.get("query_string", b"").decode("latin-1"))
+        workspace_id = (
+            headers.get("x-paperflow-workspace")
+            or query.get("workspace")
+            or self.settings.hub_default_workspace_id
+        )
+        if self.settings.hub_mode == "personal" and workspace_id != self.settings.hub_default_workspace_id:
+            await self._reject(scope, send, 403, "Персональный Hub поддерживает только личное рабочее пространство")
+            return
+
+        if not self._origin_allowed(origin, headers, path=path, workspace_id=workspace_id):
             await self._reject(scope, send, 403, "Источник запроса не разрешён для этого PaperFlow Hub")
             return
 
@@ -147,16 +199,6 @@ class HubSecurityMiddleware:
 
         if scope["type"] == "http" and scope.get("method") == "OPTIONS":
             await self.app(scope, receive, send)
-            return
-
-        query = QueryParams(scope.get("query_string", b"").decode("latin-1"))
-        workspace_id = (
-            headers.get("x-paperflow-workspace")
-            or query.get("workspace")
-            or self.settings.hub_default_workspace_id
-        )
-        if self.settings.hub_mode == "personal" and workspace_id != self.settings.hub_default_workspace_id:
-            await self._reject(scope, send, 403, "Персональный Hub поддерживает только личное рабочее пространство")
             return
 
         # A cross-site <img> request normally has no Origin header. It is allowed
