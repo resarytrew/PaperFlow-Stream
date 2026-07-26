@@ -1,0 +1,84 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.1.1, pluggy-1.6.0 -- C:\hostedtoolcache\windows\Python\3.11.9\x64\python.exe
+cachedir: .pytest_cache
+rootdir: D:\a\PaperFlow-Stream\PaperFlow-Stream\backend
+plugins: anyio-4.14.2, asyncio-1.4.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 17 items
+
+tests/test_hybrid_hub.py::test_pairing_tokens_are_hashed_scoped_and_bound_to_origin_workspace PASSED [  5%]
+tests/test_hybrid_hub.py::test_pairing_code_is_invalidated_after_five_failed_attempts PASSED [ 11%]
+tests/test_hybrid_hub.py::test_security_middleware_requires_pairing_for_external_web_origin PASSED [ 17%]
+tests/test_hybrid_hub.py::test_unknown_https_origin_can_only_bootstrap_until_locally_paired PASSED [ 23%]
+tests/test_hybrid_hub.py::test_websocket_uses_subprotocol_token_instead_of_query_string PASSED [ 29%]
+tests/test_hybrid_hub.py::test_private_network_preflight_header_is_added PASSED [ 35%]
+tests/test_hybrid_hub.py::test_public_hub_info_contains_only_architecture_metadata PASSED [ 41%]
+tests/test_hybrid_hub.py::test_cloud_contract_has_no_free_form_student_payload PASSED [ 47%]
+tests/test_hybrid_hub.py::test_school_mode_cannot_be_enabled_before_tenant_schema PASSED [ 52%]
+tests/test_hybrid_hub_media.py::test_cross_site_img_without_origin_requires_read_only_media_token PASSED [ 58%]
+tests/test_security_backup_recovery.py::test_settings_never_return_api_key_and_blank_patch_preserves_it PASSED [ 64%]
+tests/test_security_backup_recovery.py::test_backup_is_consistent_and_manifest_is_redacted FAILED [ 70%]
+tests/test_security_backup_recovery.py::test_interrupted_ocr_jobs_are_requeued PASSED [ 76%]
+tests/test_desktop_host.py::test_desktop_config_roundtrip PASSED         [ 82%]
+tests/test_desktop_host.py::test_cloud_origin_accepts_only_http_web_urls PASSED [ 88%]
+tests/test_desktop_host.py::test_configure_environment_allows_only_the_selected_web_origin PASSED [ 94%]
+tests/test_desktop_host.py::test_autostart_command_uses_background_mode PASSED [100%]
+
+================================== FAILURES ===================================
+_____________ test_backup_is_consistent_and_manifest_is_redacted ______________
+
+api_client = <starlette.testclient.TestClient object at 0x0000023D868A2D10>
+
+    def test_backup_is_consistent_and_manifest_is_redacted(api_client):
+        secret = "backup-secret-must-not-leak"
+        response = api_client.patch("/api/settings", json={"vision_ocr": {"api_key": secret}})
+        assert response.status_code == 200
+    
+        response = api_client.get("/api/maintenance/backup")
+        assert response.status_code == 200, response.text
+        assert response.headers["content-type"] == "application/zip"
+        assert response.content[:2] == b"PK"
+        assert secret.encode() not in response.content
+    
+        with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
+            assert set(archive.namelist()) == {"paperflow.db", "manifest.json"}
+            manifest = json.loads(archive.read("manifest.json"))
+            assert manifest["config"]["vision_ocr"]["api_key"] == ""
+            assert manifest["config"]["vision_ocr"]["api_key_configured"] is True
+    
+            database = io.BytesIO(archive.read("paperflow.db"))
+            # sqlite3 cannot open BytesIO directly; materialise through deserialize
+            connection = sqlite3.connect(":memory:")
+            connection.deserialize(database.getvalue())
+>           tables = {row[0] for row in connection.execute("select name from sqlite_master where type='table'")}
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           sqlite3.OperationalError: unable to open database file
+
+tests\test_security_backup_recovery.py:66: OperationalError
+---------------------------- Captured stderr setup ----------------------------
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+INFO  [alembic.runtime.migration] Running stamp_revision  -> 4c4d40c18081
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade 4c4d40c18081 -> bb62b65c2a2e, sync models after 0.2 baseline
+============================== warnings summary ===============================
+C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\fastapi\testclient.py:1
+  C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+tests/test_hybrid_hub.py::test_public_hub_info_contains_only_architecture_metadata
+tests/test_hybrid_hub.py::test_public_hub_info_contains_only_architecture_metadata
+tests/test_security_backup_recovery.py::test_settings_never_return_api_key_and_blank_patch_preserves_it
+tests/test_security_backup_recovery.py::test_settings_never_return_api_key_and_blank_patch_preserves_it
+tests/test_security_backup_recovery.py::test_backup_is_consistent_and_manifest_is_redacted
+tests/test_security_backup_recovery.py::test_backup_is_consistent_and_manifest_is_redacted
+tests/test_security_backup_recovery.py::test_interrupted_ocr_jobs_are_requeued
+tests/test_security_backup_recovery.py::test_interrupted_ocr_jobs_are_requeued
+  C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\alembic\config.py:612: DeprecationWarning: No path_separator found in configuration; falling back to legacy splitting on spaces, commas, and colons for prepend_sys_path.  Consider adding path_separator=os to Alembic config.
+    util.warn_deprecated(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_security_backup_recovery.py::test_backup_is_consistent_and_manifest_is_redacted - sqlite3.OperationalError: unable to open database file
+================== 1 failed, 16 passed, 9 warnings in 2.85s ===================

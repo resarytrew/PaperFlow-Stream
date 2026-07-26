@@ -1,0 +1,13 @@
+Chocolatey v2.7.3
+Installing the following packages:
+innosetup
+By installing, you accept licenses for the packages.
+InnoSetup v6.7.1 already installed.
+ Use --force to reinstall, specify a version to install, or try upgrade.
+
+Chocolatey installed 0/1 packages. 
+ See the log for details (C:\ProgramData\chocolatey\logs\chocolatey.log).
+
+Warnings:
+ - InnoSetup - InnoSetup v6.7.1 already installed.
+ Use --force to reinstall, specify a version to install, or try upgrade.

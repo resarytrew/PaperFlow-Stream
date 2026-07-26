@@ -4,4 +4,4 @@ tests=failure
 pyinstaller=failure
 inno=success
 installer=skipped
-run=https://github.com/resarytrew/PaperFlow-Stream/actions/runs/30193133805
+run=https://github.com/resarytrew/PaperFlow-Stream/actions/runs/30193216229

@@ -1,0 +1,14 @@
+184 INFO: PyInstaller: 6.21.0, contrib hooks: 2026.6
+184 INFO: Python: 3.11.9
+193 INFO: Platform: Windows-10-10.0.26100-SP0
+193 INFO: Python environment: C:\hostedtoolcache\windows\Python\3.11.9\x64
+202 INFO: Removing temporary files and cleaning cache in C:\Users\runneradmin\AppData\Local\pyinstaller
+272 WARNING: Failed to collect submodules for 'onnxruntime.quantization' because importing 'onnxruntime.quantization' raised: ModuleNotFoundError: No module named 'onnx'
+321 INFO: setup plugin alembic.autogenerate.schemas
+321 INFO: setup plugin alembic.autogenerate.tables
+321 INFO: setup plugin alembic.autogenerate.types
+321 INFO: setup plugin alembic.autogenerate.constraints
+321 INFO: setup plugin alembic.autogenerate.defaults
+321 INFO: setup plugin alembic.autogenerate.comments
+426 WARNING: Failed to collect submodules for 'alembic.testing.suite' because importing 'alembic.testing.suite' raised: AttributeError: 'SuiteRequirements' object has no attribute 'comments'
+ERROR: script 'D:\a\PaperFlow-Stream\backend\app\desktop.py' not found
