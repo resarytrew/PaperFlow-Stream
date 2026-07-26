@@ -14,8 +14,8 @@ PaperFlow разделён на два контура:
 ФИО, классы, изображения листов, OCR-текст, ответы и оценки обрабатываются только
 внутри Hub. Веб-клиент разрешает подключение только к loopback, `.local`, RFC1918
 или явно разрешённым внутренним адресам. Внешний Origin обязан пройти локальное
-сопряжение по шестизначному коду; токены хешируются и привязываются к Origin и
-рабочему пространству.
+сопряжение по шестизначному коду; API- и media-токены разделены, хешируются и
+привязываются к браузерному клиенту и рабочему пространству.
 
 Подробное описание: [`docs/HYBRID_HUB_ARCHITECTURE.md`](docs/HYBRID_HUB_ARCHITECTURE.md).
 
@@ -32,10 +32,9 @@ PaperFlow разделён на два контура:
 ```
 
 Персональный Hub откроется на <http://localhost:17841>. Эти скрипты предназначены
-для локальной разработки и автономной работы. Для подключения облачного HTTPS-
-интерфейса нужен подписанный установщик Hub с локально доверенным сертификатом.
+для разработки и автономной работы.
 
-### Ручной запуск для разработки
+### Ручной запуск
 
 ```bash
 # backend / Hub
@@ -43,7 +42,7 @@ cd backend
 python -m venv .venv
 .venv/bin/pip install -r requirements.txt
 PAPERFLOW_HUB_PUBLIC_URL=http://127.0.0.1:17841 \
-  .venv/bin/python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 17841
+  .venv/bin/python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 17841 --no-access-log
 
 # frontend — same-origin dev proxy
 cd frontend
@@ -51,40 +50,80 @@ npm install
 npm run dev
 ```
 
+## Personal Hub для Windows
+
+Добавлен desktop-host `app.desktop`:
+
+- запускает Hub без консоли;
+- работает в системном трее;
+- открывает PaperFlow Web;
+- создаёт backup из меню;
+- открывает локальную папку данных;
+- устанавливает автозапуск текущего пользователя;
+- хранит данные вне каталога программы, поэтому удаление приложения не удаляет архив.
+
+Релизный workflow `.github/workflows/release-personal-hub.yml` собирает:
+
+```text
+PaperFlowHubSetup-0.3.0.exe
+PaperFlowHubSetup-0.3.0.exe.sha256
+```
+
+Он запускает security-тесты, собирает frontend, PyInstaller-пакет и per-user
+Inno Setup installer. При наличии GitHub Secrets `WINDOWS_CERTIFICATE_BASE64` и
+`WINDOWS_CERTIFICATE_PASSWORD` исполняемые файлы подписываются автоматически.
+
+Установщик можно собрать вручную на Windows:
+
+```powershell
+cd frontend
+npm ci
+npm run build
+cd ..\backend
+pip install -r requirements-desktop.txt
+cd ..
+python -m PyInstaller packaging\windows\PaperFlowHub.spec --noconfirm --clean
+& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" packaging\windows\PaperFlowHub.iss
+```
+
+При установке можно передать адрес облачного интерфейса:
+
+```text
+PaperFlowHubSetup-0.3.0.exe /WebUrl=https://paperflow.example.ru
+```
+
 ## Настройка внешнего web-интерфейса
 
-На Hub необходимо указать точный Origin размещённого интерфейса:
+Desktop-host автоматически разрешает точный Origin из сохранённого `web_url`.
+При ручном запуске Origin можно задать явно:
 
 ```bash
 PAPERFLOW_HUB_ALLOWED_ORIGINS='["https://paperflow.example.ru"]'
-PAPERFLOW_HUB_PUBLIC_URL=https://127.0.0.1:17841
+PAPERFLOW_HUB_PUBLIC_URL=http://127.0.0.1:17841
 ```
 
-Для cloud-сборки frontend:
+Cloud-сборка frontend:
 
 ```bash
 VITE_PAPERFLOW_UI_MODE=cloud
-VITE_PAPERFLOW_HUB_URLS=https://127.0.0.1:17841,https://localhost:17841
+VITE_PAPERFLOW_HUB_URLS=https://127.0.0.1:17841,https://localhost:17841,http://127.0.0.1:17841,http://localhost:17841
 npm run build
 ```
 
-Все production-подключения cloud → Hub должны использовать локально доверенный
-HTTPS. Открытый HTTP допустим только для локальной разработки.
+Современный браузер может запросить у учителя разрешение на доступ к loopback-
+сети и подключиться к локальному HTTP Hub. Локально доверенный HTTPS остаётся
+рекомендуемым вариантом для максимальной совместимости и для School Hub в LAN.
 
 ## Подготовка к School Hub
 
-API уже использует стабильный контракт рабочего пространства
-`X-PaperFlow-Workspace` и request context с `workspace_id`, `actor_id`, ролью и
-идентификатором клиента. Переход в school mode намеренно заблокирован, пока не
-установлена tenant-scoped миграция базы и управление пользователями:
+API уже использует стабильный контракт `X-PaperFlow-Workspace` и request context
+с `workspace_id`, `actor_id`, ролью и идентификатором клиента. В документации
+зафиксированы будущие `organizations`, `workspaces`, пользователи, memberships,
+RBAC, audit log и порядок tenant-миграции.
 
-```text
-PAPERFLOW_HUB_MODE=school
-PAPERFLOW_HUB_SCHOOL_TENANCY_ENABLED=true
-```
-
-Флаг нельзя включать в текущем релизе вручную: он предназначен для следующей
-версии схемы, где каждая бизнес-сущность будет привязана к workspace.
+School mode в 0.3 заблокирован **на уровне кода**, даже если выставить переменные
+окружения. Разблокировать его сможет только релиз, в котором реально появятся
+workspace-scoped таблицы, обязательные tenant predicates и управление доступом.
 
 ## Типовой сценарий
 
@@ -94,7 +133,7 @@ PAPERFLOW_HUB_SCHOOL_TENANCY_ENABLED=true
 4. Запустить сессию и подавать листы.
 5. Проверить OCR и исправить ответы.
 6. Экспортировать CSV, JSON, XLSX или ZIP.
-7. Создать локальную резервную копию через `/api/maintenance/backup`.
+7. Создать локальную резервную копию в настройках.
 
 ## Тесты
 
@@ -103,7 +142,8 @@ cd backend && .venv/bin/python -m pytest
 cd frontend && npm run build
 ```
 
-GitHub Actions запускает оба набора проверок при каждом push в `main` и в pull request.
+GitHub Actions запускает backend и frontend проверки при push в `main` и pull
+request. Отдельный workflow собирает Windows installer вручную или по тегу `v*`.
 
 ## Ограничения
 
@@ -112,5 +152,8 @@ GitHub Actions запускает оба набора проверок при к
 - Облачный Yandex Vision OCR остаётся отдельной opt-in функцией и означает
   передачу выбранного изображения провайдеру. Для режима «нулевая передача» его
   следует держать отключённым.
-- Production-установщик с системным треем, автозапуском и локально доверенным TLS-
-  сертификатом является следующим этапом; протокол и API для него уже заложены.
+- Репозиторий содержит сборочный pipeline установщика, но готовый подписанный
+  релиз появляется только после успешного запуска release workflow и настройки
+  сертификата подписи.
+- Развёртывание статического frontend в конкретном аккаунте Yandex Cloud требует
+  bucket/domain/CDN credentials владельца инфраструктуры.
