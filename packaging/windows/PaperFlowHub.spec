@@ -3,7 +3,8 @@
 from pathlib import Path
 from PyInstaller.utils.hooks import collect_all, collect_data_files, collect_submodules
 
-ROOT = Path(SPECPATH).parent.parent.parent
+# SPECPATH points to packaging/windows. The repository root is two levels up.
+ROOT = Path(SPECPATH).parent.parent
 BACKEND = ROOT / "backend"
 FRONTEND = ROOT / "frontend" / "dist"
 
