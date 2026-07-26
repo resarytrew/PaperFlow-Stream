@@ -127,6 +127,7 @@ export interface ScannedSheet {
   normalized_image_path: string | null;
   enhanced_image_path: string | null;
   answer_crop_path: string | null;
+  answer_crops_json?: { index: number; label: string; path: string; region: Record<string, unknown> }[] | null;
 }
 
 export interface Dashboard {
@@ -167,6 +168,20 @@ export interface ScanStateMessage {
   overlay: {
     quad: number[][] | null;
     workArea: number[][] | null;
+    qrPreview?: {
+      success: boolean;
+      readability: number;
+      studentId: string;
+      studentLabel: string;
+      classId: string;
+      taskId: string;
+      sheetUid: string;
+      variantNo: number | string | null;
+      variantTotal: number | string | null;
+      duplicate: boolean;
+      backend: string;
+      error: string;
+    } | null;
     detection: Record<string, unknown>;
     metrics: Record<string, number>;
     frameIndex: number;

@@ -247,6 +247,7 @@ class ScannedSheetOut(ORMBase):
     normalized_image_path: str | None
     enhanced_image_path: str | None
     answer_crop_path: str | None
+    answer_crops_json: list | None = None
     thumbnail_path: str | None
     qr_payload: dict | None
     qr_status: str
@@ -378,6 +379,15 @@ class SettingsPatch(BaseModel):
 # ---------------------------------------------------------------- generation
 
 
+class FormBlockModel(BaseModel):
+    """One visual block in the printable answer-form constructor."""
+
+    type: str = Field(default="lines", pattern="^(lines|choice|short|grid)$")
+    title: str = Field(default="Ответ", max_length=80)
+    rows: int = Field(default=4, ge=1, le=80)
+    columns: int = Field(default=4, ge=1, le=12)
+
+
 class FormGenerationRequest(BaseModel):
     class_id: int
     task_id: int
@@ -387,6 +397,10 @@ class FormGenerationRequest(BaseModel):
     include_cut_lines: bool = True
     payload_format: str = Field(default="json", pattern="^(json|compact)$")
     title_override: str | None = None
+    layout_kind: str = Field(default="lines", pattern="^(lines|choice|short|grid|mixed)$")
+    blocks: list[FormBlockModel] = Field(default_factory=list)
+    variant_count: int = Field(default=1, ge=1, le=30)
+    variant_mode: str = Field(default="rotate", pattern="^(rotate|all|fixed)$")
 
 
 # ------------------------------------------------------------------ hardware

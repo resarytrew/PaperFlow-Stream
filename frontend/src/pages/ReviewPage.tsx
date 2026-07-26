@@ -209,6 +209,13 @@ export default function ReviewPage() {
                 <button className="btn" onClick={() => act(() => api.post(`/sheets/${selected.id}/recognize`))}>
                   ↻ Распознать заново
                 </button>
+                <button
+                  className="btn primary"
+                  title="Второй проход через Yandex Vision OCR. Требует явного разрешения в настройках приватности."
+                  onClick={() => act(() => api.post(`/sheets/${selected.id}/recognize-vision`))}
+                >
+                  ✨ Распознать Vision
+                </button>
                 <button className="btn" onClick={() => act(() => api.post(`/sheets/${selected.id}/blank-override?is_blank=true`))}>
                   Пустой ответ
                 </button>

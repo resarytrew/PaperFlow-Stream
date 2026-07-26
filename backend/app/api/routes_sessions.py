@@ -382,6 +382,56 @@ def list_sheets(
     return [serialize_sheet(s) for s in sheets]
 
 
+@router.post("/sessions/{session_id}/undo-last")
+def undo_last_scan(session_id: int, db: DbSession) -> dict:
+    """Soft-delete the last accepted/non-deleted sheet of the session.
+
+    This is the operator's safety net during high-speed feeding: if the camera
+    captured a hand, a wrong sheet or a duplicate by accident, Backspace/Ctrl+Z
+    can immediately remove the last scan without leaving the scan screen.
+    """
+    get_session_or_404(db, session_id)
+    sheet = db.execute(
+        select(ScannedSheet)
+        .where(
+            ScannedSheet.session_id == session_id,
+            ScannedSheet.scan_status != ScanStatus.deleted.value,
+        )
+        .order_by(ScannedSheet.id.desc())
+    ).scalars().first()
+    if sheet is None:
+        raise HTTPException(status_code=400, detail="В этой сессии ещё нет сканов для отмены")
+
+    previous_status = sheet.scan_status
+    sheet.scan_status = ScanStatus.deleted.value
+    db.commit()
+
+    runtime = scan_service.get_runtime(session_id)
+    if runtime is not None:
+        runtime.counters["scanned"] = max(0, int(runtime.counters.get("scanned", 0)) - 1)
+        if previous_status == ScanStatus.duplicate.value:
+            runtime.counters["duplicates"] = max(0, int(runtime.counters.get("duplicates", 0)) - 1)
+        if previous_status == ScanStatus.unidentified.value:
+            runtime.counters["unidentified"] = max(0, int(runtime.counters.get("unidentified", 0)) - 1)
+        remaining_uids = db.execute(
+            select(ScannedSheet.sheet_uid).where(
+                ScannedSheet.session_id == session_id,
+                ScannedSheet.sheet_uid.is_not(None),
+                ScannedSheet.scan_status != ScanStatus.deleted.value,
+            )
+        ).all()
+        runtime.scanned_sheet_uids = {str(row[0]).lower() for row in remaining_uids if row[0]}
+        runtime.last_outcome = None
+
+    return {
+        "undone": True,
+        "sheetId": sheet.id,
+        "sequenceNumber": sheet.sequence_number,
+        "studentLabel": sheet.student.display_name if sheet.student else None,
+        "previousStatus": previous_status,
+    }
+
+
 @router.get("/sheets/{sheet_id}", response_model=ScannedSheetOut)
 def get_sheet(sheet_id: int, db: DbSession) -> ScannedSheetOut:
     return serialize_sheet(get_sheet_or_404(db, sheet_id))
@@ -503,6 +553,11 @@ def reprocess_sheet(sheet_id: int, db: DbSession, config: Config) -> ScannedShee
 def delete_sheet(sheet_id: int, db: DbSession, purge: bool = False) -> None:
     sheet = get_sheet_or_404(db, sheet_id)
     if purge:
+        extra_answer_paths = [
+            item.get("path")
+            for item in (sheet.answer_crops_json or [])
+            if isinstance(item, dict)
+        ]
         get_storage().delete_paths(
             [
                 sheet.source_frame_path,
@@ -510,6 +565,7 @@ def delete_sheet(sheet_id: int, db: DbSession, purge: bool = False) -> None:
                 sheet.enhanced_image_path,
                 sheet.answer_crop_path,
                 sheet.thumbnail_path,
+                *extra_answer_paths,
             ]
         )
         db.delete(sheet)
@@ -522,6 +578,31 @@ def delete_sheet(sheet_id: int, db: DbSession, purge: bool = False) -> None:
 def get_sheet_image(sheet_id: int, kind: str, db: DbSession) -> FileResponse:
     """Serve a stored image (original / normalized / enhanced / crop / thumb)."""
     sheet = get_sheet_or_404(db, sheet_id)
+    if kind == "qr":
+        import cv2
+
+        from app.cv.geometry import crop_normalized
+        from app.services.scan_service import DEFAULT_QR_REGION
+
+        source = sheet.normalized_image_path or sheet.enhanced_image_path
+        if not source:
+            raise HTTPException(status_code=404, detail="Изображение отсутствует")
+        try:
+            image = get_storage().load(source)
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        runtime = scan_service.get_runtime(sheet.session_id)
+        qr_region = runtime.qr_region if runtime else None
+        if qr_region is None and sheet.session and sheet.session.template and sheet.session.template.qr_region:
+            qr_region = sheet.session.template.qr_region
+        crop = crop_normalized(image, qr_region or DEFAULT_QR_REGION)
+        if crop.size <= 0:
+            raise HTTPException(status_code=404, detail="QR-фрагмент отсутствует")
+        ok, encoded = cv2.imencode(".jpg", crop, [cv2.IMWRITE_JPEG_QUALITY, 88])
+        if not ok:
+            raise HTTPException(status_code=500, detail="Не удалось подготовить QR-фрагмент")
+        return Response(content=encoded.tobytes(), media_type="image/jpeg", headers={"Cache-Control": "public, max-age=3600"})
+
     mapping = {
         "source": sheet.source_frame_path,
         "normalized": sheet.normalized_image_path,
@@ -529,9 +610,19 @@ def get_sheet_image(sheet_id: int, kind: str, db: DbSession) -> FileResponse:
         "answer": sheet.answer_crop_path,
         "thumbnail": sheet.thumbnail_path,
     }
-    if kind not in mapping:
-        raise HTTPException(status_code=400, detail=f"Неизвестный тип изображения: {kind}")
-    relative = mapping[kind]
+    if kind.startswith("answer-"):
+        try:
+            answer_index = int(kind.removeprefix("answer-")) - 1
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=f"Неизвестный тип изображения: {kind}") from exc
+        crops = sheet.answer_crops_json or []
+        relative = None
+        if 0 <= answer_index < len(crops) and isinstance(crops[answer_index], dict):
+            relative = crops[answer_index].get("path")
+    else:
+        if kind not in mapping:
+            raise HTTPException(status_code=400, detail=f"Неизвестный тип изображения: {kind}")
+        relative = mapping[kind]
     if not relative:
         raise HTTPException(status_code=404, detail="Изображение отсутствует")
     try:

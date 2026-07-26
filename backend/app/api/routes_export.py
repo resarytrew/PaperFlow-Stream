@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from urllib.parse import quote
 
 from fastapi import APIRouter, HTTPException, Query, Response
@@ -154,22 +154,37 @@ def generate_forms(payload: FormGenerationRequest, db: DbSession) -> Response:
         raise HTTPException(status_code=400, detail="В классе нет активных учеников")
 
     specs: list[FormSpec] = []
-    for student in students:
+    variant_count = max(1, payload.variant_count)
+    for student_order, student in enumerate(students):
+        variants = range(1, variant_count + 1) if payload.variant_mode == "all" else None
         for index in range(1, payload.sheets_per_student + 1):
-            specs.append(
-                FormSpec(
-                    student_external_id=student.external_id,
-                    student_name=student.display_name,
-                    class_name=class_group.name,
-                    task_external_id=task.external_id,
-                    task_title=payload.title_override or task.title,
-                    sheet_uid=build_sheet_uid(
-                        student.external_id, task.external_id, index, payload.sheets_per_student
-                    ),
-                    sheet_index=index,
-                    sheet_total=payload.sheets_per_student,
+            if variants is None:
+                variant_number = 1 if payload.variant_mode == "fixed" else ((student_order + index - 1) % variant_count) + 1
+                current_variants = [variant_number]
+            else:
+                current_variants = list(variants)
+            for variant_number in current_variants:
+                specs.append(
+                    FormSpec(
+                        student_external_id=student.external_id,
+                        student_name=student.display_name,
+                        class_name=class_group.name,
+                        task_external_id=task.external_id,
+                        task_title=payload.title_override or task.title,
+                        sheet_uid=build_sheet_uid(
+                            student.external_id,
+                            task.external_id,
+                            index,
+                            payload.sheets_per_student,
+                            variant_number=variant_number,
+                            variant_total=variant_count,
+                        ),
+                        sheet_index=index,
+                        sheet_total=payload.sheets_per_student,
+                        variant_number=variant_number,
+                        variant_total=variant_count,
+                    )
                 )
-            )
 
     try:
         pdf = generate_forms_pdf(
@@ -178,6 +193,8 @@ def generate_forms(payload: FormGenerationRequest, db: DbSession) -> Response:
             include_cut_lines=payload.include_cut_lines,
             payload_format=payload.payload_format,
             document_title=f"{class_group.name} — {task.title}",
+            layout_kind=payload.layout_kind,
+            blocks=[block.model_dump() for block in payload.blocks],
         )
     except Exception as exc:
         logger.exception("form generation failed")
@@ -266,7 +283,7 @@ def dashboard(db: DbSession) -> DashboardOut:
     # Average speed across today's sessions.
     average_speed = 0.0
     today_sessions = db.execute(
-        select(ScanSession).where(ScanSession.created_at >= midnight - timedelta(days=1))
+        select(ScanSession).where(ScanSession.created_at >= midnight)
     ).scalars().all()
     speeds: list[float] = []
     for session in today_sessions:

@@ -18,9 +18,12 @@ from app.models import (
     ScannedSheet,
     Task,
 )
-from app.ocr.providers import available_providers
+from app.ocr.answer_check import compare_answers
+from app.ocr.confidence import analyse_text, classify_confidence
+from app.ocr.providers import available_providers, get_provider, vision_provider_kwargs
 from app.schemas import ReviewSubmit, ScannedSheetOut
 from app.services.ocr_queue import ocr_queue
+from app.services.storage import get_storage
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["review"])
@@ -118,6 +121,105 @@ def enqueue_recognition(sheet_id: int, db: DbSession) -> ScannedSheetOut:
         raise HTTPException(status_code=400, detail="У листа нет изображения для распознавания")
     if not ocr_queue.enqueue(sheet_id):
         logger.info("sheet %s already queued or queue offline", sheet_id)
+    db.refresh(sheet)
+    return serialize_sheet(sheet)
+
+
+@router.post("/sheets/{sheet_id}/recognize-vision", response_model=ScannedSheetOut)
+async def recognize_with_vision(sheet_id: int, db: DbSession, config: Config) -> ScannedSheetOut:
+    """Run Yandex Vision OCR for one sheet on explicit teacher request.
+
+    This endpoint is deliberately not used by the live scanner. It is a
+    second-pass recogniser for the review screen and is gated by privacy
+    settings so cloud OCR cannot run accidentally.
+    """
+    sheet = get_sheet_or_404(db, sheet_id)
+    if not config.privacy.allow_cloud_providers or not config.privacy.vision_ocr_enabled:
+        raise HTTPException(
+            status_code=403,
+            detail="Vision OCR отключён. Включите облачные провайдеры и Vision OCR в настройках приватности.",
+        )
+
+    image_ref = None
+    if config.privacy.vision_send_full_sheet:
+        image_ref = sheet.normalized_image_path or sheet.enhanced_image_path or sheet.answer_crop_path
+    else:
+        image_ref = sheet.answer_crop_path
+    if not image_ref:
+        image_ref = sheet.normalized_image_path
+    if not image_ref:
+        raise HTTPException(status_code=400, detail="У листа нет изображения для Vision OCR")
+
+    try:
+        absolute = get_storage().absolute(image_ref)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Файл недоступен: {exc}") from exc
+
+    result = db.execute(
+        select(RecognitionResult).where(RecognitionResult.scanned_sheet_id == sheet_id)
+    ).scalar_one_or_none()
+    if result is None:
+        result = RecognitionResult(scanned_sheet_id=sheet_id)
+        db.add(result)
+    result.status = RecognitionStatus.recognizing.value
+    result.attempts = (result.attempts or 0) + 1
+    db.commit()
+
+    provider = get_provider("vision", **vision_provider_kwargs(config))
+    try:
+        output = await provider.recognize(str(absolute), config.ocr.language)
+    except Exception as exc:
+        result = db.execute(
+            select(RecognitionResult).where(RecognitionResult.scanned_sheet_id == sheet_id)
+        ).scalar_one_or_none()
+        if result is not None:
+            result.status = RecognitionStatus.failed.value
+            result.error_message = f"{type(exc).__name__}: {exc}"[:2000]
+            db.commit()
+        raise HTTPException(status_code=502, detail=f"Vision OCR не выполнен: {exc}") from exc
+
+    expected_answer = ""
+    if sheet.task_id:
+        task = db.get(Task, sheet.task_id)
+        if task:
+            expected_answer = task.expected_answer or ""
+
+    verdict = classify_confidence(output, config.ocr)
+    analysis = analyse_text(output.text, expected_answer, config.ocr.keyword_analysis)
+    analysis["confidence"] = verdict.to_dict()
+    analysis["vision"] = {
+        "provider": "yandex",
+        "mockMode": config.vision_ocr.mock_mode,
+        "sentFullSheet": config.privacy.vision_send_full_sheet,
+    }
+    if expected_answer:
+        analysis["answerCheck"] = compare_answers("" if output.is_blank else output.text, expected_answer)
+
+    if output.is_blank:
+        status_value = RecognitionStatus.blank.value
+    elif verdict.needs_review:
+        status_value = RecognitionStatus.needs_review.value
+    else:
+        status_value = RecognitionStatus.recognized.value
+
+    result = db.execute(
+        select(RecognitionResult).where(RecognitionResult.scanned_sheet_id == sheet_id)
+    ).scalar_one_or_none()
+    if result is None:
+        result = RecognitionResult(scanned_sheet_id=sheet_id)
+        db.add(result)
+    result.recognized_text = output.text
+    result.provider = output.provider
+    result.model_name = output.model_name
+    result.overall_confidence = output.overall_confidence
+    result.line_results_json = [line.to_dict() for line in output.lines]
+    result.warnings = output.warnings
+    result.analysis_json = analysis
+    result.preprocess_variant = output.preprocess_variant
+    result.processing_time_ms = output.processing_time_ms
+    result.status = status_value
+    result.error_message = None
+    db.commit()
     db.refresh(sheet)
     return serialize_sheet(sheet)
 
@@ -241,7 +343,7 @@ def ocr_status(config: Config) -> dict:
     """Queue health + provider availability for the settings page."""
     return {
         "queue": ocr_queue.snapshot(),
-        "providers": available_providers(),
+        "providers": available_providers(config),
         "active": config.ocr.provider,
         "thresholds": {
             "high": config.ocr.high_confidence,

@@ -12,13 +12,24 @@ PORT="${PAPERFLOW_PORT:-8000}"
 PY="${PYTHON:-python3}"
 
 say() { printf '\033[1;34m[PaperFlow]\033[0m %s\n' "$*"; }
+install_backend_deps() {
+  (cd backend && .venv/bin/pip install --disable-pip-version-check -q -r requirements.txt)
+}
 
 # ---------------------------------------------------------------- python env
 if [ ! -x backend/.venv/bin/python ]; then
   say "Первый запуск: создаю окружение Python (это займёт пару минут)…"
   "$PY" -m venv backend/.venv
-  backend/.venv/bin/pip install --disable-pip-version-check -q -r backend/requirements.txt
+  install_backend_deps
   say "Зависимости Python установлены."
+elif ! backend/.venv/bin/python - <<'PY' >/dev/null 2>&1
+import cv2
+import rapidocr_onnxruntime
+PY
+then
+  say "Обновляю зависимости Python (проверка OpenCV/OCR не прошла)…"
+  install_backend_deps
+  say "Зависимости Python обновлены."
 fi
 
 # ---------------------------------------------------------------- web ui

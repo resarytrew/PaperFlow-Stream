@@ -24,8 +24,15 @@ interface Health {
   ocr: { queue: Record<string, number>; local: Record<string, unknown> };
 }
 
+type EditableField = {
+  key: string;
+  label: string;
+  step?: number;
+  type?: "number" | "checkbox" | "text" | "password";
+};
+
 /** Editable subset of the runtime config: section -> field -> label + step. */
-const EDITABLE: { section: string; title: string; fields: { key: string; label: string; step?: number }[] }[] = [
+const EDITABLE: { section: string; title: string; fields: EditableField[] }[] = [
   {
     section: "stability",
     title: "Стабильность и качество",
@@ -58,7 +65,23 @@ const EDITABLE: { section: string; title: string; fields: { key: string; label: 
   {
     section: "privacy",
     title: "Приватность и хранение",
-    fields: [{ key: "file_retention_days", label: "Хранить изображения, дней" }],
+    fields: [
+      { key: "file_retention_days", label: "Хранить изображения, дней" },
+      { key: "allow_cloud_providers", label: "Разрешить облачные провайдеры", type: "checkbox" },
+      { key: "vision_ocr_enabled", label: "Разрешить Yandex Vision OCR", type: "checkbox" },
+      { key: "vision_send_full_sheet", label: "Отправлять весь лист (иначе только область ответа)", type: "checkbox" },
+    ],
+  },
+  {
+    section: "vision_ocr",
+    title: "Yandex Vision OCR",
+    fields: [
+      { key: "endpoint", label: "Endpoint", type: "text" },
+      { key: "api_key", label: "API key", type: "password" },
+      { key: "folder_id", label: "Folder ID", type: "text" },
+      { key: "model", label: "Модель", type: "text" },
+      { key: "mock_mode", label: "Тестовый mock-режим без облака", type: "checkbox" },
+    ],
   },
 ];
 
@@ -76,7 +99,7 @@ export default function SettingsPage() {
     if (settings.data) setDraft(JSON.parse(JSON.stringify(settings.data.config)));
   }, [settings.data]);
 
-  function setValue(section: string, key: string, value: number) {
+  function setValue(section: string, key: string, value: unknown) {
     setDraft((d) => ({ ...d, [section]: { ...d[section], [key]: value } }));
   }
 
@@ -140,16 +163,41 @@ export default function SettingsPage() {
           <div className="panel" key={group.section}>
             <h3 style={{ marginTop: 0 }}>{group.title}</h3>
             {group.fields.map((f) => (
-              <label className="field" key={f.key}>
-                <span>{f.label}</span>
-                <input
-                  type="number"
-                  step={f.step ?? 1}
-                  value={(draft[group.section]?.[f.key] as number) ?? ""}
-                  onChange={(e) => setValue(group.section, f.key, Number(e.target.value))}
-                />
+              <label className={f.type === "checkbox" ? "row" : "field"} key={f.key} style={f.type === "checkbox" ? { marginBottom: 10, cursor: "pointer" } : undefined}>
+                {f.type === "checkbox" ? (
+                  <>
+                    <input
+                      type="checkbox"
+                      checked={Boolean(draft[group.section]?.[f.key])}
+                      onChange={(e) => setValue(group.section, f.key, e.target.checked)}
+                    />
+                    <span>{f.label}</span>
+                  </>
+                ) : (
+                  <>
+                    <span>{f.label}</span>
+                    <input
+                      type={f.type ?? "number"}
+                      step={f.step ?? 1}
+                      value={(draft[group.section]?.[f.key] as string | number | undefined) ?? ""}
+                      onChange={(e) =>
+                        setValue(
+                          group.section,
+                          f.key,
+                          f.type === "text" || f.type === "password" ? e.target.value : Number(e.target.value),
+                        )
+                      }
+                    />
+                  </>
+                )}
               </label>
             ))}
+            {group.section === "vision_ocr" && (
+              <p className="muted" style={{ fontSize: 13, lineHeight: 1.5 }}>
+                По умолчанию облако выключено. Для безопасного теста включите mock-режим: изображения не отправляются наружу,
+                но кнопка «Распознать Vision» в проверке работает как настоящая интеграция.
+              </p>
+            )}
           </div>
         ))}
       </div>

@@ -15,11 +15,15 @@ being presented as reliable. A better Russian HTR model can be supplied via
 from __future__ import annotations
 
 import asyncio
+import base64
 import hashlib
+import json
 import logging
 import os
 import threading
 import time
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 import cv2
@@ -327,6 +331,192 @@ class MockHandwritingProvider(HandwritingRecognitionProvider):
         return output
 
 
+# -------------------------------------------------------------------- vision
+
+
+class YandexVisionOcrProvider(HandwritingRecognitionProvider):
+    """Opt-in Yandex Vision OCR provider.
+
+    Designed as a privacy-gated second-pass recogniser: use it for problematic
+    sheets or on explicit teacher request. Tests use ``mock_mode=True`` so no
+    external network call or real credential is required.
+    """
+
+    name = "vision"
+
+    def __init__(
+        self,
+        *,
+        endpoint: str = "https://ocr.api.cloud.yandex.net/ocr/v1/recognizeText",
+        api_key: str = "",
+        folder_id: str = "",
+        model: str = "page",
+        enabled: bool = False,
+        mock_mode: bool = False,
+    ) -> None:
+        self.endpoint = endpoint
+        self.api_key = api_key
+        self.folder_id = folder_id
+        self.model_name = "Yandex Vision OCR"
+        self.model = model or "page"
+        self.enabled = enabled
+        self.mock_mode = mock_mode or endpoint.startswith("mock://")
+
+    def describe(self) -> dict:
+        return {
+            "provider": self.name,
+            "model": self.model_name,
+            "engine": "yandex",
+            "available": bool(self.enabled and (self.mock_mode or (self.endpoint and self.api_key))),
+            "mockMode": self.mock_mode,
+            "notes": "Yandex Vision OCR. Облачный провайдер; включается только явно в настройках приватности.",
+        }
+
+    async def recognize(self, image_path: str, language: str = "ru") -> RecognitionOutput:
+        started = time.perf_counter()
+        if not self.enabled:
+            raise PermissionError("Vision OCR отключён. Включите его явно в настройках приватности.")
+        if self.mock_mode:
+            return await asyncio.to_thread(self._recognize_mock, image_path, started)
+        if not self.endpoint:
+            raise ValueError("Не задан endpoint Yandex Vision OCR.")
+        if not self.api_key:
+            raise PermissionError("Не задан API key Yandex Vision OCR.")
+        return await asyncio.to_thread(self._recognize_yandex, image_path, language, started)
+
+    def _recognize_mock(self, image_path: str, started: float) -> RecognitionOutput:
+        image = _load_image(image_path)
+        blank, ratio = is_blank(image)
+        output = RecognitionOutput(provider=self.name, model_name=self.model_name)
+        output.preprocess_variant = "vision-crop"
+        if blank:
+            output.is_blank = True
+            output.warnings.append(f"Vision mock: пустой ответ (доля чернил {ratio:.4f})")
+            output.processing_time_ms = int((time.perf_counter() - started) * 1000)
+            return output
+
+        text = "Yandex Vision OCR mock: распознан рукописный ответ"
+        output.lines = [
+            RecognizedLine(
+                index=0,
+                text=text,
+                confidence=0.91,
+                bounding_box={"x": 0, "y": 0, "w": int(image.shape[1]), "h": max(1, int(image.shape[0] * 0.25))},
+                token_confidences=[TokenConfidence(text=token, confidence=0.91) for token in text.split()],
+            )
+        ]
+        output.text = text
+        output.overall_confidence = 0.91
+        output.processing_time_ms = int((time.perf_counter() - started) * 1000)
+        output.warnings.append("MOCK Yandex Vision OCR: внешний сервис не вызывался.")
+        return output
+
+    def _recognize_yandex(self, image_path: str, language: str, started: float) -> RecognitionOutput:
+        path = Path(image_path)
+        content = base64.b64encode(path.read_bytes()).decode("ascii")
+        payload = {
+            "mimeType": self._mime_type(path),
+            "languageCodes": [language or "ru"],
+            "model": self.model,
+            "content": content,
+        }
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Api-Key {self.api_key}",
+        }
+        if self.folder_id:
+            headers["x-folder-id"] = self.folder_id
+        request = urllib.request.Request(
+            self.endpoint,
+            data=json.dumps(payload).encode("utf-8"),
+            headers=headers,
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=60) as response:  # noqa: S310 - user-configured endpoint
+                data = json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            detail = exc.read().decode("utf-8", errors="replace")[:1200]
+            raise RuntimeError(f"Yandex Vision OCR HTTP {exc.code}: {detail}") from exc
+        except urllib.error.URLError as exc:
+            raise RuntimeError(f"Yandex Vision OCR недоступен: {exc.reason}") from exc
+
+        lines = self._extract_lines(data)
+        output = RecognitionOutput(provider=self.name, model_name=self.model_name, lines=lines)
+        output.text = "\n".join(line.text for line in lines)
+        output.overall_confidence = float(np.mean([line.confidence for line in lines])) if lines else 0.0
+        output.preprocess_variant = "yandex-vision"
+        output.processing_time_ms = int((time.perf_counter() - started) * 1000)
+        output.warnings.append("Yandex Vision OCR: результат получен внешним облачным сервисом.")
+        if not output.text.strip():
+            output.warnings.append("Yandex Vision OCR не нашёл текст в области ответа.")
+        return output
+
+    @staticmethod
+    def _mime_type(path: Path) -> str:
+        suffix = path.suffix.lower()
+        if suffix == ".png":
+            return "image/png"
+        if suffix in (".webp",):
+            return "image/webp"
+        return "image/jpeg"
+
+    @staticmethod
+    def _extract_lines(data: dict) -> list[RecognizedLine]:
+        text_annotation = data.get("textAnnotation") or data.get("text_annotation") or {}
+        blocks = text_annotation.get("blocks") or []
+        lines: list[RecognizedLine] = []
+        for block in blocks:
+            for line in block.get("lines") or []:
+                words = line.get("words") or []
+                text = " ".join(str(word.get("text") or "").strip() for word in words).strip()
+                if not text:
+                    text = str(line.get("text") or "").strip()
+                if not text:
+                    continue
+                confidences = [float(word.get("confidence", 0.0) or 0.0) for word in words if word.get("confidence") is not None]
+                confidence = float(np.mean(confidences)) if confidences else float(line.get("confidence", 0.85) or 0.85)
+                bbox = YandexVisionOcrProvider._bbox_from_vertices(line.get("boundingBox") or line.get("bounding_box") or {})
+                lines.append(
+                    RecognizedLine(
+                        index=len(lines),
+                        text=text,
+                        confidence=max(0.0, min(confidence, 1.0)),
+                        bounding_box=bbox,
+                        token_confidences=[
+                            TokenConfidence(text=str(word.get("text") or ""), confidence=float(word.get("confidence", confidence) or confidence))
+                            for word in words
+                            if str(word.get("text") or "").strip()
+                        ],
+                    )
+                )
+        if not lines and isinstance(text_annotation.get("fullText"), str):
+            text = text_annotation["fullText"].strip()
+            if text:
+                lines.append(RecognizedLine(index=0, text=text, confidence=0.85, bounding_box={"x": 0, "y": 0, "w": 1, "h": 1}))
+        return lines
+
+    @staticmethod
+    def _bbox_from_vertices(box: dict) -> dict:
+        vertices = box.get("vertices") or []
+        points: list[tuple[float, float]] = []
+        for vertex in vertices:
+            try:
+                points.append((float(vertex.get("x", 0.0)), float(vertex.get("y", 0.0))))
+            except (TypeError, ValueError, AttributeError):
+                continue
+        if not points:
+            return {"x": 0, "y": 0, "w": 1, "h": 1}
+        xs = [p[0] for p in points]
+        ys = [p[1] for p in points]
+        return {
+            "x": int(round(min(xs))),
+            "y": int(round(min(ys))),
+            "w": max(1, int(round(max(xs) - min(xs)))),
+            "h": max(1, int(round(max(ys) - min(ys)))),
+        }
+
+
 # --------------------------------------------------------------------- cloud
 
 
@@ -381,6 +571,8 @@ def get_provider(name: str = "local", **kwargs) -> HandwritingRecognitionProvide
         provider: HandwritingRecognitionProvider = LocalHandwritingProvider(**kwargs)
     elif name == "mock":
         provider = MockHandwritingProvider(**kwargs)
+    elif name in {"vision", "yandex_vision"}:
+        provider = YandexVisionOcrProvider(**kwargs)
     elif name == "cloud":
         provider = CloudHandwritingProvider(**kwargs)
     else:
@@ -390,11 +582,31 @@ def get_provider(name: str = "local", **kwargs) -> HandwritingRecognitionProvide
     return provider
 
 
-def available_providers() -> list[dict]:
+def vision_provider_kwargs(config=None) -> dict:
+    """Build Yandex Vision OCR kwargs from RuntimeConfig-like object."""
+    if config is None:
+        return {}
+    vision = getattr(config, "vision_ocr", None)
+    privacy = getattr(config, "privacy", None)
+    return {
+        "endpoint": getattr(vision, "endpoint", ""),
+        "api_key": getattr(vision, "api_key", ""),
+        "folder_id": getattr(vision, "folder_id", ""),
+        "model": getattr(vision, "model", "page"),
+        "mock_mode": bool(getattr(vision, "mock_mode", False)),
+        "enabled": bool(
+            getattr(privacy, "allow_cloud_providers", False)
+            and getattr(privacy, "vision_ocr_enabled", False)
+        ),
+    }
+
+
+def available_providers(config=None) -> list[dict]:
     # Use the cached singleton instances so the OCR engine is loaded at most once.
     return [
         get_provider("local").describe(),
         get_provider("mock").describe(),
+        get_provider("vision", **vision_provider_kwargs(config)).describe(),
         get_provider("cloud").describe(),
     ]
 

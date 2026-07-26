@@ -33,21 +33,39 @@ function tone(frequency: number, startAt: number, duration: number, volume: numb
   osc.stop(t0 + duration + 0.05);
 }
 
-/** Short rising major chirp — sheet accepted. */
+/** Short clean chirp — sheet accepted. */
 export function playSuccess(volume = 0.22) {
-  tone(660, 0, 0.09, volume);
-  tone(880, 0.09, 0.14, volume);
+  tone(880, 0, 0.12, volume);
 }
 
-/** Low double buzz — sheet rejected, repeat the feed. */
+/** Low double buzz — sheet rejected, duplicate or needs immediate attention. */
 export function playWarning(volume = 0.26) {
   tone(220, 0, 0.16, volume, "square");
   tone(220, 0.22, 0.16, volume, "square");
 }
 
+/** Distinct duplicate/error tone: lower and shorter than a normal warning. */
+export function playDuplicate(volume = 0.24) {
+  tone(196, 0, 0.11, volume, "square");
+  tone(165, 0.16, 0.14, volume, "square");
+}
+
 /** Single neutral tick — connection restored. */
 export function playReconnected(volume = 0.15) {
   tone(520, 0, 0.08, volume);
+}
+
+/** Optional spoken confirmation, e.g. "Иванов — принято". */
+export function speakAccepted(label: string) {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  const clean = label.trim();
+  if (!clean || clean === "не определён") return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(`${clean}. Принято.`);
+  utterance.lang = "ru-RU";
+  utterance.rate = 1.08;
+  utterance.volume = 0.9;
+  window.speechSynthesis.speak(utterance);
 }
 
 /** Unlock audio on the first user gesture (browsers require it). */

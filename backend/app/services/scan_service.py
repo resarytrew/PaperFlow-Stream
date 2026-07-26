@@ -24,7 +24,7 @@ from app.cv.detection import DetectionResult, detect_paper, refine_with_yolo
 from app.cv.geometry import Quad, corner_movement, crop_normalized
 from app.cv.normalization import normalize_sheet, rectify
 from app.cv.occlusion import analyse_occlusion
-from app.cv.qr import QrReadResult, read_qr, qr_readability_score
+from app.cv.qr import QrReadResult, read_qr
 from app.cv.quality import FrameMetrics, evaluate_frame, motion_score_from_diff, select_best_frame, to_gray
 from app.cv.state_machine import (
     Decision,
@@ -124,7 +124,14 @@ class SessionRuntime:
         self.diagnostic_frames: list[np.ndarray] = []
         self.yolo_counter = 0
         self.last_yolo_boxes: list[dict] = []
+        self.last_qr_readability = 0.5
+        self.last_qr_readability_frame = -10_000
+        self.last_qr_preview: dict | None = None
+        self.student_labels: dict[str, str] = {}
+        self.scanned_sheet_uids: set[str] = set()
         self.counters = {"scanned": 0, "errors": 0, "duplicates": 0, "unidentified": 0}
+        # Process-wide per-session frame gate used by the WebSocket layer.
+        # Prevents two browser tabs from mutating the same runtime concurrently.
         self.processing = False
 
     # -------------------------------------------------------------- utilities
@@ -209,6 +216,73 @@ class ScanService:
 
     # ------------------------------------------------------------ frame path
 
+    @staticmethod
+    def _qr_texture_score(image: np.ndarray) -> float:
+        """Fallback QR readability proxy when decoding is not yet possible."""
+        if image is None or image.size == 0:
+            return 0.0
+        gray = image if image.ndim == 2 else cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        variance = float(cv2.Laplacian(gray, cv2.CV_64F).var())
+        return float(np.clip(variance / 400.0, 0.0, 0.75))
+
+    @staticmethod
+    def _qr_preview_dict(runtime: SessionRuntime, result: QrReadResult, score: float) -> dict:
+        payload = result.payload
+        if result.success and payload is not None:
+            student_key = payload.student_id.lower()
+            sheet_key = payload.sheet_id.lower()
+            return {
+                "success": True,
+                "readability": round(score, 3),
+                "studentId": payload.student_id,
+                "studentLabel": runtime.student_labels.get(student_key) or payload.student_id,
+                "classId": payload.class_id,
+                "taskId": payload.task_id,
+                "sheetUid": payload.sheet_id,
+                "variantNo": payload.extra.get("variantNo") or payload.extra.get("variant_no"),
+                "variantTotal": payload.extra.get("variantTotal") or payload.extra.get("variant_total"),
+                "duplicate": sheet_key in runtime.scanned_sheet_uids,
+                "backend": result.backend,
+                "error": "",
+            }
+        return {
+            "success": False,
+            "readability": round(score, 3),
+            "studentId": "",
+            "studentLabel": "",
+            "classId": "",
+            "taskId": "",
+            "sheetUid": "",
+            "variantNo": None,
+            "variantTotal": None,
+            "duplicate": False,
+            "backend": result.backend,
+            "error": result.error or "not_found",
+        }
+
+    def _read_qr_preview(self, runtime: SessionRuntime, warped: np.ndarray) -> tuple[float, dict]:
+        """Decode QR on the analysis-sized warped frame for live operator feedback."""
+        roi = crop_normalized(warped, runtime.qr_region)
+        target = roi if roi.size > 0 else warped
+        result = read_qr(target, backends=("opencv",), enhance=True)
+        if not result.success:
+            result = read_qr(warped, backends=("opencv",), enhance=True)
+        score = 1.0 if result.success else self._qr_texture_score(target)
+        return score, self._qr_preview_dict(runtime, result, score)
+
+    @staticmethod
+    def _remember_candidate(runtime: SessionRuntime, candidate: Candidate) -> None:
+        """Keep a bounded candidate buffer, replacing the weakest frame if needed."""
+        limit = max(runtime.config.stability.max_candidates, 1)
+        if len(runtime.candidates) < limit:
+            runtime.candidates.append(candidate)
+            return
+        worst_index, worst = min(
+            enumerate(runtime.candidates), key=lambda item: item[1].metrics.quality
+        )
+        if candidate.metrics.quality > worst.metrics.quality:
+            runtime.candidates[worst_index] = candidate
+
     def analyse_frame(self, runtime: SessionRuntime, frame: np.ndarray) -> tuple[Decision, dict]:
         """Analyse one incoming frame and advance the state machine."""
         started = time.perf_counter()
@@ -273,6 +347,21 @@ class ScanService:
                 occlusion_answer = max(occ.answer_region, occ.qr_region * 0.6)
                 occlusion_overall = occ.overall
                 frame_area = float(small.shape[0] * small.shape[1])
+                # Full QR decode is comparatively expensive. Sample it only once
+                # every N frames and reuse the last score for interim quality
+                # overlays; authoritative QR reading still happens on selected
+                # full-resolution candidates in process_best_candidate().
+                every = max(config.stability.qr_readability_every_n_frames, 1)
+                should_sample_qr = (
+                    runtime.frame_index - runtime.last_qr_readability_frame >= every
+                    or (runtime.machine.state == ScanState.SELECTING_BEST_FRAME and not runtime.candidates)
+                )
+                qr_readability = runtime.last_qr_readability
+                if should_sample_qr:
+                    qr_readability, runtime.last_qr_preview = self._read_qr_preview(runtime, warped_small)
+                    runtime.last_qr_readability = qr_readability
+                    runtime.last_qr_readability_frame = runtime.frame_index
+
                 metrics = evaluate_frame(
                     warped_small,
                     weights=config.quality_weights,
@@ -281,7 +370,7 @@ class ScanService:
                     perspective=detection.perspective,
                     motion=motion,
                     occlusion=occlusion_answer,
-                    qr_readability=qr_readability_score(warped_small, runtime.qr_region),
+                    qr_readability=qr_readability,
                     sharpness_reference=config.stability.sharpness_reference,
                 )
             except Exception as exc:
@@ -289,6 +378,7 @@ class ScanService:
                 metrics = FrameMetrics(motion=motion)
         else:
             runtime.previous_quad = None
+            runtime.last_qr_preview = None
 
         observation = FrameObservation(
             timestamp_ms=now_ms,
@@ -318,8 +408,9 @@ class ScanService:
             runtime.reset_candidates()
 
         if decision.action in (DecisionAction.COLLECT_CANDIDATE, DecisionAction.PROCESS_BEST):
-            if quad_full is not None and len(runtime.candidates) < config.stability.max_candidates:
-                runtime.candidates.append(
+            if quad_full is not None:
+                self._remember_candidate(
+                    runtime,
                     Candidate(
                         index=runtime.frame_index,
                         frame=frame.copy(),
@@ -327,7 +418,7 @@ class ScanService:
                         metrics=metrics,
                         detection=detection,
                         timestamp_ms=now_ms,
-                    )
+                    ),
                 )
 
         if runtime.diagnostics_enabled and len(runtime.diagnostic_frames) < config.privacy.diagnostics_max_clip_frames:
@@ -340,6 +431,7 @@ class ScanService:
             "workArea": runtime.work_area,
             "qrRegion": runtime.qr_region,
             "answerRegions": runtime.answer_regions,
+            "qrPreview": runtime.last_qr_preview,
             "detection": detection.to_dict(),
             "metrics": metrics.to_dict(),
             "occlusionAnswer": round(occlusion_answer, 4),
@@ -497,12 +589,26 @@ class ScanService:
             thumb_path = storage.save_image(normalized.thumbnail, directory / f"thumb-{stamp}.jpg", 80)
 
             answer_crop_path = None
-            if runtime.answer_regions:
-                crop = crop_normalized(normalized.color, runtime.answer_regions[0])
-                if crop.size > 0:
-                    answer_crop_path = storage.save_image(
-                        crop, directory / f"answer-{stamp}.jpg", config.normalization.jpeg_quality
-                    )
+            answer_crops_json: list[dict] = []
+            for region_index, region in enumerate(runtime.answer_regions):
+                crop = crop_normalized(normalized.color, region)
+                if crop.size <= 0:
+                    continue
+                label = str(region.get("label") or f"answer-{region_index + 1}")
+                suffix = "answer" if region_index == 0 else f"answer-{region_index + 1}"
+                crop_path = storage.save_image(
+                    crop, directory / f"{suffix}-{stamp}.jpg", config.normalization.jpeg_quality
+                )
+                if answer_crop_path is None:
+                    answer_crop_path = crop_path
+                answer_crops_json.append(
+                    {
+                        "index": region_index,
+                        "label": label,
+                        "path": crop_path,
+                        "region": dict(region),
+                    }
+                )
         except Exception as exc:
             logger.exception("storage failure")
             runtime.counters["errors"] += 1
@@ -511,7 +617,10 @@ class ScanService:
 
         sequence = int(
             db.execute(
-                select(func.count(ScannedSheet.id)).where(ScannedSheet.session_id == session.id)
+                select(func.count(ScannedSheet.id)).where(
+                    ScannedSheet.session_id == session.id,
+                    ScannedSheet.scan_status != ScanStatus.deleted.value,
+                )
             ).scalar_one()
             or 0
         ) + 1
@@ -527,6 +636,7 @@ class ScanService:
             normalized_image_path=normalized_path,
             enhanced_image_path=enhanced_path,
             answer_crop_path=answer_crop_path,
+            answer_crops_json=answer_crops_json or None,
             thumbnail_path=thumb_path,
             qr_payload=payload.to_dict() if payload else None,
             qr_status=qr_status,
@@ -560,6 +670,9 @@ class ScanService:
         db.add(log)
         db.commit()
         db.refresh(sheet)
+
+        if sheet_uid:
+            runtime.scanned_sheet_uids.add(sheet_uid.lower())
 
         runtime.current_events = []
         runtime.reset_candidates()

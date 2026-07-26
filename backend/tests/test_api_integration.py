@@ -22,10 +22,14 @@ from app.cv.synthetic import SceneOptions, empty_scene, render_scene, render_she
 # --------------------------------------------------------------------- utils
 
 
-def _data_url(frame) -> str:
+def _jpeg_bytes(frame) -> bytes:
     ok, buf = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 88])
     assert ok
-    return "data:image/jpeg;base64," + base64.b64encode(buf).decode()
+    return buf.tobytes()
+
+
+def _data_url(frame) -> str:
+    return "data:image/jpeg;base64," + base64.b64encode(_jpeg_bytes(frame)).decode()
 
 
 def _make_catalog(client) -> tuple[int, int, list[int]]:
@@ -83,7 +87,14 @@ def _speed_up_scanning(client) -> None:
     assert response.status_code == 200, response.text
 
 
-def _scan_one_sheet(client, session_id: int, payload: dict | None, *, seed: int = 7) -> dict | None:
+def _scan_one_sheet(
+    client,
+    session_id: int,
+    payload: dict | None,
+    *,
+    seed: int = 7,
+    binary: bool = False,
+) -> dict | None:
     """Drive the scan WebSocket with synthetic frames until a scan_result."""
     sheet = render_sheet(payload)  # payload=None renders a sheet without a QR
     opts = SceneOptions()
@@ -98,7 +109,10 @@ def _scan_one_sheet(client, session_id: int, payload: dict | None, *, seed: int 
         assert ready["type"] == "ready"
 
         for frame in frames:
-            ws.send_text(json.dumps({"type": "frame", "image": _data_url(frame)}))
+            if binary:
+                ws.send_bytes(_jpeg_bytes(frame))
+            else:
+                ws.send_text(json.dumps({"type": "frame", "image": _data_url(frame)}))
             while True:
                 message = ws.receive_json()
                 if message["type"] == "state":
@@ -163,6 +177,30 @@ def test_forms_pdf_with_cyrillic_names(api_client):
     assert "filename*=UTF-8''" in disposition  # RFC 5987 form present
 
 
+def test_forms_constructor_variants_and_blocks(api_client):
+    class_id, task_id, _ = _make_catalog(api_client)
+    response = api_client.post(
+        "/api/forms/generate",
+        json={
+            "class_id": class_id,
+            "task_id": task_id,
+            "sheets_per_student": 1,
+            "forms_per_page": 1,
+            "variant_count": 3,
+            "variant_mode": "all",
+            "layout_kind": "mixed",
+            "blocks": [
+                {"type": "choice", "title": "Часть A", "rows": 6, "columns": 4},
+                {"type": "short", "title": "Часть B", "rows": 4, "columns": 8},
+                {"type": "grid", "title": "Таблица", "rows": 4, "columns": 5},
+            ],
+        },
+    )
+    assert response.status_code == 200, response.text
+    assert response.headers["x-form-count"] == "6"  # 2 students × 3 variants
+    assert response.content.startswith(b"%PDF")
+
+
 def test_settings_patch_reset_roundtrip(api_client):
     response = api_client.patch("/api/settings", json={"stability": {"min_quality_score": 0.5}})
     assert response.status_code == 200
@@ -202,7 +240,7 @@ def test_full_scan_review_export_flow(api_client):
     assert sheet["student_name"] == "Иванов Пётр"
 
     # stored images are all retrievable
-    for kind in ("source", "normalized", "enhanced", "answer", "thumbnail"):
+    for kind in ("source", "normalized", "enhanced", "answer", "thumbnail", "qr"):
         response = api_client.get(f"/api/sheets/{sheet_id}/image/{kind}")
         assert response.status_code == 200, kind
         assert response.headers["content-type"].startswith("image/")
@@ -241,6 +279,91 @@ def test_full_scan_review_export_flow(api_client):
     response = api_client.post(f"/api/sessions/{session_id}/complete")
     assert response.status_code == 200
     assert response.json()["status"] == "completed"
+
+
+def test_binary_websocket_frame_transport(api_client):
+    """Frontend scan stream sends raw JPEG bytes; legacy base64 JSON remains covered elsewhere."""
+    class_id, task_id, _ = _make_catalog(api_client)
+    session_id = _make_session(api_client, class_id, task_id)
+    _speed_up_scanning(api_client)
+    api_client.post(f"/api/sessions/{session_id}/start")
+
+    payload = {
+        "version": 1,
+        "studentId": "S-102",
+        "classId": "7Б",
+        "taskId": "T-042",
+        "sheetId": "S-102-T-042-bin",
+    }
+    result = _scan_one_sheet(api_client, session_id, payload, binary=True)
+
+    assert result is not None, "binary scan_result was never produced"
+    assert result["result"]["success"] is True, result
+    assert result["result"]["sheetUid"] == "S-102-T-042-bin"
+
+
+def test_live_qr_preview_identifies_student_before_persist(api_client):
+    class_id, task_id, _ = _make_catalog(api_client)
+    session_id = _make_session(api_client, class_id, task_id)
+    _speed_up_scanning(api_client)
+    api_client.post(f"/api/sessions/{session_id}/start")
+
+    payload = {
+        "version": 1,
+        "studentId": "S-101",
+        "classId": "7Б",
+        "taskId": "T-042",
+        "sheetId": "S-101-T-042-preview",
+    }
+    sheet = render_sheet(payload)
+    opts = SceneOptions()
+    frames = [empty_scene(opts, seed=i) for i in range(2)]
+    frames += [render_scene(sheet, opts, seed=7) for _ in range(12)]
+
+    preview = None
+    with api_client.websocket_connect(f"/api/ws/sessions/{session_id}/scan") as ws:
+        assert ws.receive_json()["type"] == "ready"
+        for frame in frames:
+            ws.send_bytes(_jpeg_bytes(frame))
+            message = ws.receive_json()
+            if message["type"] == "state":
+                preview = (message.get("overlay") or {}).get("qrPreview")
+                if preview and preview.get("success"):
+                    break
+
+    assert preview is not None
+    assert preview["success"] is True
+    assert preview["studentId"] == "S-101"
+    assert preview["studentLabel"] == "Иванов Пётр"
+    assert preview["sheetUid"] == "S-101-T-042-preview"
+    assert preview["duplicate"] is False
+
+
+def test_undo_last_scan_soft_deletes_last_sheet(api_client):
+    class_id, task_id, _ = _make_catalog(api_client)
+    session_id = _make_session(api_client, class_id, task_id)
+    _speed_up_scanning(api_client)
+    api_client.post(f"/api/sessions/{session_id}/start")
+
+    payload = {
+        "version": 1,
+        "studentId": "S-101",
+        "classId": "7Б",
+        "taskId": "T-042",
+        "sheetId": "S-101-T-042-undo",
+    }
+    result = _scan_one_sheet(api_client, session_id, payload)
+    assert result is not None and result["result"]["success"]
+    sheet_id = result["result"]["sheetId"]
+
+    response = api_client.post(f"/api/sessions/{session_id}/undo-last")
+    assert response.status_code == 200, response.text
+    assert response.json()["sheetId"] == sheet_id
+
+    assert api_client.get(f"/api/sessions/{session_id}/sheets").json() == []
+    deleted = api_client.get(f"/api/sessions/{session_id}/sheets?include_deleted=true").json()
+    assert deleted[0]["id"] == sheet_id
+    assert deleted[0]["scan_status"] == "deleted"
 
 
 def test_duplicate_sheet_is_flagged(api_client):
@@ -351,6 +474,39 @@ def test_ocr_mock_provider_end_to_end(api_client):
     response = api_client.post(f"/api/sheets/{sheet_id}/blank-override?is_blank=true")
     assert response.status_code == 200
     assert response.json()["recognition"]["status"] == "blank"
+
+
+def test_yandex_vision_ocr_mock_requires_privacy_and_updates_recognition(api_client):
+    class_id, task_id, _ = _make_catalog(api_client)
+    session_id = _make_session(api_client, class_id, task_id)
+    _speed_up_scanning(api_client)
+    api_client.post(f"/api/sessions/{session_id}/start")
+
+    payload = {"version": 1, "studentId": "S-102", "classId": "7Б", "taskId": "T-042", "sheetId": "S-102-T-042-vision"}
+    result = _scan_one_sheet(api_client, session_id, payload)
+    assert result is not None and result["result"]["success"]
+    sheet_id = result["result"]["sheetId"]
+
+    response = api_client.post(f"/api/sheets/{sheet_id}/recognize-vision")
+    assert response.status_code == 403
+
+    response = api_client.patch(
+        "/api/settings",
+        json={
+            "privacy": {"allow_cloud_providers": True, "vision_ocr_enabled": True},
+            "vision_ocr": {"mock_mode": True, "endpoint": "mock://yandex-vision"},
+        },
+    )
+    assert response.status_code == 200, response.text
+
+    response = api_client.post(f"/api/sheets/{sheet_id}/recognize-vision")
+    assert response.status_code == 200, response.text
+    recognition = response.json()["recognition"]
+    assert recognition["provider"] == "vision"
+    assert recognition["model_name"] == "Yandex Vision OCR"
+    assert "Yandex Vision OCR mock" in recognition["recognized_text"]
+    assert recognition["overall_confidence"] == pytest.approx(0.91)
+    assert recognition["analysis_json"]["vision"]["mockMode"] is True
 
 
 def test_session_summary(api_client):
@@ -481,7 +637,14 @@ def test_diagnostics_download_bundle(api_client):
     _speed_up_scanning(api_client)
     api_client.post(f"/api/sessions/{session_id}/start")
 
-    # no runtime yet -> clear error
+    # diagnostics are privacy-gated by default
+    response = api_client.get(f"/api/sessions/{session_id}/diagnostics/download")
+    assert response.status_code == 403
+
+    response = api_client.patch("/api/settings", json={"privacy": {"diagnostics_recording_enabled": True}})
+    assert response.status_code == 200, response.text
+
+    # no runtime yet -> clear error once diagnostics are explicitly enabled
     response = api_client.get(f"/api/sessions/{session_id}/diagnostics/download")
     assert response.status_code == 400
 
