@@ -1,0 +1,32 @@
+name: Capture Hub 0.3.1 Status
+
+on:
+  workflow_run:
+    workflows: ["Build Personal Hub"]
+    types: [completed]
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+      - name: Record status
+        shell: bash
+        run: |
+          mkdir -p ci-hub-031
+          cat > ci-hub-031/status.txt <<EOF
+          conclusion=${{ github.event.workflow_run.conclusion }}
+          run_id=${{ github.event.workflow_run.id }}
+          head_sha=${{ github.event.workflow_run.head_sha }}
+          url=${{ github.event.workflow_run.html_url }}
+          EOF
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f ci-hub-031/status.txt
+          git commit -m "ci: record PaperFlow Hub 0.3.1 status"
+          git push origin HEAD:main
