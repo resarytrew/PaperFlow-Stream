@@ -33,9 +33,11 @@ interface HubContextValue {
 const HubContext = createContext<HubContextValue | null>(null);
 
 const DEFAULT_HUB_URL = "http://127.0.0.1:17841";
+const REQUIRED_HUB_VERSION = "0.3.1";
 const DEFAULT_DOWNLOAD_URL =
-  "https://github.com/resarytrew/PaperFlow-Stream/releases/latest/download/PaperFlowHubSetup.exe";
-const DEFAULT_RELEASES_URL = "https://github.com/resarytrew/PaperFlow-Stream/releases/latest";
+  "https://github.com/resarytrew/PaperFlow-Stream/releases/download/v0.3.1-pilot/PaperFlowHubSetup-0.3.1.exe";
+const DEFAULT_RELEASES_URL =
+  "https://github.com/resarytrew/PaperFlow-Stream/releases/tag/v0.3.1-pilot";
 
 function friendlyConnectionError(error: string | null): string | null {
   if (!error) return null;
@@ -237,7 +239,7 @@ export function HubConnectionGate({ children }: { children: ReactNode }) {
               </p>
 
               <ol style={{ margin: "0 0 20px", paddingLeft: 22, lineHeight: 1.7 }}>
-                <li>Скачай и установи PaperFlow Hub.</li>
+                <li>Скачай и установи PaperFlow Hub {REQUIRED_HUB_VERSION}.</li>
                 <li>Запусти его и оставь работать в системном трее.</li>
                 <li>Вернись сюда — подключение проверится автоматически.</li>
               </ol>
@@ -249,7 +251,7 @@ export function HubConnectionGate({ children }: { children: ReactNode }) {
                     onClick={() => setWaitingForInstall(true)}
                     style={primaryButton}
                   >
-                    Скачать PaperFlow Hub для Windows
+                    Скачать PaperFlow Hub {REQUIRED_HUB_VERSION} для Windows
                   </a>
                   <button
                     type="button"
@@ -269,9 +271,9 @@ export function HubConnectionGate({ children }: { children: ReactNode }) {
               )}
 
               <div style={{ marginTop: 14, fontSize: 13, color: "#687783", lineHeight: 1.5 }}>
-                Если прямая загрузка ещё не опубликована, открой{" "}
+                Загружаемый файл должен называться <strong>PaperFlowHubSetup-0.3.1.exe</strong>. Если в папке загрузок уже есть старый PaperFlowHubSetup.exe, удали его перед запуском. Открыть{" "}
                 <a href={releasesUrl} target="_blank" rel="noreferrer">
-                  страницу последнего релиза
+                  релиз 0.3.1
                 </a>
                 .
               </div>
