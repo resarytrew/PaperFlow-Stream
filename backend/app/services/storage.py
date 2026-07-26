@@ -40,6 +40,21 @@ def decode_data_url(data: str) -> np.ndarray:
     return image
 
 
+def decode_image_bytes(data: bytes) -> np.ndarray:
+    """Decode raw encoded image bytes (e.g. a binary WebSocket frame) into BGR.
+
+    Avoids the base64 encode/decode round-trip used by :func:`decode_data_url`,
+    which matters when the browser streams many frames per second.
+    """
+    if not data:
+        raise StorageError("empty image payload")
+    array = np.frombuffer(data, dtype=np.uint8)
+    image = cv2.imdecode(array, cv2.IMREAD_COLOR)
+    if image is None or image.size == 0:
+        raise StorageError("could not decode image bytes")
+    return image
+
+
 def encode_data_url(image: np.ndarray, quality: int = 85, fmt: str = ".jpg") -> str:
     params = [int(cv2.IMWRITE_JPEG_QUALITY), int(quality)] if fmt in (".jpg", ".jpeg") else []
     ok, buffer = cv2.imencode(fmt, image, params)

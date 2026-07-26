@@ -20,7 +20,7 @@ from app.models import CameraProfile, FormTemplate, ScanLog, ScanSession, Sessio
 from app.services.events import hub, session_topic
 from app.services.scan_service import scan_service
 from app.services.settings_service import load_config
-from app.services.storage import StorageError, decode_data_url, get_storage
+from app.services.storage import StorageError, decode_data_url, decode_image_bytes, get_storage
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["scan"])
@@ -91,48 +91,76 @@ async def scan_socket(websocket: WebSocket, session_id: int) -> None:
 
     try:
         while True:
-            raw = await websocket.receive_text()
-            try:
-                message = json.loads(raw)
-            except json.JSONDecodeError:
-                await websocket.send_json({"type": "error", "message": "invalid json"})
+            message = await websocket.receive()
+            if message.get("type") == "websocket.disconnect":
+                break
+
+            binary = message.get("bytes")
+            text = message.get("text")
+
+            if binary is not None:
+                # Optimised transport: raw encoded image bytes (no base64 overhead).
+                # Existing clients that send a JSON frame keep working unchanged.
+                if busy:
+                    await websocket.send_json({"type": "busy"})
+                    continue
+                try:
+                    frame = await asyncio.to_thread(decode_image_bytes, binary)
+                except StorageError as exc:
+                    await websocket.send_json({"type": "error", "message": str(exc)})
+                    continue
+            elif text is not None:
+                try:
+                    parsed = json.loads(text)
+                except json.JSONDecodeError:
+                    await websocket.send_json({"type": "error", "message": "invalid json"})
+                    continue
+
+                kind = parsed.get("type")
+
+                if kind == "pause":
+                    runtime.machine.pause()
+                    await websocket.send_json({"type": "paused"})
+                    continue
+                if kind == "resume":
+                    runtime.machine.resume()
+                    await websocket.send_json({"type": "resumed"})
+                    continue
+                if kind == "reset":
+                    runtime.machine.reset()
+                    runtime.reset_candidates()
+                    await websocket.send_json({"type": "reset"})
+                    continue
+                if kind == "diagnostics":
+                    enabled = bool(parsed.get("enabled"))
+                    if enabled and not runtime.config.privacy.diagnostics_recording_enabled:
+                        await websocket.send_json(
+                            {"type": "error", "message": "Запись диагностики отключена в настройках приватности"}
+                        )
+                        enabled = False
+                    runtime.diagnostics_enabled = enabled
+                    if not runtime.diagnostics_enabled:
+                        runtime.diagnostic_frames = []
+                    await websocket.send_json({"type": "diagnostics", "enabled": runtime.diagnostics_enabled})
+                    continue
+                if kind != "frame":
+                    continue
+
+                if busy:
+                    # Drop frames while a sheet is being persisted – keeps the UI fluid.
+                    await websocket.send_json({"type": "busy"})
+                    continue
+
+                try:
+                    frame = await asyncio.to_thread(decode_data_url, parsed.get("image", ""))
+                except StorageError as exc:
+                    await websocket.send_json({"type": "error", "message": str(exc)})
+                    continue
+            else:
+                # Neither text nor binary (e.g. a stray control frame) – ignore.
                 continue
 
-            kind = message.get("type")
-
-            if kind == "pause":
-                runtime.machine.pause()
-                await websocket.send_json({"type": "paused"})
-                continue
-            if kind == "resume":
-                runtime.machine.resume()
-                await websocket.send_json({"type": "resumed"})
-                continue
-            if kind == "reset":
-                runtime.machine.reset()
-                runtime.reset_candidates()
-                await websocket.send_json({"type": "reset"})
-                continue
-            if kind == "diagnostics":
-                runtime.diagnostics_enabled = bool(message.get("enabled"))
-                if not runtime.diagnostics_enabled:
-                    runtime.diagnostic_frames = []
-                await websocket.send_json({"type": "diagnostics", "enabled": runtime.diagnostics_enabled})
-                continue
-            if kind != "frame":
-                continue
-
-            if busy:
-                # Drop frames while a sheet is being persisted – keeps the UI fluid.
-                await websocket.send_json({"type": "busy"})
-                continue
-
-            try:
-                frame = await asyncio.to_thread(decode_data_url, message.get("image", ""))
-            except StorageError as exc:
-                await websocket.send_json({"type": "error", "message": str(exc)})
-                continue
-
+            # ---------------------------------------------------------- common path
             try:
                 decision, overlay = await asyncio.to_thread(scan_service.analyse_frame, runtime, frame)
             except Exception as exc:  # one bad frame must never kill the stream
@@ -251,9 +279,13 @@ def get_scan_logs(session_id: int, db: DbSession, limit: int = 50) -> list[dict]
 
 
 @router.post("/sessions/{session_id}/diagnostics/export")
-def export_diagnostics(session_id: int, db: DbSession) -> dict:
+def export_diagnostics(session_id: int, db: DbSession, config: Config) -> dict:
     """Write the recorded candidate frames + logs into a diagnostics folder."""
     session = get_session_or_404(db, session_id)
+    if not config.privacy.diagnostics_recording_enabled:
+        raise HTTPException(
+            status_code=403, detail="Запись диагностики отключена в настройках приватности"
+        )
     runtime = scan_service.get_runtime(session_id)
     if runtime is None:
         raise HTTPException(status_code=400, detail="Сессия не активна")
