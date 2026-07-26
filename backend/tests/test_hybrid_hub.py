@@ -45,11 +45,13 @@ def test_pairing_tokens_are_hashed_and_bound_to_origin_and_workspace(tmp_path):
     identity_file = (tmp_path / "hub" / "identity.json").read_text(encoding="utf-8")
     assert token not in identity_file
     assert "token_hash" in identity_file
-    assert store.verify_token(
+    verified = store.verify_token(
         token,
         origin="https://web.paperflow.example",
         workspace_id="personal",
-    ) == client
+    )
+    assert verified is not None
+    assert verified.id == client.id
     assert store.verify_token(
         token,
         origin="https://evil.example",
