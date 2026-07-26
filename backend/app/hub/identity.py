@@ -17,6 +17,8 @@ from typing import Any
 
 from app.config import Settings, get_settings
 
+_LAST_SEEN_WRITE_INTERVAL = timedelta(minutes=5)
+
 
 def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
@@ -217,7 +219,17 @@ class HubIdentityStore:
                     continue
                 if item.get("origin") != origin or item.get("workspace_id") != workspace_id:
                     return None
-                item["last_seen_at"] = _iso(_utcnow())
+
+                now = _utcnow()
+                should_persist_last_seen = False
+                try:
+                    last_seen = _parse_time(str(item["last_seen_at"]))
+                    should_persist_last_seen = now - last_seen >= _LAST_SEEN_WRITE_INTERVAL
+                except (KeyError, TypeError, ValueError):
+                    should_persist_last_seen = True
+                if should_persist_last_seen:
+                    item["last_seen_at"] = _iso(now)
+
                 try:
                     client = HubClient(
                         id=str(item["id"]),
@@ -232,7 +244,8 @@ class HubIdentityStore:
                     )
                 except KeyError:
                     return None
-                self._write()
+                if should_persist_last_seen:
+                    self._write()
                 return client
         return None
 
