@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # PaperFlow Hybrid Hub — one-command launcher (Linux / macOS).
-# Development launcher; production cloud pairing requires locally trusted HTTPS.
 
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -51,4 +50,5 @@ say "Запускаю персональный Hub на http://localhost:${PORT}
 ) &
 
 cd backend
-exec .venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port "${PORT}"
+# Access log отключён: read-only media-token не должен попадать в URL-журнал.
+exec .venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port "${PORT}" --no-access-log
