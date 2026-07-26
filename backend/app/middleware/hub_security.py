@@ -18,6 +18,7 @@ _PUBLIC_PATHS = {
     "/api/hub/pair/start",
     "/api/hub/pair/confirm",
 }
+_WEBSOCKET_TOKEN_PREFIX = "paperflow-auth."
 
 
 def _normalise_origin(origin: str) -> str:
@@ -31,6 +32,15 @@ def _bearer_token(headers: Headers) -> str:
     authorization = headers.get("authorization", "")
     if authorization.lower().startswith("bearer "):
         return authorization[7:].strip()
+    return ""
+
+
+def _websocket_protocol_token(headers: Headers) -> str:
+    """Read the token from a WebSocket subprotocol, not from the logged URL."""
+    raw = headers.get("sec-websocket-protocol", "")
+    for protocol in (value.strip() for value in raw.split(",")):
+        if protocol.startswith(_WEBSOCKET_TOKEN_PREFIX):
+            return protocol[len(_WEBSOCKET_TOKEN_PREFIX) :]
     return ""
 
 
@@ -121,6 +131,12 @@ class HubSecurityMiddleware:
             await self._reject(scope, send, 403, "Источник запроса не разрешён для этого PaperFlow Hub")
             return
 
+        # The one-time code may only be viewed by top-level local navigation.
+        # A CORS fetch from the cloud UI must never be able to read it.
+        if path.startswith("/api/hub/pair/display/") and origin:
+            await self._reject(scope, send, 403, "Код подключения можно открыть только как локальную страницу")
+            return
+
         if scope["type"] == "http" and scope.get("method") == "OPTIONS":
             await self.app(scope, receive, send)
             return
@@ -139,11 +155,10 @@ class HubSecurityMiddleware:
         client = None
         is_public_path = path in _PUBLIC_PATHS or path.startswith("/api/hub/pair/display/")
         if not is_public_path and requires_auth:
-            token = _bearer_token(headers)
-            if not token and (
-                scope["type"] == "websocket"
-                or (path.startswith("/api/sheets/") and "/image/" in path)
-            ):
+            token = _websocket_protocol_token(headers) if scope["type"] == "websocket" else _bearer_token(headers)
+            if not token and path.startswith("/api/sheets/") and "/image/" in path:
+                # <img> cannot send an authorization header. The page has a
+                # global no-referrer policy and these responses are never cached.
                 token = self._query_token(scope)
             client = self.identity.verify_token(
                 token,
