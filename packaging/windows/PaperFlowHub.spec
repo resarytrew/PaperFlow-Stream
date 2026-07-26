@@ -1,5 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import sys
 from pathlib import Path
 from PyInstaller.utils.hooks import collect_all, collect_data_files, collect_submodules
 
@@ -8,9 +9,16 @@ ROOT = Path(SPECPATH).parent.parent
 BACKEND = ROOT / "backend"
 FRONTEND = ROOT / "frontend" / "dist"
 
+# Hook discovery runs before Analysis applies pathex. Without this explicit path,
+# collect_submodules("app") returns an empty list and Uvicorn's dynamic
+# "app.main:app" import fails only in the packaged windowed executable.
+backend_path = str(BACKEND)
+if backend_path not in sys.path:
+    sys.path.insert(0, backend_path)
+
 binaries = []
 datas = []
-hiddenimports = []
+hiddenimports = ["app", "app.main"]
 
 for package in ("rapidocr_onnxruntime", "onnxruntime", "uvicorn", "fastapi", "sqlalchemy", "alembic", "pystray"):
     package_datas, package_binaries, package_hidden = collect_all(package)
@@ -29,10 +37,10 @@ if FRONTEND.is_dir():
 
 analysis = Analysis(
     [str(BACKEND / "app" / "desktop.py")],
-    pathex=[str(BACKEND)],
+    pathex=[backend_path],
     binaries=binaries,
     datas=datas,
-    hiddenimports=hiddenimports,
+    hiddenimports=sorted(set(hiddenimports)),
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
