@@ -76,14 +76,22 @@ Hub принимает внешний браузер только когда е�
 1. Web вызывает `POST /api/hub/pair/start`.
 2. Hub создаёт challenge и шестизначный одноразовый код.
 3. Учитель открывает локальную страницу `pair/display/...` или видит код в tray.
-4. Web отправляет код в `POST /api/hub/pair/confirm`.
-5. Hub выдаёт случайный token.
-6. На диске хранится только SHA-256 token, а не исходный token.
-7. Token привязан к Origin и workspace.
+4. Страница кода допускается только как top-level navigation; прочитать её через
+   `fetch` или iframe нельзя.
+5. Web отправляет код в `POST /api/hub/pair/confirm`.
+6. Hub выдаёт два независимых секрета: API-token и read-only media-token.
+7. На диске хранятся только SHA-256 хеши токенов.
+8. Оба токена привязаны к точному Origin, workspace и browser client.
+9. После пяти неверных кодов challenge блокируется.
 
-HTTP использует `X-PaperFlow-Hub-Token`. WebSocket использует `hub_token` в query,
-поскольку браузерный WebSocket API не позволяет задать произвольный заголовок.
-Для URL с token действует глобальный `Referrer-Policy: no-referrer`.
+HTTP API использует `X-PaperFlow-Hub-Token`. WebSocket передаёт API-token через
+`Sec-WebSocket-Protocol` как `paperflow-auth.<token>`, поэтому секрет не попадает
+в URL и access-log. URL изображений используют отдельный media-token. Даже если
+такая ссылка будет скопирована или записана в лог, она не даёт права менять
+настройки, запускать экспорт или читать JSON API.
+
+Кросс-сайтовые браузерные запросы без `Origin`, включая попытки встроить локальное
+изображение через `<img>` с чужого сайта, блокируются по `Sec-Fetch-Site`.
 
 ## 5. Workspace contract
 
@@ -177,6 +185,9 @@ Service Worker кэширует только статические same-origin 
 отдельно и не переносится вместе с базой: восстановление backup не клонирует
 доверенные браузерные сессии.
 
+В настройках доступны скачивание backup, список сопряжённых браузеров и отзыв
+клиентов. Отзыв удаляет одновременно API- и media-полномочия браузера.
+
 ## 8. Deployment в Yandex Cloud
 
 Для первого cloud-релиза достаточно:
@@ -198,10 +209,13 @@ Service Worker кэширует только статические same-origin 
 - внешний Hub discovery;
 - private-network URL guard;
 - CORS/PNA boundary;
-- Origin-bound pairing;
+- Origin-bound pairing и отзыв браузеров;
+- раздельные API/media credentials;
+- WebSocket auth без bearer-token в URL;
 - workspace request contract;
 - metadata-only cloud DTO;
 - PWA shell без кэширования данных;
+- локальный backup из интерфейса;
 - CI для backend и frontend.
 
 ### 0.4 — production Personal Hub
@@ -212,7 +226,7 @@ Service Worker кэширует только статические same-origin 
 - locally trusted TLS;
 - automatic update with signed manifests;
 - installer/uninstaller data-preservation policy;
-- UI управления подключёнными браузерами.
+- tray-индикация состояния Hub и pairing challenge.
 
 ### 0.5 — School Hub persistence
 
