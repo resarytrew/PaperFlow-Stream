@@ -78,53 +78,75 @@ class StabilityConfig(BaseModel):
     max_candidates: int = Field(8, ge=1, le=40)
     min_sharpness: float = Field(0.30, ge=0.0, le=1.0)
     max_glare: float = Field(0.35, ge=0.0, le=1.0)
+    max_hand_overlap: float = Field(0.08, ge=0.0, le=1.0)
+    min_quality_score: float = Field(0.42, ge=0.0, le=1.0)
+    removal_frames_required: int = Field(3, ge=1, le=30)
+    success_hold_ms: int = Field(700, ge=0, le=5000)
+    warning_hold_ms: int = Field(1500, ge=0, le=10000)
+    sharpness_reference: float = Field(140.0, gt=1.0)
+    qr_timeout_ms: int = Field(900, ge=50, le=10000)
+    qr_readability_every_n_frames: int = Field(4, ge=1, le=60)
 
 
 class NormalizationConfig(BaseModel):
-    """Perspective and image-normalisation parameters."""
+    """Output geometry of the normalised sheet."""
 
-    target_width: int = 1654
-    target_height: int = 2339
-    perspective_padding: int = 20
-    clahe_clip_limit: float = 2.0
-    clahe_grid_size: int = 8
-    unsharp_amount: float = 0.8
-    unsharp_radius: float = 1.0
+    output_width: int = 1240
+    output_height: int = 1754
+    keep_source_frame: bool = True
+    jpeg_quality: int = 92
+    thumbnail_width: int = 320
+    shadow_kernel: int = 41
+    clahe_clip: float = 2.0
+    adaptive_block: int = 35
+    adaptive_c: int = 12
 
 
 class OcrConfig(BaseModel):
-    """Local OCR configuration."""
+    """Handwriting recognition parameters (0.2)."""
 
-    engine: Literal["rapidocr", "vision"] = "rapidocr"
+    provider: str = "local"
+    model_name: str = "trocr-like-local"
     language: str = "ru"
-    max_workers: int = Field(2, ge=1, le=8)
-    confidence_threshold: float = Field(0.55, ge=0.0, le=1.0)
-    preprocessing: bool = True
-    detect_orientation: bool = True
+    concurrency: int = Field(2, ge=1, le=8)
+    high_confidence: float = Field(0.85, ge=0.0, le=1.0)
+    low_confidence: float = Field(0.60, ge=0.0, le=1.0)
+    critical_token_confidence: float = Field(0.45, ge=0.0, le=1.0)
+    blank_ink_ratio: float = Field(0.004, ge=0.0, le=1.0)
+    min_line_height: int = 12
+    auto_enqueue: bool = True
+    max_retries: int = 1
+    keyword_analysis: bool = True
 
 
 class VisionOcrConfig(BaseModel):
-    """Optional Yandex Vision configuration."""
+    """Yandex Vision OCR integration settings.
 
-    enabled: bool = False
+    The provider is privacy-gated separately. By default it is inactive and no
+    student image leaves the computer.
+    """
+
+    provider: str = "yandex"
+    endpoint: str = "https://ocr.api.cloud.yandex.net/ocr/v1/recognizeText"
     api_key: str = ""
     folder_id: str = ""
     model: str = "page"
-    language_codes: list[str] = ["ru", "en"]
+    mime_type: str = "image/jpeg"
+    mock_mode: bool = False
 
 
 class PrivacyConfig(BaseModel):
-    """Privacy and retention defaults."""
+    file_retention_days: int = Field(180, ge=0, le=3650)
+    anonymise_logs: bool = True
+    allow_cloud_providers: bool = False
+    vision_ocr_enabled: bool = False
+    vision_send_full_sheet: bool = False
+    diagnostics_recording_enabled: bool = False
+    diagnostics_max_clip_frames: int = Field(120, ge=10, le=2000)
 
-    retain_originals: bool = True
-    retain_normalized: bool = True
-    diagnostics_enabled: bool = False
-    anonymize_exports: bool = False
-    auto_delete_days: int = Field(0, ge=0, le=3650)
 
-
-class AppConfig(BaseModel):
-    """Persisted, user-facing application configuration.
+class RuntimeConfig(BaseModel):
+    """The full mutable configuration tree exposed on /settings.
 
     Secret values are redacted from ``model_dump()`` by default. Internal code
     that intentionally needs to persist the complete configuration must pass
@@ -237,10 +259,9 @@ class Settings(BaseSettings):
     def resolved_database_url(self) -> str:
         if self.database_url:
             return self.database_url
-        self.data_dir.mkdir(parents=True, exist_ok=True)
         return f"sqlite:///{(self.data_dir / 'paperflow.db').as_posix()}"
 
-    def ensure_directories(self) -> None:
+    def ensure_dirs(self) -> None:
         for path in (
             self.data_dir,
             self.storage_dir,
@@ -257,8 +278,10 @@ class Settings(BaseSettings):
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
     settings = Settings()
-    settings.ensure_directories()
+    if os.getenv("PAPERFLOW_DATA_DIR"):
+        settings.data_dir = Path(os.environ["PAPERFLOW_DATA_DIR"])
+    settings.ensure_dirs()
     return settings
 
 
-settings = get_settings()
+DEFAULT_RUNTIME_CONFIG = RuntimeConfig()
