@@ -35,6 +35,11 @@ def test_pairing_tokens_are_hashed_scoped_and_bound_to_origin_workspace(tmp_path
         client_name="Teacher browser",
         workspace_id="personal",
     )
+    details = store.pending_pairing_details(challenge.id)
+    assert details is not None
+    assert details["origin"] == "https://web.paperflow.example"
+    assert details["client_name"] == "Teacher browser"
+
     token, media_token, client = store.confirm_pairing(
         challenge_id=challenge.id,
         code=challenge.code,
@@ -47,6 +52,7 @@ def test_pairing_tokens_are_hashed_scoped_and_bound_to_origin_workspace(tmp_path
     assert media_token not in identity_file
     assert "token_hash" in identity_file
     assert "media_token_hash" in identity_file
+    assert store.has_paired_origin(origin="https://web.paperflow.example", workspace_id="personal")
 
     verified = store.verify_token(
         token,
@@ -188,6 +194,52 @@ def test_security_middleware_requires_pairing_for_external_web_origin(tmp_path):
         },
     )
     assert wrong_workspace.status_code == 403
+
+
+def test_unknown_https_origin_can_only_bootstrap_until_locally_paired(tmp_path):
+    settings = _settings(tmp_path, hub_allowed_origins=[])
+    identity = HubIdentityStore(settings, tmp_path / "hub")
+    app = FastAPI()
+    app.add_middleware(HubSecurityMiddleware, settings=settings, identity=identity)
+
+    @app.get("/api/hub/info")
+    def public_info() -> dict:
+        return {"product": "PaperFlow Hub"}
+
+    @app.get("/api/private")
+    def private_endpoint(request: Request) -> dict:
+        return {"client": request.state.hub_context.client_id}
+
+    client = TestClient(app)
+    origin = "https://paperflow-pilot.vercel.app"
+    headers = {"Origin": origin, "X-PaperFlow-Workspace": "personal"}
+
+    assert client.get("/api/hub/info", headers=headers).status_code == 200
+    assert client.get("/api/private", headers=headers).status_code == 403
+    assert client.get(
+        "/api/hub/info",
+        headers={"Origin": "http://untrusted-public.example"},
+    ).status_code == 403
+
+    challenge = identity.start_pairing(
+        origin=origin,
+        client_name="PaperFlow Web",
+        workspace_id="personal",
+    )
+    token, _, connected = identity.confirm_pairing(
+        challenge_id=challenge.id,
+        code=challenge.code,
+        origin=origin,
+        workspace_id="personal",
+    )
+
+    assert client.get("/api/private", headers=headers).status_code == 401
+    response = client.get(
+        "/api/private",
+        headers={**headers, "X-PaperFlow-Hub-Token": token},
+    )
+    assert response.status_code == 200
+    assert response.json() == {"client": connected.id}
 
 
 def test_websocket_uses_subprotocol_token_instead_of_query_string(tmp_path):
