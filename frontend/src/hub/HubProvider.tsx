@@ -42,10 +42,10 @@ const DEFAULT_RELEASES_URL =
 function friendlyConnectionError(error: string | null): string | null {
   if (!error) return null;
   if (error.includes("Failed to fetch") || error.includes("NetworkError")) {
-    return "Локальный Hub пока не отвечает. Обычно это означает, что он ещё не установлен, не запущен или браузер ожидает разрешение на доступ к локальной сети.";
+    return "Локальный модуль пока не отвечает. Обычно это означает, что он ещё не установлен, не запущен или браузер ожидает разрешение на доступ к локальной сети.";
   }
   if (error.includes("403")) {
-    return "Локальный модуль найден, но этот адрес «Чистовика» ещё не подтверждён. Обнови Hub до актуальной версии и начни безопасное подключение заново.";
+    return "Локальный модуль найден, но этот адрес «Чистовика» ещё не подтверждён. Обнови «Чистовик» до актуальной версии и начни безопасное подключение заново.";
   }
   return error;
 }
@@ -204,7 +204,7 @@ export function HubConnectionGate({ children }: { children: ReactNode }) {
         {hub.status === "discovering" && (
           <div style={{ padding: "22px 0" }}>
             <p style={{ margin: 0, lineHeight: 1.55 }}>
-              Ищу защищённый Hub на этом компьютере или в школьной сети…
+              Ищу локальный модуль «Чистовик» на этом компьютере или в школьной сети…
             </p>
             <div
               aria-hidden="true"
@@ -266,14 +266,14 @@ export function HubConnectionGate({ children }: { children: ReactNode }) {
                 </div>
               ) : (
                 <div style={{ padding: 14, borderRadius: 12, background: "#fff6df", lineHeight: 1.5 }}>
-                  Готовый установщик пилотной версии сейчас предназначен для Windows 10/11. Для другой ОС Hub пока запускается из исходного кода.
+                  Готовый установщик пилотной версии сейчас предназначен для Windows 10/11. Для другой ОС локальный модуль пока запускается из исходного кода.
                 </div>
               )}
 
               <div style={{ marginTop: 14, fontSize: 13, color: "#687783", lineHeight: 1.5 }}>
-                Загружаемый файл должен называться <strong>ChistovikSetup-0.3.1.exe</strong>. Если в папке загрузок уже есть старый ChistovikSetup.exe, удали его перед запуском. Открыть{" "}
+                Загружаемый файл должен называться <strong>ChistovikSetup-0.3.2.exe</strong>. Если в папке загрузок уже есть старый ChistovikSetup.exe, удали его перед запуском. Открыть{" "}
                 <a href={releasesUrl} target="_blank" rel="noreferrer">
-                  релиз 0.3.1
+                  релиз 0.3.2
                 </a>
                 .
               </div>
@@ -292,7 +292,7 @@ export function HubConnectionGate({ children }: { children: ReactNode }) {
             )}
 
             <details style={{ marginTop: 18 }}>
-              <summary style={{ cursor: "pointer", fontWeight: 650 }}>Диагностика и ручной адрес Hub</summary>
+              <summary style={{ cursor: "pointer", fontWeight: 650 }}>Диагностика и ручной адрес локального модуля</summary>
               <div style={{ marginTop: 14, display: "grid", gap: 12 }}>
                 <label style={{ display: "grid", gap: 8 }}>
                   <span>Адрес локального модуля</span>
@@ -331,7 +331,7 @@ export function HubConnectionGate({ children }: { children: ReactNode }) {
             <div style={{ marginTop: 18, padding: 18, borderRadius: 14, background: "#edf8f5" }}>
               <strong>Чистовик найден.</strong>
               <p style={{ margin: "8px 0 0", lineHeight: 1.55 }}>
-                Осталось подтвердить этот адрес Чистовик локальным кодом. Без подтверждения сайт не получает доступ к работам и настройкам.
+                Осталось подтвердить подключение этого адреса к «Чистовику» локальным кодом. Без подтверждения сайт не получает доступ к работам и настройкам.
               </p>
             </div>
             <button onClick={() => void hub.startPairing()} style={{ ...primaryButton, marginTop: 16 }}>
@@ -343,7 +343,7 @@ export function HubConnectionGate({ children }: { children: ReactNode }) {
         {hub.status === "pairing" && hub.challenge && (
           <>
             <p style={{ lineHeight: 1.55 }}>
-              Открой локальную страницу подтверждения. Проверь, что на ней указан текущий адрес Чистовик, затем введи шестизначный код.
+              Открой локальную страницу подтверждения. Проверь, что на ней указан текущий адрес веб-приложения «Чистовик», затем введи шестизначный код.
             </p>
             <a
               href={hub.challenge.displayUrl}
