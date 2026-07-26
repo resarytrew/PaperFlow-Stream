@@ -6,9 +6,18 @@ on:
       release_tag:
         description: "GitHub Release tag; leave empty to build artifact only"
         required: false
-        default: "v0.3.0-pilot"
+        default: "v0.3.1-pilot"
         type: string
   push:
+    branches:
+      - main
+    paths:
+      - backend/app/desktop.py
+      - backend/app/config.py
+      - backend/tests/test_desktop_host.py
+      - packaging/windows/PaperFlowHub.spec
+      - packaging/windows/PaperFlowHub.iss
+      - .github/workflows/release-personal-hub.yml
     tags:
       - "v*"
 
@@ -58,6 +67,35 @@ jobs:
 
       - name: Build desktop Hub
         run: python -m PyInstaller packaging/windows/PaperFlowHub.spec --noconfirm --clean
+
+      - name: Smoke-test packaged windowed Hub
+        shell: pwsh
+        run: |
+          $smokeData = Join-Path $env:RUNNER_TEMP "paperflow-packaged-smoke"
+          $arguments = "--web-url http://127.0.0.1:17841 --data-dir `"$smokeData`""
+          $process = Start-Process -FilePath "dist\PaperFlowHub\PaperFlowHub.exe" -ArgumentList $arguments -PassThru
+          $ready = $false
+          try {
+            for ($attempt = 0; $attempt -lt 80; $attempt++) {
+              Start-Sleep -Milliseconds 250
+              if ($process.HasExited) { break }
+              try {
+                $health = Invoke-RestMethod -Uri "http://127.0.0.1:17841/api/health" -TimeoutSec 1
+                if ($health.product -eq "PaperFlow Hub") {
+                  $ready = $true
+                  break
+                }
+              } catch { }
+            }
+            if (-not $ready) {
+              $log = Join-Path $smokeData "logs\hub.log"
+              if (Test-Path $log) { Get-Content $log }
+              if ($process.HasExited) { throw "Packaged Hub exited with code $($process.ExitCode)" }
+              throw "Packaged Hub did not become healthy"
+            }
+          } finally {
+            if (-not $process.HasExited) { Stop-Process -Id $process.Id -Force }
+          }
 
       - name: Optionally sign Hub executable
         shell: pwsh
@@ -121,8 +159,10 @@ jobs:
         run: |
           if ("${{ github.ref_type }}" -eq "tag") {
             $tag = "${{ github.ref_name }}"
-          } else {
+          } elseif ("${{ github.event_name }}" -eq "workflow_dispatch") {
             $tag = "${{ inputs.release_tag }}"
+          } else {
+            $tag = "v0.3.1-pilot"
           }
           "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
