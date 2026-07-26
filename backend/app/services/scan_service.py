@@ -24,7 +24,7 @@ from app.cv.detection import DetectionResult, detect_paper, refine_with_yolo
 from app.cv.geometry import Quad, corner_movement, crop_normalized
 from app.cv.normalization import normalize_sheet, rectify
 from app.cv.occlusion import analyse_occlusion
-from app.cv.qr import QrReadResult, read_qr, qr_readability_score
+from app.cv.qr import QrReadResult, read_qr
 from app.cv.quality import FrameMetrics, evaluate_frame, motion_score_from_diff, select_best_frame, to_gray
 from app.cv.state_machine import (
     Decision,
@@ -126,6 +126,9 @@ class SessionRuntime:
         self.last_yolo_boxes: list[dict] = []
         self.last_qr_readability = 0.5
         self.last_qr_readability_frame = -10_000
+        self.last_qr_preview: dict | None = None
+        self.student_labels: dict[str, str] = {}
+        self.scanned_sheet_uids: set[str] = set()
         self.counters = {"scanned": 0, "errors": 0, "duplicates": 0, "unidentified": 0}
         # Process-wide per-session frame gate used by the WebSocket layer.
         # Prevents two browser tabs from mutating the same runtime concurrently.
@@ -212,6 +215,60 @@ class ScanService:
         return runtime
 
     # ------------------------------------------------------------ frame path
+
+    @staticmethod
+    def _qr_texture_score(image: np.ndarray) -> float:
+        """Fallback QR readability proxy when decoding is not yet possible."""
+        if image is None or image.size == 0:
+            return 0.0
+        gray = image if image.ndim == 2 else cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        variance = float(cv2.Laplacian(gray, cv2.CV_64F).var())
+        return float(np.clip(variance / 400.0, 0.0, 0.75))
+
+    @staticmethod
+    def _qr_preview_dict(runtime: SessionRuntime, result: QrReadResult, score: float) -> dict:
+        payload = result.payload
+        if result.success and payload is not None:
+            student_key = payload.student_id.lower()
+            sheet_key = payload.sheet_id.lower()
+            return {
+                "success": True,
+                "readability": round(score, 3),
+                "studentId": payload.student_id,
+                "studentLabel": runtime.student_labels.get(student_key) or payload.student_id,
+                "classId": payload.class_id,
+                "taskId": payload.task_id,
+                "sheetUid": payload.sheet_id,
+                "variantNo": payload.extra.get("variantNo") or payload.extra.get("variant_no"),
+                "variantTotal": payload.extra.get("variantTotal") or payload.extra.get("variant_total"),
+                "duplicate": sheet_key in runtime.scanned_sheet_uids,
+                "backend": result.backend,
+                "error": "",
+            }
+        return {
+            "success": False,
+            "readability": round(score, 3),
+            "studentId": "",
+            "studentLabel": "",
+            "classId": "",
+            "taskId": "",
+            "sheetUid": "",
+            "variantNo": None,
+            "variantTotal": None,
+            "duplicate": False,
+            "backend": result.backend,
+            "error": result.error or "not_found",
+        }
+
+    def _read_qr_preview(self, runtime: SessionRuntime, warped: np.ndarray) -> tuple[float, dict]:
+        """Decode QR on the analysis-sized warped frame for live operator feedback."""
+        roi = crop_normalized(warped, runtime.qr_region)
+        target = roi if roi.size > 0 else warped
+        result = read_qr(target, backends=("opencv",), enhance=True)
+        if not result.success:
+            result = read_qr(warped, backends=("opencv",), enhance=True)
+        score = 1.0 if result.success else self._qr_texture_score(target)
+        return score, self._qr_preview_dict(runtime, result, score)
 
     @staticmethod
     def _remember_candidate(runtime: SessionRuntime, candidate: Candidate) -> None:
@@ -301,7 +358,7 @@ class ScanService:
                 )
                 qr_readability = runtime.last_qr_readability
                 if should_sample_qr:
-                    qr_readability = qr_readability_score(warped_small, runtime.qr_region)
+                    qr_readability, runtime.last_qr_preview = self._read_qr_preview(runtime, warped_small)
                     runtime.last_qr_readability = qr_readability
                     runtime.last_qr_readability_frame = runtime.frame_index
 
@@ -321,6 +378,7 @@ class ScanService:
                 metrics = FrameMetrics(motion=motion)
         else:
             runtime.previous_quad = None
+            runtime.last_qr_preview = None
 
         observation = FrameObservation(
             timestamp_ms=now_ms,
@@ -373,6 +431,7 @@ class ScanService:
             "workArea": runtime.work_area,
             "qrRegion": runtime.qr_region,
             "answerRegions": runtime.answer_regions,
+            "qrPreview": runtime.last_qr_preview,
             "detection": detection.to_dict(),
             "metrics": metrics.to_dict(),
             "occlusionAnswer": round(occlusion_answer, 4),
@@ -611,6 +670,9 @@ class ScanService:
         db.add(log)
         db.commit()
         db.refresh(sheet)
+
+        if sheet_uid:
+            runtime.scanned_sheet_uids.add(sheet_uid.lower())
 
         runtime.current_events = []
         runtime.reset_candidates()
