@@ -1,5 +1,6 @@
 name: Build Personal Hub
 
+# Verified Windows release rerun after fixing backup portability and PyInstaller paths.
 on:
   workflow_dispatch:
     inputs:
