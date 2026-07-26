@@ -18,10 +18,26 @@ interface OcrStatus {
 
 interface Health {
   status: string;
+  product: string;
   version: string;
-  dataDir: string;
+  protocolVersion: number;
+  deploymentMode: "personal" | "school";
   qrBackends: Record<string, boolean>;
   ocr: { queue: Record<string, number>; local: Record<string, unknown> };
+}
+
+interface HubClient {
+  id: string;
+  name: string;
+  origin: string;
+  workspace_id: string;
+  role: string;
+  last_seen_at: string;
+  expires_at: string;
+}
+
+interface HubClientsResponse {
+  clients: HubClient[];
 }
 
 type EditableField = {
@@ -90,6 +106,7 @@ export default function SettingsPage() {
   const ocr = useApi<OcrStatus>(() => api.get("/ocr/status"), []);
   const health = useApi<Health>(() => api.get("/health"), []);
   const dashboard = useApi<{ storage_bytes: number }>(() => api.get("/dashboard"), []);
+  const hubClients = useApi<HubClientsResponse>(() => api.get("/hub/clients"), []);
 
   const [draft, setDraft] = useState<Record<string, Record<string, unknown>>>({});
   const [error, setError] = useState<string | null>(null);
@@ -137,6 +154,25 @@ export default function SettingsPage() {
       const r = await api.post<{ retentionDays: number; filesRemoved: number }>("/maintenance/retention");
       alert(`Удалено файлов: ${r.filesRemoved} (срок хранения: ${r.retentionDays} дн.)`);
       dashboard.refresh();
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }
+
+  async function downloadBackup() {
+    try {
+      setError(null);
+      await api.download("/maintenance/backup", "paperflow_backup.zip");
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }
+
+  async function revokeClient(client: HubClient) {
+    if (!confirm(`Отключить браузер «${client.name}» (${client.origin})?`)) return;
+    try {
+      await api.delete(`/hub/clients/${client.id}`);
+      hubClients.refresh();
     } catch (e) {
       setError((e as Error).message);
     }
@@ -205,11 +241,13 @@ export default function SettingsPage() {
       <h3 className="section">Состояние системы</h3>
       <div className="grid cols-2">
         <div className="panel">
-          <h3 style={{ marginTop: 0 }}>Сервер</h3>
+          <h3 style={{ marginTop: 0 }}>Локальный Hub</h3>
           {settings.data && (
             <dl className="kv">
               <dt>Версия</dt>
               <dd>{settings.data.version}</dd>
+              <dt>Режим</dt>
+              <dd>{health.data?.deploymentMode === "school" ? "Школьный Hub" : "Персональный Hub"}</dd>
               <dt>Каталог данных</dt>
               <dd style={{ wordBreak: "break-all" }}>{settings.data.paths.dataDir}</dd>
               <dt>База данных</dt>
@@ -218,9 +256,17 @@ export default function SettingsPage() {
               <dd>{dashboard.data ? fmtBytes(dashboard.data.storage_bytes) : "…"}</dd>
             </dl>
           )}
-          <button className="btn mt" onClick={retention}>
-            Очистить старые изображения сейчас
-          </button>
+          <div className="row mt">
+            <button className="btn" onClick={() => void downloadBackup()}>
+              Скачать резервную копию
+            </button>
+            <button className="btn" onClick={() => void retention()}>
+              Очистить старые изображения
+            </button>
+          </div>
+          <p className="muted mt" style={{ fontSize: 13 }}>
+            Резервная копия создаётся локально. Ключи OCR и доверенные браузерные токены в неё не включаются.
+          </p>
         </div>
 
         <div className="panel">
@@ -253,10 +299,38 @@ export default function SettingsPage() {
           )}
           <p className="muted mt" style={{ fontSize: 13 }}>
             Локальная модель OCR обучена в основном на печатном тексте — русский рукописный текст распознаётся слабо.
-            Слабые результаты автоматически попадают во вкладку «Нужна проверка». Улучшенную модель можно подключить
-            через переменные окружения без изменения кода.
+            Слабые результаты автоматически попадают во вкладку «Нужна проверка».
           </p>
         </div>
+      </div>
+
+      <h3 className="section">Подключённые браузеры</h3>
+      <div className="panel">
+        {hubClients.loading && <span className="muted">Загрузка подключений…</span>}
+        {hubClients.data?.clients.length === 0 && (
+          <p className="muted" style={{ margin: 0 }}>
+            Сопряжённых внешних браузеров нет. Локальный интерфейс может работать без отдельного токена.
+          </p>
+        )}
+        {(hubClients.data?.clients ?? []).map((client) => (
+          <div className="row" key={client.id} style={{ padding: "10px 0", borderBottom: "1px solid var(--border)" }}>
+            <div style={{ flex: 1 }}>
+              <strong>{client.name}</strong>
+              <div className="muted" style={{ fontSize: 13, wordBreak: "break-all" }}>
+                {client.origin} · workspace: {client.workspace_id} · роль: {client.role}
+              </div>
+              <div className="muted" style={{ fontSize: 12 }}>
+                Последняя активность: {new Date(client.last_seen_at).toLocaleString("ru-RU")}
+              </div>
+            </div>
+            <button className="btn small danger" onClick={() => void revokeClient(client)}>
+              Отключить
+            </button>
+          </div>
+        ))}
+        <p className="muted mt" style={{ fontSize: 13 }}>
+          Токен каждого браузера привязан к точному Origin и рабочему пространству. Его можно отозвать в любой момент.
+        </p>
       </div>
     </>
   );
