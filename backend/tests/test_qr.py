@@ -23,6 +23,7 @@ from app.cv.qr import (
     validate_payload,
 )
 from app.cv.synthetic import DEFAULT_PAYLOAD, make_qr_image, render_sheet
+from app.services.form_generator import FormSpec
 
 
 class TestParsePayload:
@@ -61,6 +62,23 @@ class TestParsePayload:
 
     def test_missing_student_rejected(self):
         assert parse_payload(json.dumps({"sheetId": "abc"})) is None
+
+    def test_form_spec_payload_contains_variant_metadata(self):
+        spec = FormSpec(
+            student_external_id="S-101",
+            student_name="Иванов Пётр",
+            class_name="7Б",
+            task_external_id="T-042",
+            task_title="Уравнение №42",
+            sheet_uid="S-101-T-042-v02",
+            variant_number=2,
+            variant_total=4,
+        )
+        payload = parse_payload(spec.payload("json"))
+        assert payload is not None
+        assert payload.sheet_id == "S-101-T-042-v02"
+        assert payload.extra["variantNo"] == 2
+        assert payload.extra["variantTotal"] == 4
 
     def test_keeps_raw_text(self):
         text = json.dumps(DEFAULT_PAYLOAD)

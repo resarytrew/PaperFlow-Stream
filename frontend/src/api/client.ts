@@ -85,6 +85,6 @@ export function wsUrl(path: string): string {
   return `${proto}://${window.location.host}${BASE}${path}`;
 }
 
-export function sheetImageUrl(sheetId: number, kind: "source" | "normalized" | "enhanced" | "answer" | "thumbnail"): string {
+export function sheetImageUrl(sheetId: number, kind: "source" | "normalized" | "enhanced" | "answer" | "thumbnail" | "qr"): string {
   return `${BASE}/sheets/${sheetId}/image/${kind}`;
 }

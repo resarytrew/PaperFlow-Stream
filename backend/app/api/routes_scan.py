@@ -16,7 +16,7 @@ from app.api.deps import Config, DbSession, get_session_or_404, serialize_sheet
 from app.config import get_settings
 from app.cv.state_machine import DecisionAction, ScanState
 from app.db import SessionLocal
-from app.models import CameraProfile, FormTemplate, ScanLog, ScanSession, SessionStatus
+from app.models import CameraProfile, FormTemplate, ScanLog, ScanSession, ScanStatus, ScannedSheet, SessionStatus, Student
 from app.services.events import hub, session_topic
 from app.services.scan_service import scan_service
 from app.services.settings_service import load_config
@@ -44,6 +44,20 @@ def _prepare_runtime(session_id: int) -> tuple[dict, str | None]:
                 select(FormTemplate).where(FormTemplate.is_default.is_(True))
             ).scalar_one_or_none()
         runtime.apply_profile(profile, template)
+
+        student_query = select(Student).where(Student.is_active.is_(True))
+        if session.class_id:
+            student_query = student_query.where(Student.class_id == session.class_id)
+        students = db.execute(student_query).scalars().all()
+        runtime.student_labels = {s.external_id.lower(): s.display_name for s in students}
+        existing_sheet_uids = db.execute(
+            select(ScannedSheet.sheet_uid).where(
+                ScannedSheet.session_id == session_id,
+                ScannedSheet.sheet_uid.is_not(None),
+                ScannedSheet.scan_status != ScanStatus.deleted.value,
+            )
+        ).all()
+        runtime.scanned_sheet_uids = {str(row[0]).lower() for row in existing_sheet_uids if row[0]}
 
         return {
             "sessionId": session_id,

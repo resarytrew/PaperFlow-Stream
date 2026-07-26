@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { api, wsUrl } from "../api/client";
+import { api, sheetImageUrl, wsUrl } from "../api/client";
 import type { ScanResultMessage, ScanSession, ScanStateMessage } from "../api/types";
 import { captureFrameBlob, useCamera } from "../hooks/useCamera";
-import { playReconnected, playSuccess, playWarning, unlockAudio } from "../hooks/sounds";
+import { playDuplicate, playReconnected, playSuccess, playWarning, speakAccepted, unlockAudio } from "../hooks/sounds";
 import { Badge, SESSION_STATUS_RU, useApi } from "../lib";
 
 const FRAME_INTERVAL_MS = 120; // ~8 fps to the analyser; capped further by "busy" flow control
@@ -19,6 +19,9 @@ interface RecentSheet {
   sub: string;
   thumbnail: string | null;
   at: number;
+  status: string;
+  quality: number;
+  reason: string;
 }
 
 interface Roster {
@@ -51,12 +54,17 @@ export default function ScanPage() {
     closed: false,
   });
   const soundRef = useRef(true);
+  const voiceRef = useRef(false);
+  const previewDuplicateRef = useRef<string | null>(null);
 
   const [connected, setConnected] = useState(false);
   const [reconnecting, setReconnecting] = useState(false);
   const [soundOn, setSoundOn] = useState(true);
+  const [voiceOn, setVoiceOn] = useState(false);
   const [diagOn, setDiagOn] = useState(false);
   const [diagBusy, setDiagBusy] = useState(false);
+  const [debugOpen, setDebugOpen] = useState(false);
+  const [undoBusy, setUndoBusy] = useState(false);
   const [scanning, setScanning] = useState(false);
   const scanningRef = useRef(false);
   const [prompt, setPrompt] = useState("ПОЛОЖИТЕ ЛИСТ");
@@ -68,6 +76,9 @@ export default function ScanPage() {
   const [wsError, setWsError] = useState<string | null>(null);
   const [calibrated, setCalibrated] = useState<boolean | null>(null);
   const [recent, setRecent] = useState<RecentSheet[]>([]);
+  const [lastState, setLastState] = useState<ScanStateMessage | null>(null);
+  const [flashKey, setFlashKey] = useState(0);
+  const [counterBurst, setCounterBurst] = useState(false);
 
   // Attach camera stream to the <video>.
   useEffect(() => {
@@ -99,7 +110,13 @@ export default function ScanPage() {
       blue: "#3b82f6",
       neutral: "#94a3b8",
     };
-    const stroke = colors[msg.color] ?? colors.neutral;
+    const phase = stagePhaseFor(msg.color, msg.state, undefined, msg.prompt);
+    const stroke =
+      phase === "align" || phase === "capture"
+        ? colors.amber
+        : phase === "search"
+          ? colors.neutral
+          : colors[msg.color] ?? colors.neutral;
 
     if (msg.overlay.workArea) {
       ctx.strokeStyle = "rgba(148, 163, 184, 0.6)";
@@ -199,8 +216,22 @@ export default function ScanPage() {
         case "state": {
           awaitingRef.current = false;
           const state = msg as ScanStateMessage;
-          setPrompt(state.prompt);
-          setPromptColor(state.color);
+          const preview = state.overlay?.qrPreview;
+          if (preview?.duplicate && preview.sheetUid !== previewDuplicateRef.current) {
+            previewDuplicateRef.current = preview.sheetUid;
+            if (soundRef.current) playDuplicate();
+          } else if (!preview?.duplicate) {
+            previewDuplicateRef.current = null;
+          }
+          setLastState(state);
+          setPrompt(preview?.duplicate ? "ДУБЛИКАТ" : primaryPrompt(state));
+          setPromptColor(
+            preview?.duplicate
+              ? "red"
+              : state.state === "SELECTING_BEST_FRAME" || state.state === "PROCESSING_FRAME"
+                ? "amber"
+                : state.color,
+          );
           setHints(state.hints ?? []);
           setCounters(state.counters ?? {});
           setSpeed(state.speed ?? 0);
@@ -210,13 +241,21 @@ export default function ScanPage() {
         }
         case "scan_result": {
           const res = msg as ScanResultMessage;
+          const duplicate = res.result.reason === "duplicate" || res.result.scanStatus === "duplicate";
           if (soundRef.current) {
             if (res.result.success) playSuccess();
+            else if (duplicate) playDuplicate();
             else playWarning();
           }
+          if (res.result.success && voiceRef.current) {
+            speakAccepted(res.result.studentLabel || res.result.sheetUid);
+          }
+          setFlashKey((k) => k + 1);
+          setCounterBurst(true);
+          window.setTimeout(() => setCounterBurst(false), 850);
           setCounters(res.counters ?? {});
           setSpeed(res.speed ?? 0);
-          setPrompt(res.prompt);
+          setPrompt(duplicate ? "ДУБЛИКАТ" : res.prompt);
           setPromptColor(res.result.success ? "green" : "red");
           setRecent((old) =>
             [
@@ -229,6 +268,9 @@ export default function ScanPage() {
                   : reasonRu(res.result.reason) + (res.result.warnings.length ? ` · ${res.result.warnings[0]}` : ""),
                 thumbnail: res.result.thumbnail,
                 at: Date.now(),
+                status: res.result.scanStatus,
+                quality: res.result.quality,
+                reason: res.result.reason,
               },
               ...old,
             ].slice(0, 30),
@@ -295,6 +337,31 @@ export default function ScanPage() {
     setPromptColor("neutral");
   }
 
+  async function undoLastScan() {
+    if (undoBusy) return;
+    setUndoBusy(true);
+    try {
+      const result = await api.post<{ sheetId: number; previousStatus: string }>(`/sessions/${sessionId}/undo-last`);
+      setRecent((old) => old.filter((item) => item.id !== result.sheetId));
+      setCounters((old) => ({
+        ...old,
+        scanned: Math.max(0, Number(old.scanned ?? 0) - 1),
+        duplicates:
+          result.previousStatus === "duplicate" ? Math.max(0, Number(old.duplicates ?? 0) - 1) : Number(old.duplicates ?? 0),
+        unidentified:
+          result.previousStatus === "unidentified" ? Math.max(0, Number(old.unidentified ?? 0) - 1) : Number(old.unidentified ?? 0),
+      }));
+      setPrompt("ПОСЛЕДНИЙ СКАН ОТМЕНЁН");
+      setPromptColor("amber");
+      rosterRefreshRef.current?.();
+    } catch (e) {
+      setWsError((e as Error).message);
+      if (soundRef.current) playWarning();
+    } finally {
+      setUndoBusy(false);
+    }
+  }
+
   async function completeSession() {
     pauseScanning();
     try {
@@ -305,23 +372,34 @@ export default function ScanPage() {
     }
   }
 
-  const total = counters.accepted ?? 0;
+  const total = Number(counters.scanned ?? counters.accepted ?? 0);
   const expected = session.data?.expected_sheet_count ?? 0;
+  const last = recent[0] ?? null;
+  const qrPreview = lastState?.overlay?.qrPreview ?? null;
+  const problemCount = Number(counters.duplicates ?? 0) + Number(counters.unidentified ?? 0) + Number(counters.errors ?? 0);
+  const stagePhase = qrPreview?.duplicate ? "error" : stagePhaseFor(promptColor, lastState?.state, last?.reason, prompt);
+  const readiness = readinessItems(lastState);
 
-  // Space bar toggles start/pause — the teacher's hands are on the paper.
+  // Space bar toggles start/pause; Backspace/Ctrl+Z undo the last accidental scan.
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
-      if (event.code !== "Space") return;
       const target = event.target as HTMLElement | null;
       if (target && ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)) return;
-      event.preventDefault();
-      if (scanningRef.current) pauseScanning();
-      else void startScanning();
+
+      if (event.code === "Space") {
+        event.preventDefault();
+        if (scanningRef.current) pauseScanning();
+        else void startScanning();
+      }
+      if (event.code === "Backspace" || (event.ctrlKey && event.code === "KeyZ")) {
+        event.preventDefault();
+        void undoLastScan();
+      }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session.data?.status]);
+  }, [session.data?.status, undoBusy]);
 
   return (
     <>
@@ -345,16 +423,56 @@ export default function ScanPage() {
 
       <div className="scan-layout">
         <div>
-          <div className="video-stage">
+          <div className={`video-stage phase-${stagePhase}`}>
             <video ref={videoRef} muted playsInline />
             <canvas className="overlay" ref={overlayRef} />
-            <div className="scan-hints">
-              {hints.map((h) => (
-                <div key={h} className="hint">
-                  {hintRu(h)}
+            <div className="alignment-guide" aria-hidden="true">
+              <span className="corner tl" />
+              <span className="corner tr" />
+              <span className="corner bl" />
+              <span className="corner br" />
+              <span className="guide-label qr">QR</span>
+              <span className="guide-label answer">ОБЛАСТЬ ОТВЕТА</span>
+            </div>
+            {flashKey > 0 && <div key={flashKey} className={`capture-flash ${promptColor}`} />}
+            <div className={`counter-hud${counterBurst ? " bump" : ""}`}>
+              <div className="count">
+                {total}
+                {expected ? <span>/{expected}</span> : null}
+              </div>
+              <div className="caption">принято</div>
+              {counterBurst && <div className="plus-one">+1</div>}
+            </div>
+            <div className="auto-trigger-hud">
+              <span className={`dot ${stagePhase}`} />
+              {autoTriggerText(stagePhase)}
+            </div>
+            <div className={`qr-preview-hud ${qrPreview?.duplicate ? "duplicate" : qrPreview?.success ? "ok" : ""}`}>
+              <div className="caption">Сейчас под камерой</div>
+              <div className="value">
+                {qrPreview?.success
+                  ? qrPreview.studentLabel || qrPreview.studentId
+                  : lastState?.overlay?.quad
+                    ? "ищу QR-код"
+                    : "—"}
+              </div>
+              {qrPreview?.success && (
+                <div className="sub">
+                  {qrPreview.duplicate
+                    ? "уже сканировали"
+                    : `${qrPreview.classId || "класс"} · ${qrPreview.taskId || "задание"}${qrPreview.variantNo ? ` · вариант ${qrPreview.variantNo}` : ""}`}
+                </div>
+              )}
+            </div>
+            <div className="scan-readiness">
+              {readiness.map((item) => (
+                <div key={item.key} className={`readiness-item ${item.state}`}>
+                  <span>{item.state === "ok" ? "✓" : item.state === "warn" ? "!" : "…"}</span>
+                  {item.label}
                 </div>
               ))}
             </div>
+            {hints.length > 0 && <div className="primary-hint">{hintRu(hints[0])}</div>}
             <div className={`scan-prompt ${promptColor}`}>{prompt}</div>
           </div>
 
@@ -368,6 +486,9 @@ export default function ScanPage() {
                 ⏸ Пауза
               </button>
             )}
+            <button className="btn" onClick={undoLastScan} disabled={undoBusy || !recent.length} title="Backspace или Ctrl+Z">
+              ↶ Отменить последний
+            </button>
             <button className="btn success" onClick={completeSession}>
               Завершить сессию
             </button>
@@ -383,17 +504,33 @@ export default function ScanPage() {
               {soundOn ? "🔊" : "🔇"}
             </button>
             <button
-              className={`btn${diagOn ? " danger" : ""}`}
-              title="Запись кадров для техподдержки: включите, повторите проблемную подачу листа, скачайте архив"
+              className={`btn${voiceOn ? " primary" : ""}`}
+              title="Озвучивать фамилию после успешного скана"
               onClick={() => {
-                const next = !diagOn;
-                setDiagOn(next);
-                wsRef.current?.send(JSON.stringify({ type: "diagnostics", enabled: next }));
+                unlockAudio();
+                voiceRef.current = !voiceRef.current;
+                setVoiceOn(voiceRef.current);
               }}
             >
-              {diagOn ? "⏺ Запись…" : "⏺ Диагностика"}
+              {voiceOn ? "🗣 Фамилии" : "🗣"}
             </button>
-            {diagOn && (
+            <button className="btn" onClick={() => setDebugOpen((v) => !v)}>
+              {debugOpen ? "Скрыть диагностику" : "Диагностика"}
+            </button>
+            {debugOpen && (
+              <button
+                className={`btn${diagOn ? " danger" : ""}`}
+                title="Запись кадров для техподдержки: включите, повторите проблемную подачу листа, скачайте архив"
+                onClick={() => {
+                  const next = !diagOn;
+                  setDiagOn(next);
+                  wsRef.current?.send(JSON.stringify({ type: "diagnostics", enabled: next }));
+                }}
+              >
+                {diagOn ? "⏺ Запись…" : "⏺ Запись клипа"}
+              </button>
+            )}
+            {debugOpen && diagOn && (
               <button
                 className="btn"
                 disabled={diagBusy}
@@ -426,9 +563,9 @@ export default function ScanPage() {
             </select>
             <span className="muted">
               {camera.resolution ? `${camera.resolution[0]}×${camera.resolution[1]}` : ""}
-              {analysisMs ? ` · анализ ${analysisMs} мс` : ""}
+              {debugOpen && analysisMs ? ` · анализ ${analysisMs} мс` : ""}
               {connected ? "" : " · нет связи с сервером"}
-              {" · Пробел — старт/пауза"}
+              {" · Пробел — старт/пауза · Backspace — отмена"}
             </span>
           </div>
 
@@ -441,12 +578,12 @@ export default function ScanPage() {
               <div className="label">Принято листов</div>
             </div>
             <div className="stat-card">
-              <div className="value">{counters.duplicates ?? 0}</div>
-              <div className="label">Дубликаты</div>
+              <div className="value">{problemCount}</div>
+              <div className="label">Разобрать потом</div>
             </div>
             <div className="stat-card">
-              <div className="value">{counters.unidentified ?? 0}</div>
-              <div className="label">Без QR</div>
+              <div className="value">{counters.duplicates ?? 0}</div>
+              <div className="label">Дубликаты</div>
             </div>
             <div className="stat-card">
               <div className="value">{speed || "—"}</div>
@@ -469,11 +606,27 @@ export default function ScanPage() {
             <div className="recent-sheets">
               {recent.length === 0 && <span className="muted">Отсканированные листы появятся здесь.</span>}
               {recent.map((r) => (
-                <div key={`${r.at}-${r.id}`} className={`recent-sheet${r.ok ? "" : " warn"}`}>
-                  {r.thumbnail ? <img src={r.thumbnail} alt="" /> : <div style={{ width: 46, height: 62 }} />}
+                <div key={`${r.at}-${r.id}`} className={`recent-sheet scan-card ${r.ok ? "" : " warn"}`}>
+                  {r.id ? (
+                    <img
+                      src={sheetImageUrl(r.id, "qr")}
+                      alt="QR"
+                      onError={(e) => {
+                        if (r.thumbnail) e.currentTarget.src = r.thumbnail;
+                      }}
+                    />
+                  ) : r.thumbnail ? (
+                    <img src={r.thumbnail} alt="" />
+                  ) : (
+                    <div className="thumb-placeholder">QR</div>
+                  )}
                   <div className="meta">
-                    <div className="name">{r.label}</div>
+                    <div className="name">{r.ok ? "✓" : "⚠"} {r.label}</div>
                     <div className="sub">{r.sub}</div>
+                    <div className="mini-badges">
+                      <span className={`badge ${r.ok ? "green" : "red"}`}>{statusRu(r.status)}</span>
+                      <span className="badge gray">{Math.round(r.quality * 100)}%</span>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -513,6 +666,80 @@ export default function ScanPage() {
   );
 }
 
+type StagePhase = "search" | "align" | "capture" | "success" | "error";
+
+type ReadinessState = "wait" | "ok" | "warn";
+
+function primaryPrompt(state: ScanStateMessage): string {
+  const blockers = state.blockingReasons ?? [];
+  if (blockers.includes("hand")) return "УБЕРИТЕ РУКУ";
+  if (blockers.includes("motion")) return "НЕ ДВИГАЙТЕ";
+  if (blockers.includes("sharpness")) return "ПОДОЖДИТЕ ФОКУС";
+  if (blockers.includes("glare")) return "УБЕРИТЕ БЛИК";
+  if (blockers.includes("corners") || blockers.includes("out_of_bounds")) return "ВЫРОВНЯЙТЕ ЛИСТ";
+  if (state.state === "SELECTING_BEST_FRAME" || state.state === "PROCESSING_FRAME") return "СНИМАЮ";
+  return state.prompt;
+}
+
+function stagePhaseFor(color: string, state?: string, reason?: string, prompt?: string): StagePhase {
+  if (reason === "duplicate" || color === "red" || state === "SCAN_WARNING") return "error";
+  if (state === "SELECTING_BEST_FRAME" || state === "PROCESSING_FRAME") return "capture";
+  if (state === "SCAN_SUCCESS" || prompt?.includes("ПРИНЯТ") || color === "green") return "success";
+  if (state === "PAPER_DETECTED" || state === "WAITING_STABILITY") return "align";
+  return "search";
+}
+
+function autoTriggerText(phase: StagePhase): string {
+  if (phase === "success") return "Скан зафиксирован";
+  if (phase === "error") return "Нужна повторная подача";
+  if (phase === "capture") return "Автозахват: снимаю";
+  if (phase === "align") return "Автозахват: ищу QR и метки";
+  return "Автозахват: жду лист";
+}
+
+function readinessItems(state: ScanStateMessage | null): { key: string; label: string; state: ReadinessState }[] {
+  const blockers = state?.blockingReasons ?? [];
+  const metrics = state?.overlay?.metrics ?? {};
+  const qr = Number(metrics.qr_readability ?? metrics.qr ?? 0);
+  const motion = Number(metrics.motion ?? 1);
+  const quality = Number(metrics.quality ?? 0);
+  const hasQuad = Boolean(state?.overlay?.quad);
+
+  return [
+    {
+      key: "corners",
+      label: "4 угла",
+      state: !hasQuad ? "wait" : blockers.some((b) => ["corners", "out_of_bounds"].includes(b)) ? "warn" : "ok",
+    },
+    {
+      key: "qr",
+      label: qr >= 0.75 ? "QR читается" : "ищу QR",
+      state: !hasQuad ? "wait" : qr >= 0.75 ? "ok" : qr >= 0.35 ? "wait" : "warn",
+    },
+    {
+      key: "motion",
+      label: blockers.includes("motion") ? "лист движется" : "неподвижно",
+      state: !hasQuad ? "wait" : blockers.includes("motion") || motion > 0.2 ? "warn" : "ok",
+    },
+    {
+      key: "quality",
+      label: blockers.includes("sharpness") ? "смазано" : "резкость",
+      state: !hasQuad ? "wait" : blockers.includes("sharpness") || quality < 0.25 ? "warn" : "ok",
+    },
+  ];
+}
+
+function statusRu(status: string): string {
+  const map: Record<string, string> = {
+    ok: "принят",
+    duplicate: "дубликат",
+    unidentified: "без QR",
+    low_quality: "качество",
+    rescan_required: "перескан",
+  };
+  return map[status] ?? status;
+}
+
 function reasonRu(reason: string): string {
   const map: Record<string, string> = {
     duplicate: "дубликат",
@@ -526,10 +753,15 @@ function reasonRu(reason: string): string {
 function hintRu(hint: string): string {
   const map: Record<string, string> = {
     remove_hand: "Уберите руку с листа",
+    hand: "Уберите руку с листа",
     hold_still: "Не двигайте лист",
+    motion: "Не двигайте лист",
     glare: "Блики на листе — измените освещение",
     blur: "Изображение размыто",
+    sharpness: "Подождите фокусировки — изображение смазано",
     touches_border: "Лист выходит за границы кадра",
+    out_of_bounds: "Лист выходит за рамку",
+    corners: "Покажите все четыре угла листа",
     perspective: "Слишком большой угол камеры",
   };
   return map[hint] ?? hint;
