@@ -69,7 +69,8 @@ class HubIdentityStore:
 
     Keeping pairing credentials outside SQLite makes database restores and
     future per-school database migrations unable to accidentally clone trusted
-    browser sessions.
+    browser sessions. API and media credentials are separate so a URL copied
+    from an image cannot mutate or export application data.
     """
 
     def __init__(self, settings: Settings, root: Path | None = None) -> None:
@@ -96,7 +97,7 @@ class HubIdentityStore:
                 pass
 
         data = {
-            "schema_version": 1,
+            "schema_version": 2,
             "installation_id": str(uuid.uuid4()),
             "created_at": _iso(_utcnow()),
             "clients": [],
@@ -170,7 +171,7 @@ class HubIdentityStore:
         code: str,
         origin: str,
         workspace_id: str,
-    ) -> tuple[str, HubClient]:
+    ) -> tuple[str, str, HubClient]:
         with self._lock:
             self._prune()
             challenge = self._challenges.get(challenge_id)
@@ -187,7 +188,8 @@ class HubIdentityStore:
                     raise ValueError("Код подключения заблокирован. Начните подключение заново")
                 raise ValueError("Неверный код подключения")
 
-            token = secrets.token_urlsafe(48)
+            api_token = secrets.token_urlsafe(48)
+            media_token = secrets.token_urlsafe(48)
             now = _utcnow()
             client_id = str(uuid.uuid4())
             client = HubClient(
@@ -203,7 +205,8 @@ class HubIdentityStore:
             )
             record = {
                 **client.public_dict(),
-                "token_hash": _token_hash(token),
+                "token_hash": _token_hash(api_token),
+                "media_token_hash": _token_hash(media_token),
             }
             clients = [
                 item
@@ -215,20 +218,45 @@ class HubIdentityStore:
                 )
             ]
             clients.append(record)
+            self._data["schema_version"] = 2
             self._data["clients"] = clients[-100:]
             self._challenges.pop(challenge_id, None)
             self._write()
-            return token, client
+            return api_token, media_token, client
 
-    def verify_token(self, token: str, *, origin: str, workspace_id: str) -> HubClient | None:
+    @staticmethod
+    def _client_from_record(item: dict[str, Any]) -> HubClient | None:
+        try:
+            return HubClient(
+                id=str(item["id"]),
+                name=str(item["name"]),
+                origin=str(item["origin"]),
+                workspace_id=str(item["workspace_id"]),
+                actor_id=str(item["actor_id"]),
+                role=str(item["role"]),
+                created_at=str(item["created_at"]),
+                expires_at=str(item["expires_at"]),
+                last_seen_at=str(item["last_seen_at"]),
+            )
+        except KeyError:
+            return None
+
+    def _verify_token_field(
+        self,
+        token: str,
+        *,
+        hash_field: str,
+        origin: str,
+        workspace_id: str,
+    ) -> HubClient | None:
         if not token:
             return None
         digest = _token_hash(token)
         with self._lock:
             self._prune()
             for item in self._data.get("clients", []):
-                stored_hash = str(item.get("token_hash", ""))
-                if not hmac.compare_digest(stored_hash, digest):
+                stored_hash = str(item.get(hash_field, ""))
+                if not stored_hash or not hmac.compare_digest(stored_hash, digest):
                     continue
                 if item.get("origin") != origin or item.get("workspace_id") != workspace_id:
                     return None
@@ -243,31 +271,36 @@ class HubIdentityStore:
                 if should_persist_last_seen:
                     item["last_seen_at"] = _iso(now)
 
-                try:
-                    client = HubClient(
-                        id=str(item["id"]),
-                        name=str(item["name"]),
-                        origin=str(item["origin"]),
-                        workspace_id=str(item["workspace_id"]),
-                        actor_id=str(item["actor_id"]),
-                        role=str(item["role"]),
-                        created_at=str(item["created_at"]),
-                        expires_at=str(item["expires_at"]),
-                        last_seen_at=str(item["last_seen_at"]),
-                    )
-                except KeyError:
+                client = self._client_from_record(item)
+                if client is None:
                     return None
                 if should_persist_last_seen:
                     self._write()
                 return client
         return None
 
+    def verify_token(self, token: str, *, origin: str, workspace_id: str) -> HubClient | None:
+        return self._verify_token_field(
+            token,
+            hash_field="token_hash",
+            origin=origin,
+            workspace_id=workspace_id,
+        )
+
+    def verify_media_token(self, token: str, *, origin: str, workspace_id: str) -> HubClient | None:
+        return self._verify_token_field(
+            token,
+            hash_field="media_token_hash",
+            origin=origin,
+            workspace_id=workspace_id,
+        )
+
     def list_clients(self) -> list[dict[str, str]]:
         with self._lock:
             self._prune()
             result: list[dict[str, str]] = []
             for item in self._data.get("clients", []):
-                public = {key: value for key, value in item.items() if key != "token_hash"}
+                public = {key: value for key, value in item.items() if not key.endswith("_hash")}
                 result.append({key: str(value) for key, value in public.items()})
             return result
 
