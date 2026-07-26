@@ -1,251 +1,254 @@
-polish	Set up job	﻿2026-07-26T10:20:09.3990311Z Current runner version: '2.336.0'
-polish	Set up job	2026-07-26T10:20:09.4017561Z ##[group]Runner Image Provisioner
-polish	Set up job	2026-07-26T10:20:09.4018808Z Hosted Compute Agent
-polish	Set up job	2026-07-26T10:20:09.4019463Z Version: 20260707.563
-polish	Set up job	2026-07-26T10:20:09.4020140Z Commit: 02667638d2b423fbc733a8e32a88b44996a3ba6e
-polish	Set up job	2026-07-26T10:20:09.4020885Z Build Date: 2026-07-07T19:33:50Z
-polish	Set up job	2026-07-26T10:20:09.4021589Z Worker ID: {f042a8f0-050d-4732-95e7-12a4e42ff2ca}
-polish	Set up job	2026-07-26T10:20:09.4022361Z Azure Region: northcentralus
-polish	Set up job	2026-07-26T10:20:09.4022968Z ##[endgroup]
-polish	Set up job	2026-07-26T10:20:09.4024425Z ##[group]Operating System
-polish	Set up job	2026-07-26T10:20:09.4025167Z Ubuntu
-polish	Set up job	2026-07-26T10:20:09.4025709Z 24.04.4
-polish	Set up job	2026-07-26T10:20:09.4026245Z LTS
-polish	Set up job	2026-07-26T10:20:09.4026768Z ##[endgroup]
-polish	Set up job	2026-07-26T10:20:09.4027316Z ##[group]Runner Image
-polish	Set up job	2026-07-26T10:20:09.4027986Z Image: ubuntu-24.04
-polish	Set up job	2026-07-26T10:20:09.4028851Z Version: 20260720.247.2
-polish	Set up job	2026-07-26T10:20:09.4030027Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260720.247/images/ubuntu/Ubuntu2404-Readme.md
-polish	Set up job	2026-07-26T10:20:09.4031904Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260720.247
-polish	Set up job	2026-07-26T10:20:09.4032963Z ##[endgroup]
-polish	Set up job	2026-07-26T10:20:09.4034110Z ##[group]GITHUB_TOKEN Permissions
-polish	Set up job	2026-07-26T10:20:09.4036106Z Contents: write
-polish	Set up job	2026-07-26T10:20:09.4036725Z Metadata: read
-polish	Set up job	2026-07-26T10:20:09.4037649Z ##[endgroup]
-polish	Set up job	2026-07-26T10:20:09.4040227Z Secret source: Actions
-polish	Set up job	2026-07-26T10:20:09.4041349Z Prepare workflow directory
-polish	Set up job	2026-07-26T10:20:09.4509001Z Prepare all required actions
-polish	Set up job	2026-07-26T10:20:09.4574328Z Getting action download info
-polish	Set up job	2026-07-26T10:20:09.6678195Z Download action repository 'actions/checkout@v6' (SHA:d23441a48e516b6c34aea4fa41551a30e30af803)
-polish	Set up job	2026-07-26T10:20:10.0622193Z Download action repository 'actions/setup-node@v6' (SHA:249970729cb0ef3589644e2896645e5dc5ba9c38)
-polish	Set up job	2026-07-26T10:20:10.6895544Z Complete job name: polish
-polish	Run actions/checkout@v6	﻿2026-07-26T10:20:10.7911726Z ##[group]Run actions/checkout@v6
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.7912807Z with:
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.7913290Z   fetch-depth: 0
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.7913915Z   repository: resarytrew/PaperFlow-Stream
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.7923236Z   token: ***
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.7923754Z   ssh-strict: true
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.7924277Z   ssh-user: git
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.7924806Z   persist-credentials: true
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.7925429Z   clean: true
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.7925965Z   sparse-checkout-cone-mode: true
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.7926658Z   fetch-tags: false
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.7927371Z   show-progress: true
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.7928011Z   lfs: false
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.7928480Z   submodules: false
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.7929197Z   set-safe-directory: true
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.7929849Z   allow-unsafe-pr-checkout: false
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.7931229Z ##[endgroup]
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.8984265Z Syncing repository: resarytrew/PaperFlow-Stream
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.8986739Z ##[group]Getting Git version info
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.8988081Z Working directory is '/home/runner/work/PaperFlow-Stream/PaperFlow-Stream'
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.8990878Z [command]/usr/bin/git version
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9034510Z git version 2.54.0
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9061629Z ##[endgroup]
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9080461Z Temporarily overriding HOME='/home/runner/work/_temp/d7153ec5-88e8-415a-91ea-37fdde142dcc' before making global git config changes
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9083796Z Adding repository directory to the temporary git global config as a safe directory
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9087045Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/PaperFlow-Stream/PaperFlow-Stream
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9146832Z Deleting the contents of '/home/runner/work/PaperFlow-Stream/PaperFlow-Stream'
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9161380Z ##[group]Determining repository object format
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9175812Z ##[endgroup]
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9177600Z ##[group]Initializing the repository
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9183002Z [command]/usr/bin/git init /home/runner/work/PaperFlow-Stream/PaperFlow-Stream
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9273181Z hint: Using 'master' as the name for the initial branch. This default branch name
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9276052Z hint: will change to "main" in Git 3.0. To configure the initial branch name
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9278485Z hint: to use in all of your new repositories, which will suppress this warning,
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9280446Z hint: call:
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9280948Z hint:
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9281657Z hint: 	git config --global init.defaultBranch <name>
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9282581Z hint:
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9283417Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9285736Z hint: 'development'. The just-created branch can be renamed via this command:
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9287163Z hint:
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9287699Z hint: 	git branch -m <name>
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9288339Z hint:
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9289540Z hint: Disable this message with "git config set advice.defaultBranchName false"
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9291316Z Initialized empty Git repository in /home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git/
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9295259Z [command]/usr/bin/git remote add origin https://github.com/resarytrew/PaperFlow-Stream
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9332338Z ##[endgroup]
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9333324Z ##[group]Disabling automatic garbage collection
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9335863Z [command]/usr/bin/git config --local gc.auto 0
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9369978Z ##[endgroup]
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9371889Z ##[group]Setting up auth
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9373546Z Removing SSH command configuration
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9377495Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9416775Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9791052Z Removing HTTP extra header
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9799906Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-polish	Run actions/checkout@v6	2026-07-26T10:20:10.9850795Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.0101002Z Removing includeIf entries pointing to credentials config files
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.0108470Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.0152958Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.0394065Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-f8402c07-0e7e-4e16-8789-06c706d003c5.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.0442117Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git.path /home/runner/work/_temp/git-credentials-f8402c07-0e7e-4e16-8789-06c706d003c5.config
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.0480121Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-f8402c07-0e7e-4e16-8789-06c706d003c5.config
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.0518065Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-f8402c07-0e7e-4e16-8789-06c706d003c5.config
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.0555595Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-f8402c07-0e7e-4e16-8789-06c706d003c5.config
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.0613377Z ##[endgroup]
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.0615375Z ##[group]Fetching the repository
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.0625016Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.5551042Z From https://github.com/resarytrew/PaperFlow-Stream
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.5553648Z  * [new branch]      arena/019f97a7-paperflow-stream -> origin/arena/019f97a7-paperflow-stream
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.5556407Z  * [new branch]      arena/019f97f2-paperflow-stream -> origin/arena/019f97f2-paperflow-stream
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.5559095Z  * [new branch]      arena/019f9863-paperflow-stream -> origin/arena/019f9863-paperflow-stream
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.5561716Z  * [new branch]      arena/019f9c65-paperflow-stream -> origin/arena/019f9c65-paperflow-stream
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.5563354Z  * [new branch]      main         -> origin/main
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.5564646Z  * [new tag]         v0.3.0-pilot -> v0.3.0-pilot
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.5565775Z  * [new tag]         v0.3.1-pilot -> v0.3.1-pilot
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.5597712Z [command]/usr/bin/git branch --list --remote origin/main
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.5642217Z   origin/main
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.5655442Z [command]/usr/bin/git rev-parse refs/remotes/origin/main
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.5683329Z 344961bc7029c2d9a6e65609974f58a0e6aa65f5
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.5689628Z ##[endgroup]
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.5692168Z ##[group]Determining the checkout info
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.5695112Z ##[endgroup]
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.5696997Z [command]/usr/bin/git sparse-checkout disable
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.5748358Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.5781768Z ##[group]Checking out the ref
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.5785015Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.5945530Z Switched to a new branch 'main'
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.5949001Z branch 'main' set up to track 'origin/main'.
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.5960551Z ##[endgroup]
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.6013165Z [command]/usr/bin/git log -1 --format=%H
-polish	Run actions/checkout@v6	2026-07-26T10:20:11.6046325Z 344961bc7029c2d9a6e65609974f58a0e6aa65f5
-polish	Run actions/setup-node@v6	﻿2026-07-26T10:20:11.6413835Z ##[group]Run actions/setup-node@v6
-polish	Run actions/setup-node@v6	2026-07-26T10:20:11.6414989Z with:
-polish	Run actions/setup-node@v6	2026-07-26T10:20:11.6415790Z   node-version: 22
-polish	Run actions/setup-node@v6	2026-07-26T10:20:11.6416655Z   cache: npm
-polish	Run actions/setup-node@v6	2026-07-26T10:20:11.6417653Z   cache-dependency-path: frontend/package-lock.json
-polish	Run actions/setup-node@v6	2026-07-26T10:20:11.6419124Z   check-latest: false
-polish	Run actions/setup-node@v6	2026-07-26T10:20:11.6428625Z   token: ***
-polish	Run actions/setup-node@v6	2026-07-26T10:20:11.6429533Z   package-manager-cache: true
-polish	Run actions/setup-node@v6	2026-07-26T10:20:11.6430548Z ##[endgroup]
-polish	Run actions/setup-node@v6	2026-07-26T10:20:11.7893632Z Found in cache @ /opt/hostedtoolcache/node/22.23.1/x64
-polish	Run actions/setup-node@v6	2026-07-26T10:20:11.7897035Z ##[group]Environment details
-polish	Run actions/setup-node@v6	2026-07-26T10:20:12.1713683Z node: v22.23.1
-polish	Run actions/setup-node@v6	2026-07-26T10:20:12.1715428Z npm: 10.9.8
-polish	Run actions/setup-node@v6	2026-07-26T10:20:12.1717076Z yarn: 1.22.22
-polish	Run actions/setup-node@v6	2026-07-26T10:20:12.1720470Z ##[endgroup]
-polish	Run actions/setup-node@v6	2026-07-26T10:20:12.1735649Z [command]/opt/hostedtoolcache/node/22.23.1/x64/bin/npm config get cache
-polish	Run actions/setup-node@v6	2026-07-26T10:20:12.2970973Z /home/runner/.npm
-polish	Run actions/setup-node@v6	2026-07-26T10:20:12.4526058Z Cache hit for: node-cache-Linux-x64-npm-87748f027701b8160af8724379cce09ca7c5bde57fafe69784f41c105dfb5332
-polish	Run actions/setup-node@v6	2026-07-26T10:20:13.0160964Z Received 16674221 of 16674221 (100.0%), 35.7 MBs/sec
-polish	Run actions/setup-node@v6	2026-07-26T10:20:13.0162244Z Cache Size: ~16 MB (16674221 B)
-polish	Run actions/setup-node@v6	2026-07-26T10:20:13.0190234Z [command]/usr/bin/tar -xf /home/runner/work/_temp/919ea51c-3c62-4487-88ea-cfd5b65cefce/cache.tzst -P -C /home/runner/work/PaperFlow-Stream/PaperFlow-Stream --use-compress-program unzstd
-polish	Run actions/setup-node@v6	2026-07-26T10:20:13.0643653Z Cache restored successfully
-polish	Run actions/setup-node@v6	2026-07-26T10:20:13.0655913Z Cache restored from key: node-cache-Linux-x64-npm-87748f027701b8160af8724379cce09ca7c5bde57fafe69784f41c105dfb5332
-polish	Polish user-facing copy	﻿2026-07-26T10:20:13.0846122Z ##[group]Run python - <<'PY'
-polish	Polish user-facing copy	2026-07-26T10:20:13.0846666Z ^[[36;1mpython - <<'PY'^[[0m
-polish	Polish user-facing copy	2026-07-26T10:20:13.0847055Z ^[[36;1mfrom pathlib import Path^[[0m
-polish	Polish user-facing copy	2026-07-26T10:20:13.0847460Z ^[[36;1m^[[0m
-polish	Polish user-facing copy	2026-07-26T10:20:13.0847861Z ^[[36;1mpath = Path("frontend/src/hub/HubProvider.tsx")^[[0m
-polish	Polish user-facing copy	2026-07-26T10:20:13.0848423Z ^[[36;1mtext = path.read_text(encoding="utf-8")^[[0m
-polish	Polish user-facing copy	2026-07-26T10:20:13.0849234Z ^[[36;1mreplacements = [^[[0m
-polish	Polish user-facing copy	2026-07-26T10:20:13.0849763Z ^[[36;1m    ("Локальный Hub пока не отвечает.", "Локальный модуль пока не отвечает."),^[[0m
-polish	Polish user-facing copy	2026-07-26T10:20:13.0850444Z ^[[36;1m    ("Обнови Hub до актуальной версии", "Обнови «Чистовик» до актуальной версии"),^[[0m
-polish	Polish user-facing copy	2026-07-26T10:20:13.0851288Z ^[[36;1m    ("Ищу защищённый Hub на этом компьютере или в школьной сети…", "Ищу локальный модуль «Чистовик» на этом компьютере или в школьной сети…"),^[[0m
-polish	Polish user-facing copy	2026-07-26T10:20:13.0852443Z ^[[36;1m    ("Для другой ОС Hub пока запускается из исходного кода.", "Для другой ОС локальный модуль пока запускается из исходного кода."),^[[0m
-polish	Polish user-facing copy	2026-07-26T10:20:13.0853271Z ^[[36;1m    ("ChistovikSetup-0.3.1.exe", "ChistovikSetup-0.3.2.exe"),^[[0m
-polish	Polish user-facing copy	2026-07-26T10:20:13.0853798Z ^[[36;1m    ("релиз 0.3.1", "релиз 0.3.2"),^[[0m
-polish	Polish user-facing copy	2026-07-26T10:20:13.0854300Z ^[[36;1m    ("Диагностика и ручной адрес Hub", "Диагностика и ручной адрес локального модуля"),^[[0m
-polish	Polish user-facing copy	2026-07-26T10:20:13.0855071Z ^[[36;1m    ("Осталось подтвердить этот адрес Чистовик локальным кодом.", "Осталось подтвердить подключение этого адреса к «Чистовику» локальным кодом."),^[[0m
-polish	Polish user-facing copy	2026-07-26T10:20:13.0855834Z ^[[36;1m    ("текущий адрес Чистовик", "текущий адрес веб-приложения «Чистовик»"),^[[0m
-polish	Polish user-facing copy	2026-07-26T10:20:13.0856313Z ^[[36;1m]^[[0m
-polish	Polish user-facing copy	2026-07-26T10:20:13.0856621Z ^[[36;1mfor old, new in replacements:^[[0m
-polish	Polish user-facing copy	2026-07-26T10:20:13.0857062Z ^[[36;1m    if old not in text:^[[0m
-polish	Polish user-facing copy	2026-07-26T10:20:13.0857492Z ^[[36;1m        print(f"Already replaced or not found: {old}")^[[0m
-polish	Polish user-facing copy	2026-07-26T10:20:13.0857965Z ^[[36;1m    text = text.replace(old, new)^[[0m
-polish	Polish user-facing copy	2026-07-26T10:20:13.0858401Z ^[[36;1mpath.write_text(text, encoding="utf-8")^[[0m
-polish	Polish user-facing copy	2026-07-26T10:20:13.0859116Z ^[[36;1mPY^[[0m
-polish	Polish user-facing copy	2026-07-26T10:20:13.0917651Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-polish	Polish user-facing copy	2026-07-26T10:20:13.0918224Z ##[endgroup]
-polish	Build frontend	﻿2026-07-26T10:20:13.1336514Z ##[group]Run npm ci
-polish	Build frontend	2026-07-26T10:20:13.1336940Z ^[[36;1mnpm ci^[[0m
-polish	Build frontend	2026-07-26T10:20:13.1337248Z ^[[36;1mnpm run build^[[0m
-polish	Build frontend	2026-07-26T10:20:13.1385483Z shell: /usr/bin/bash -e {0}
-polish	Build frontend	2026-07-26T10:20:13.1385936Z ##[endgroup]
-polish	Build frontend	2026-07-26T10:20:15.7351474Z 
-polish	Build frontend	2026-07-26T10:20:15.7361185Z added 71 packages, and audited 72 packages in 3s
-polish	Build frontend	2026-07-26T10:20:15.7361744Z 
-polish	Build frontend	2026-07-26T10:20:15.7362096Z 7 packages are looking for funding
-polish	Build frontend	2026-07-26T10:20:15.7362661Z   run `npm fund` for details
-polish	Build frontend	2026-07-26T10:20:15.7646568Z 
-polish	Build frontend	2026-07-26T10:20:15.7647808Z 4 vulnerabilities (3 moderate, 1 high)
-polish	Build frontend	2026-07-26T10:20:15.7648933Z 
-polish	Build frontend	2026-07-26T10:20:15.7649907Z To address issues that do not require attention, run:
-polish	Build frontend	2026-07-26T10:20:15.7650626Z   npm audit fix
-polish	Build frontend	2026-07-26T10:20:15.7650878Z 
-polish	Build frontend	2026-07-26T10:20:15.7651305Z To address all issues (including breaking changes), run:
-polish	Build frontend	2026-07-26T10:20:15.7651940Z   npm audit fix --force
-polish	Build frontend	2026-07-26T10:20:15.7652235Z 
-polish	Build frontend	2026-07-26T10:20:15.7652487Z Run `npm audit` for details.
-polish	Build frontend	2026-07-26T10:20:15.9115964Z 
-polish	Build frontend	2026-07-26T10:20:15.9117397Z > paperflow-stream-frontend@0.2.0 build
-polish	Build frontend	2026-07-26T10:20:15.9118094Z > tsc -b && vite build
-polish	Build frontend	2026-07-26T10:20:15.9118369Z 
-polish	Build frontend	2026-07-26T10:20:19.2587910Z ^[[36mvite v5.4.21 ^[[32mbuilding for production...^[[36m^[[39m
-polish	Build frontend	2026-07-26T10:20:19.3240982Z transforming...
-polish	Build frontend	2026-07-26T10:20:20.2945980Z ^[[32m✓^[[39m 51 modules transformed.
-polish	Build frontend	2026-07-26T10:20:20.4447202Z rendering chunks...
-polish	Build frontend	2026-07-26T10:20:20.4511818Z computing gzip size...
-polish	Build frontend	2026-07-26T10:20:20.4624464Z ^[[2mdist/^[[22m^[[32mindex.html                 ^[[39m^[[1m^[[2m  0.55 kB^[[22m^[[1m^[[22m^[[2m │ gzip:  0.34 kB^[[22m
-polish	Build frontend	2026-07-26T10:20:20.4626278Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[35mindex-DhhaW4Cq.css  ^[[39m^[[1m^[[2m 16.34 kB^[[22m^[[1m^[[22m^[[2m │ gzip:  4.20 kB^[[22m
-polish	Build frontend	2026-07-26T10:20:20.4628108Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mindex-CkWmPNAy.js   ^[[39m^[[1m^[[2m256.37 kB^[[22m^[[1m^[[22m^[[2m │ gzip: 82.73 kB^[[22m
-polish	Build frontend	2026-07-26T10:20:20.4629768Z ^[[32m✓ built in 1.17s^[[39m
-polish	Commit polished copy and build	﻿2026-07-26T10:20:20.4926972Z ##[group]Run git config user.name "github-actions[bot]"
-polish	Commit polished copy and build	2026-07-26T10:20:20.4927503Z ^[[36;1mgit config user.name "github-actions[bot]"^[[0m
-polish	Commit polished copy and build	2026-07-26T10:20:20.4928045Z ^[[36;1mgit config user.email "41898282+github-actions[bot]@users.noreply.github.com"^[[0m
-polish	Commit polished copy and build	2026-07-26T10:20:20.4928956Z ^[[36;1mgit add frontend/src/hub/HubProvider.tsx frontend/dist^[[0m
-polish	Commit polished copy and build	2026-07-26T10:20:20.4929470Z ^[[36;1mgit commit -m "fix: polish Chistovik onboarding copy"^[[0m
-polish	Commit polished copy and build	2026-07-26T10:20:20.4929904Z ^[[36;1mgit pull --rebase origin main^[[0m
-polish	Commit polished copy and build	2026-07-26T10:20:20.4930225Z ^[[36;1mgit push^[[0m
-polish	Commit polished copy and build	2026-07-26T10:20:20.4974052Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-polish	Commit polished copy and build	2026-07-26T10:20:20.4974514Z ##[endgroup]
-polish	Commit polished copy and build	2026-07-26T10:20:20.5094916Z The following paths are ignored by one of your .gitignore files:
-polish	Commit polished copy and build	2026-07-26T10:20:20.5095791Z frontend/dist
-polish	Commit polished copy and build	2026-07-26T10:20:20.5096417Z hint: Use -f if you really want to add them.
-polish	Commit polished copy and build	2026-07-26T10:20:20.5097374Z hint: Disable this message with "git config set advice.addIgnoredFile false"
-polish	Commit polished copy and build	2026-07-26T10:20:20.5156148Z ##[error]Process completed with exit code 1.
-polish	Post Run actions/checkout@v6	﻿2026-07-26T10:20:20.5303139Z Post job cleanup.
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.6169296Z [command]/usr/bin/git version
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.6214611Z git version 2.54.0
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.6290423Z Temporarily overriding HOME='/home/runner/work/_temp/173dfaf8-d4f9-4754-a4fa-1a5a0bd0f696' before making global git config changes
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.6292461Z Adding repository directory to the temporary git global config as a safe directory
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.6296660Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/PaperFlow-Stream/PaperFlow-Stream
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.6333202Z Removing SSH command configuration
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.6341130Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.6385443Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.6640652Z Removing HTTP extra header
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.6648188Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.6691287Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.6960646Z Removing includeIf entries pointing to credentials config files
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.6967401Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.7001736Z includeif.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git.path
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.7003916Z includeif.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git/worktrees/*.path
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.7005463Z includeif.gitdir:/github/workspace/.git.path
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.7006849Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.7015160Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git.path
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.7045506Z /home/runner/work/_temp/git-credentials-f8402c07-0e7e-4e16-8789-06c706d003c5.config
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.7059961Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git.path /home/runner/work/_temp/git-credentials-f8402c07-0e7e-4e16-8789-06c706d003c5.config
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.7104442Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git/worktrees/*.path
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.7134070Z /home/runner/work/_temp/git-credentials-f8402c07-0e7e-4e16-8789-06c706d003c5.config
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.7147102Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-f8402c07-0e7e-4e16-8789-06c706d003c5.config
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.7188765Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.7216850Z /github/runner_temp/git-credentials-f8402c07-0e7e-4e16-8789-06c706d003c5.config
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.7227218Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-f8402c07-0e7e-4e16-8789-06c706d003c5.config
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.7266205Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.7293927Z /github/runner_temp/git-credentials-f8402c07-0e7e-4e16-8789-06c706d003c5.config
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.7303823Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-f8402c07-0e7e-4e16-8789-06c706d003c5.config
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.7343654Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-polish	Post Run actions/checkout@v6	2026-07-26T10:20:20.7572366Z Removing credentials config '/home/runner/work/_temp/git-credentials-f8402c07-0e7e-4e16-8789-06c706d003c5.config'
-polish	Complete job	﻿2026-07-26T10:20:20.7737503Z Cleaning up orphan processes
+polish	Set up job	﻿2026-07-26T10:21:56.0664471Z Current runner version: '2.335.1'
+polish	Set up job	2026-07-26T10:21:56.0691447Z ##[group]Runner Image Provisioner
+polish	Set up job	2026-07-26T10:21:56.0692544Z Hosted Compute Agent
+polish	Set up job	2026-07-26T10:21:56.0693117Z Version: 20260707.563
+polish	Set up job	2026-07-26T10:21:56.0693843Z Commit: 02667638d2b423fbc733a8e32a88b44996a3ba6e
+polish	Set up job	2026-07-26T10:21:56.0694608Z Build Date: 2026-07-07T19:33:50Z
+polish	Set up job	2026-07-26T10:21:56.0695330Z Worker ID: {273532ed-d02d-4967-96e8-9427ae503452}
+polish	Set up job	2026-07-26T10:21:56.0696045Z Azure Region: westus
+polish	Set up job	2026-07-26T10:21:56.0696601Z ##[endgroup]
+polish	Set up job	2026-07-26T10:21:56.0698141Z ##[group]Operating System
+polish	Set up job	2026-07-26T10:21:56.0698833Z Ubuntu
+polish	Set up job	2026-07-26T10:21:56.0699442Z 24.04.4
+polish	Set up job	2026-07-26T10:21:56.0699929Z LTS
+polish	Set up job	2026-07-26T10:21:56.0700432Z ##[endgroup]
+polish	Set up job	2026-07-26T10:21:56.0701291Z ##[group]Runner Image
+polish	Set up job	2026-07-26T10:21:56.0702009Z Image: ubuntu-24.04
+polish	Set up job	2026-07-26T10:21:56.0702551Z Version: 20260720.247.2
+polish	Set up job	2026-07-26T10:21:56.0703657Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260720.247/images/ubuntu/Ubuntu2404-Readme.md
+polish	Set up job	2026-07-26T10:21:56.0705343Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260720.247
+polish	Set up job	2026-07-26T10:21:56.0706339Z ##[endgroup]
+polish	Set up job	2026-07-26T10:21:56.0707464Z ##[group]GITHUB_TOKEN Permissions
+polish	Set up job	2026-07-26T10:21:56.0709615Z Contents: write
+polish	Set up job	2026-07-26T10:21:56.0710292Z Metadata: read
+polish	Set up job	2026-07-26T10:21:56.0711563Z ##[endgroup]
+polish	Set up job	2026-07-26T10:21:56.0713763Z Secret source: Actions
+polish	Set up job	2026-07-26T10:21:56.0714995Z Prepare workflow directory
+polish	Set up job	2026-07-26T10:21:56.1063811Z Prepare all required actions
+polish	Set up job	2026-07-26T10:21:56.1104091Z Getting action download info
+polish	Set up job	2026-07-26T10:21:56.4526382Z Download action repository 'actions/checkout@v6' (SHA:d23441a48e516b6c34aea4fa41551a30e30af803)
+polish	Set up job	2026-07-26T10:21:56.8637613Z Download action repository 'actions/setup-node@v6' (SHA:249970729cb0ef3589644e2896645e5dc5ba9c38)
+polish	Set up job	2026-07-26T10:21:57.5216150Z Complete job name: polish
+polish	Run actions/checkout@v6	﻿2026-07-26T10:21:57.6018111Z ##[group]Run actions/checkout@v6
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.6019084Z with:
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.6019563Z   fetch-depth: 0
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.6020119Z   repository: resarytrew/PaperFlow-Stream
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.6024296Z   token: ***
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.6024847Z   ssh-strict: true
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.6025379Z   ssh-user: git
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.6025911Z   persist-credentials: true
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.6026486Z   clean: true
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.6027010Z   sparse-checkout-cone-mode: true
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.6027634Z   fetch-tags: false
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.6028132Z   show-progress: true
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.6028602Z   lfs: false
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.6029053Z   submodules: false
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.6029551Z   set-safe-directory: true
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.6030092Z   allow-unsafe-pr-checkout: false
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.6031114Z ##[endgroup]
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7036944Z Syncing repository: resarytrew/PaperFlow-Stream
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7039136Z ##[group]Getting Git version info
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7040156Z Working directory is '/home/runner/work/PaperFlow-Stream/PaperFlow-Stream'
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7041932Z [command]/usr/bin/git version
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7121224Z git version 2.54.0
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7147457Z ##[endgroup]
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7166374Z Temporarily overriding HOME='/home/runner/work/_temp/361a1a63-778b-4054-803e-d0c8d0da9ec2' before making global git config changes
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7168292Z Adding repository directory to the temporary git global config as a safe directory
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7174000Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/PaperFlow-Stream/PaperFlow-Stream
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7233719Z Deleting the contents of '/home/runner/work/PaperFlow-Stream/PaperFlow-Stream'
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7239895Z ##[group]Determining repository object format
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7242635Z ##[endgroup]
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7243925Z ##[group]Initializing the repository
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7249159Z [command]/usr/bin/git init /home/runner/work/PaperFlow-Stream/PaperFlow-Stream
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7360105Z hint: Using 'master' as the name for the initial branch. This default branch name
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7362676Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7364433Z hint: to use in all of your new repositories, which will suppress this warning,
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7365789Z hint: call:
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7366463Z hint:
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7367341Z hint: 	git config --global init.defaultBranch <name>
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7368455Z hint:
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7369560Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7371459Z hint: 'development'. The just-created branch can be renamed via this command:
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7372868Z hint:
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7373625Z hint: 	git branch -m <name>
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7374563Z hint:
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7375702Z hint: Disable this message with "git config set advice.defaultBranchName false"
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7377711Z Initialized empty Git repository in /home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git/
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7381729Z [command]/usr/bin/git remote add origin https://github.com/resarytrew/PaperFlow-Stream
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7431447Z ##[endgroup]
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7433217Z ##[group]Disabling automatic garbage collection
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7435938Z [command]/usr/bin/git config --local gc.auto 0
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7468235Z ##[endgroup]
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7469859Z ##[group]Setting up auth
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7471127Z Removing SSH command configuration
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7477525Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7515291Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7914301Z Removing HTTP extra header
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7919633Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.7963205Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.8193608Z Removing includeIf entries pointing to credentials config files
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.8201587Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.8240546Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.8473123Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-e21f1abb-2e98-4917-a5ff-9b8540bd2bb1.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.8516413Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git.path /home/runner/work/_temp/git-credentials-e21f1abb-2e98-4917-a5ff-9b8540bd2bb1.config
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.8555837Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-e21f1abb-2e98-4917-a5ff-9b8540bd2bb1.config
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.8595549Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-e21f1abb-2e98-4917-a5ff-9b8540bd2bb1.config
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.8632671Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-e21f1abb-2e98-4917-a5ff-9b8540bd2bb1.config
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.8662945Z ##[endgroup]
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.8663806Z ##[group]Fetching the repository
+polish	Run actions/checkout@v6	2026-07-26T10:21:57.8675239Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
+polish	Run actions/checkout@v6	2026-07-26T10:21:58.5521412Z From https://github.com/resarytrew/PaperFlow-Stream
+polish	Run actions/checkout@v6	2026-07-26T10:21:58.5523928Z  * [new branch]      arena/019f97a7-paperflow-stream -> origin/arena/019f97a7-paperflow-stream
+polish	Run actions/checkout@v6	2026-07-26T10:21:58.5526033Z  * [new branch]      arena/019f97f2-paperflow-stream -> origin/arena/019f97f2-paperflow-stream
+polish	Run actions/checkout@v6	2026-07-26T10:21:58.5527806Z  * [new branch]      arena/019f9863-paperflow-stream -> origin/arena/019f9863-paperflow-stream
+polish	Run actions/checkout@v6	2026-07-26T10:21:58.5529800Z  * [new branch]      arena/019f9c65-paperflow-stream -> origin/arena/019f9c65-paperflow-stream
+polish	Run actions/checkout@v6	2026-07-26T10:21:58.5531738Z  * [new branch]      main         -> origin/main
+polish	Run actions/checkout@v6	2026-07-26T10:21:58.5532845Z  * [new tag]         v0.3.0-pilot -> v0.3.0-pilot
+polish	Run actions/checkout@v6	2026-07-26T10:21:58.5533977Z  * [new tag]         v0.3.1-pilot -> v0.3.1-pilot
+polish	Run actions/checkout@v6	2026-07-26T10:21:58.5567503Z [command]/usr/bin/git branch --list --remote origin/main
+polish	Run actions/checkout@v6	2026-07-26T10:21:58.5598105Z   origin/main
+polish	Run actions/checkout@v6	2026-07-26T10:21:58.5607933Z [command]/usr/bin/git rev-parse refs/remotes/origin/main
+polish	Run actions/checkout@v6	2026-07-26T10:21:58.5632448Z 188186fd54556c520e22e31b994430ce791e822c
+polish	Run actions/checkout@v6	2026-07-26T10:21:58.5638569Z ##[endgroup]
+polish	Run actions/checkout@v6	2026-07-26T10:21:58.5640135Z ##[group]Determining the checkout info
+polish	Run actions/checkout@v6	2026-07-26T10:21:58.5642523Z ##[endgroup]
+polish	Run actions/checkout@v6	2026-07-26T10:21:58.5643966Z [command]/usr/bin/git sparse-checkout disable
+polish	Run actions/checkout@v6	2026-07-26T10:21:58.5699106Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+polish	Run actions/checkout@v6	2026-07-26T10:21:58.5732743Z ##[group]Checking out the ref
+polish	Run actions/checkout@v6	2026-07-26T10:21:58.5736389Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+polish	Run actions/checkout@v6	2026-07-26T10:21:58.5896674Z Switched to a new branch 'main'
+polish	Run actions/checkout@v6	2026-07-26T10:21:58.5898988Z branch 'main' set up to track 'origin/main'.
+polish	Run actions/checkout@v6	2026-07-26T10:21:58.5909456Z ##[endgroup]
+polish	Run actions/checkout@v6	2026-07-26T10:21:58.5957930Z [command]/usr/bin/git log -1 --format=%H
+polish	Run actions/checkout@v6	2026-07-26T10:21:58.5987756Z 188186fd54556c520e22e31b994430ce791e822c
+polish	Run actions/setup-node@v6	﻿2026-07-26T10:21:58.6339556Z ##[group]Run actions/setup-node@v6
+polish	Run actions/setup-node@v6	2026-07-26T10:21:58.6341028Z with:
+polish	Run actions/setup-node@v6	2026-07-26T10:21:58.6341878Z   node-version: 22
+polish	Run actions/setup-node@v6	2026-07-26T10:21:58.6342786Z   cache: npm
+polish	Run actions/setup-node@v6	2026-07-26T10:21:58.6343851Z   cache-dependency-path: frontend/package-lock.json
+polish	Run actions/setup-node@v6	2026-07-26T10:21:58.6345241Z   check-latest: false
+polish	Run actions/setup-node@v6	2026-07-26T10:21:58.6354987Z   token: ***
+polish	Run actions/setup-node@v6	2026-07-26T10:21:58.6355932Z   package-manager-cache: true
+polish	Run actions/setup-node@v6	2026-07-26T10:21:58.6357011Z ##[endgroup]
+polish	Run actions/setup-node@v6	2026-07-26T10:21:58.7803129Z Found in cache @ /opt/hostedtoolcache/node/22.23.1/x64
+polish	Run actions/setup-node@v6	2026-07-26T10:21:58.7805343Z ##[group]Environment details
+polish	Run actions/setup-node@v6	2026-07-26T10:22:01.6924016Z node: v22.23.1
+polish	Run actions/setup-node@v6	2026-07-26T10:22:01.6924686Z npm: 10.9.8
+polish	Run actions/setup-node@v6	2026-07-26T10:22:01.6925142Z yarn: 1.22.22
+polish	Run actions/setup-node@v6	2026-07-26T10:22:01.6926528Z ##[endgroup]
+polish	Run actions/setup-node@v6	2026-07-26T10:22:01.6945117Z [command]/opt/hostedtoolcache/node/22.23.1/x64/bin/npm config get cache
+polish	Run actions/setup-node@v6	2026-07-26T10:22:01.9814185Z /home/runner/.npm
+polish	Run actions/setup-node@v6	2026-07-26T10:22:02.2372542Z Cache hit for: node-cache-Linux-x64-npm-87748f027701b8160af8724379cce09ca7c5bde57fafe69784f41c105dfb5332
+polish	Run actions/setup-node@v6	2026-07-26T10:22:03.5302447Z Received 0 of 16674221 (0.0%), 0.0 MBs/sec
+polish	Run actions/setup-node@v6	2026-07-26T10:22:04.2778305Z Received 16674221 of 16674221 (100.0%), 9.1 MBs/sec
+polish	Run actions/setup-node@v6	2026-07-26T10:22:04.2779075Z Cache Size: ~16 MB (16674221 B)
+polish	Run actions/setup-node@v6	2026-07-26T10:22:04.2925994Z [command]/usr/bin/tar -xf /home/runner/work/_temp/c81a8426-7d89-4925-8d93-64670f26ed7c/cache.tzst -P -C /home/runner/work/PaperFlow-Stream/PaperFlow-Stream --use-compress-program unzstd
+polish	Run actions/setup-node@v6	2026-07-26T10:22:04.3364332Z Cache restored successfully
+polish	Run actions/setup-node@v6	2026-07-26T10:22:04.3376490Z Cache restored from key: node-cache-Linux-x64-npm-87748f027701b8160af8724379cce09ca7c5bde57fafe69784f41c105dfb5332
+polish	Polish user-facing copy	﻿2026-07-26T10:22:04.3593236Z ##[group]Run python - <<'PY'
+polish	Polish user-facing copy	2026-07-26T10:22:04.3593637Z ^[[36;1mpython - <<'PY'^[[0m
+polish	Polish user-facing copy	2026-07-26T10:22:04.3593950Z ^[[36;1mfrom pathlib import Path^[[0m
+polish	Polish user-facing copy	2026-07-26T10:22:04.3594226Z ^[[36;1m^[[0m
+polish	Polish user-facing copy	2026-07-26T10:22:04.3594505Z ^[[36;1mpath = Path("frontend/src/hub/HubProvider.tsx")^[[0m
+polish	Polish user-facing copy	2026-07-26T10:22:04.3594883Z ^[[36;1mtext = path.read_text(encoding="utf-8")^[[0m
+polish	Polish user-facing copy	2026-07-26T10:22:04.3595199Z ^[[36;1mreplacements = [^[[0m
+polish	Polish user-facing copy	2026-07-26T10:22:04.3595571Z ^[[36;1m    ("Локальный Hub пока не отвечает.", "Локальный модуль пока не отвечает."),^[[0m
+polish	Polish user-facing copy	2026-07-26T10:22:04.3596054Z ^[[36;1m    ("Обнови Hub до актуальной версии", "Обнови «Чистовик» до актуальной версии"),^[[0m
+polish	Polish user-facing copy	2026-07-26T10:22:04.3596912Z ^[[36;1m    ("Ищу защищённый Hub на этом компьютере или в школьной сети…", "Ищу локальный модуль «Чистовик» на этом компьютере или в школьной сети…"),^[[0m
+polish	Polish user-facing copy	2026-07-26T10:22:04.3597631Z ^[[36;1m    ("Для другой ОС Hub пока запускается из исходного кода.", "Для другой ОС локальный модуль пока запускается из исходного кода."),^[[0m
+polish	Polish user-facing copy	2026-07-26T10:22:04.3598261Z ^[[36;1m    ("ChistovikSetup-0.3.1.exe", "ChistovikSetup-0.3.2.exe"),^[[0m
+polish	Polish user-facing copy	2026-07-26T10:22:04.3598652Z ^[[36;1m    ("релиз 0.3.1", "релиз 0.3.2"),^[[0m
+polish	Polish user-facing copy	2026-07-26T10:22:04.3599045Z ^[[36;1m    ("Диагностика и ручной адрес Hub", "Диагностика и ручной адрес локального модуля"),^[[0m
+polish	Polish user-facing copy	2026-07-26T10:22:04.3599654Z ^[[36;1m    ("Осталось подтвердить этот адрес Чистовик локальным кодом.", "Осталось подтвердить подключение этого адреса к «Чистовику» локальным кодом."),^[[0m
+polish	Polish user-facing copy	2026-07-26T10:22:04.3600232Z ^[[36;1m    ("текущий адрес Чистовик", "текущий адрес веб-приложения «Чистовик»"),^[[0m
+polish	Polish user-facing copy	2026-07-26T10:22:04.3600801Z ^[[36;1m]^[[0m
+polish	Polish user-facing copy	2026-07-26T10:22:04.3601098Z ^[[36;1mfor old, new in replacements:^[[0m
+polish	Polish user-facing copy	2026-07-26T10:22:04.3601392Z ^[[36;1m    text = text.replace(old, new)^[[0m
+polish	Polish user-facing copy	2026-07-26T10:22:04.3601710Z ^[[36;1mpath.write_text(text, encoding="utf-8")^[[0m
+polish	Polish user-facing copy	2026-07-26T10:22:04.3602013Z ^[[36;1mPY^[[0m
+polish	Polish user-facing copy	2026-07-26T10:22:04.3760892Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+polish	Polish user-facing copy	2026-07-26T10:22:04.3761295Z ##[endgroup]
+polish	Build frontend	﻿2026-07-26T10:22:04.4156601Z ##[group]Run npm ci
+polish	Build frontend	2026-07-26T10:22:04.4156921Z ^[[36;1mnpm ci^[[0m
+polish	Build frontend	2026-07-26T10:22:04.4157146Z ^[[36;1mnpm run build^[[0m
+polish	Build frontend	2026-07-26T10:22:04.4204610Z shell: /usr/bin/bash -e {0}
+polish	Build frontend	2026-07-26T10:22:04.4204897Z ##[endgroup]
+polish	Build frontend	2026-07-26T10:22:08.0237565Z 
+polish	Build frontend	2026-07-26T10:22:08.0246607Z added 71 packages, and audited 72 packages in 4s
+polish	Build frontend	2026-07-26T10:22:08.0247062Z 
+polish	Build frontend	2026-07-26T10:22:08.0247329Z 7 packages are looking for funding
+polish	Build frontend	2026-07-26T10:22:08.0247677Z   run `npm fund` for details
+polish	Build frontend	2026-07-26T10:22:08.0524611Z 
+polish	Build frontend	2026-07-26T10:22:08.0525824Z 4 vulnerabilities (3 moderate, 1 high)
+polish	Build frontend	2026-07-26T10:22:08.0526892Z 
+polish	Build frontend	2026-07-26T10:22:08.0527776Z To address issues that do not require attention, run:
+polish	Build frontend	2026-07-26T10:22:08.0528742Z   npm audit fix
+polish	Build frontend	2026-07-26T10:22:08.0529252Z 
+polish	Build frontend	2026-07-26T10:22:08.0529926Z To address all issues (including breaking changes), run:
+polish	Build frontend	2026-07-26T10:22:08.0531611Z   npm audit fix --force
+polish	Build frontend	2026-07-26T10:22:08.0532192Z 
+polish	Build frontend	2026-07-26T10:22:08.0532666Z Run `npm audit` for details.
+polish	Build frontend	2026-07-26T10:22:08.2013387Z 
+polish	Build frontend	2026-07-26T10:22:08.2014356Z > paperflow-stream-frontend@0.2.0 build
+polish	Build frontend	2026-07-26T10:22:08.2014832Z > tsc -b && vite build
+polish	Build frontend	2026-07-26T10:22:08.2015015Z 
+polish	Build frontend	2026-07-26T10:22:11.7111924Z ^[[36mvite v5.4.21 ^[[32mbuilding for production...^[[36m^[[39m
+polish	Build frontend	2026-07-26T10:22:11.7722844Z transforming...
+polish	Build frontend	2026-07-26T10:22:12.7132133Z ^[[32m✓^[[39m 51 modules transformed.
+polish	Build frontend	2026-07-26T10:22:12.8589442Z rendering chunks...
+polish	Build frontend	2026-07-26T10:22:12.8653561Z computing gzip size...
+polish	Build frontend	2026-07-26T10:22:12.8961992Z ^[[2mdist/^[[22m^[[32mindex.html                 ^[[39m^[[1m^[[2m  0.55 kB^[[22m^[[1m^[[22m^[[2m │ gzip:  0.34 kB^[[22m
+polish	Build frontend	2026-07-26T10:22:12.8963834Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[35mindex-DhhaW4Cq.css  ^[[39m^[[1m^[[2m 16.34 kB^[[22m^[[1m^[[22m^[[2m │ gzip:  4.20 kB^[[22m
+polish	Build frontend	2026-07-26T10:22:12.8965549Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mindex-CkWmPNAy.js   ^[[39m^[[1m^[[2m256.37 kB^[[22m^[[1m^[[22m^[[2m │ gzip: 82.73 kB^[[22m
+polish	Build frontend	2026-07-26T10:22:12.8974059Z ^[[32m✓ built in 1.16s^[[39m
+polish	Commit polished copy	﻿2026-07-26T10:22:12.9268979Z ##[group]Run git config user.name "github-actions[bot]"
+polish	Commit polished copy	2026-07-26T10:22:12.9269447Z ^[[36;1mgit config user.name "github-actions[bot]"^[[0m
+polish	Commit polished copy	2026-07-26T10:22:12.9269907Z ^[[36;1mgit config user.email "41898282+github-actions[bot]@users.noreply.github.com"^[[0m
+polish	Commit polished copy	2026-07-26T10:22:12.9270379Z ^[[36;1mgit add frontend/src/hub/HubProvider.tsx^[[0m
+polish	Commit polished copy	2026-07-26T10:22:12.9271062Z ^[[36;1mgit commit -m "fix: polish Chistovik onboarding copy"^[[0m
+polish	Commit polished copy	2026-07-26T10:22:12.9271427Z ^[[36;1mgit pull --rebase origin main^[[0m
+polish	Commit polished copy	2026-07-26T10:22:12.9271689Z ^[[36;1mgit push^[[0m
+polish	Commit polished copy	2026-07-26T10:22:12.9315882Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+polish	Commit polished copy	2026-07-26T10:22:12.9316418Z ##[endgroup]
+polish	Commit polished copy	2026-07-26T10:22:12.9549073Z [main 6974c97] fix: polish Chistovik onboarding copy
+polish	Commit polished copy	2026-07-26T10:22:12.9549718Z  1 file changed, 9 insertions(+), 9 deletions(-)
+polish	Commit polished copy	2026-07-26T10:22:13.3017999Z From https://github.com/resarytrew/PaperFlow-Stream
+polish	Commit polished copy	2026-07-26T10:22:13.3018668Z  * branch            main       -> FETCH_HEAD
+polish	Commit polished copy	2026-07-26T10:22:13.3109807Z Current branch main is up to date.
+polish	Commit polished copy	2026-07-26T10:22:14.3046105Z To https://github.com/resarytrew/PaperFlow-Stream
+polish	Commit polished copy	2026-07-26T10:22:14.3046882Z    188186f..6974c97  main -> main
+polish	Post Run actions/setup-node@v6	﻿2026-07-26T10:22:14.3184757Z Post job cleanup.
+polish	Post Run actions/setup-node@v6	2026-07-26T10:22:14.4406272Z Cache hit occurred on the primary key node-cache-Linux-x64-npm-87748f027701b8160af8724379cce09ca7c5bde57fafe69784f41c105dfb5332, not saving cache.
+polish	Post Run actions/checkout@v6	﻿2026-07-26T10:22:14.4554826Z Post job cleanup.
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.5421581Z [command]/usr/bin/git version
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.5465638Z git version 2.54.0
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.5510532Z Temporarily overriding HOME='/home/runner/work/_temp/fcfbe580-5fb7-400f-b145-ad7fad708bc4' before making global git config changes
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.5512636Z Adding repository directory to the temporary git global config as a safe directory
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.5517945Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/PaperFlow-Stream/PaperFlow-Stream
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.5554888Z Removing SSH command configuration
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.5563472Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.5612656Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.5858793Z Removing HTTP extra header
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.5866392Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.5905953Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.6169220Z Removing includeIf entries pointing to credentials config files
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.6179392Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.6220775Z includeif.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git.path
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.6223707Z includeif.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git/worktrees/*.path
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.6226729Z includeif.gitdir:/github/workspace/.git.path
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.6228342Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.6232508Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git.path
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.6262574Z /home/runner/work/_temp/git-credentials-e21f1abb-2e98-4917-a5ff-9b8540bd2bb1.config
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.6274930Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git.path /home/runner/work/_temp/git-credentials-e21f1abb-2e98-4917-a5ff-9b8540bd2bb1.config
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.6318527Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git/worktrees/*.path
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.6348936Z /home/runner/work/_temp/git-credentials-e21f1abb-2e98-4917-a5ff-9b8540bd2bb1.config
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.6363189Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-e21f1abb-2e98-4917-a5ff-9b8540bd2bb1.config
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.6410489Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.6445009Z /github/runner_temp/git-credentials-e21f1abb-2e98-4917-a5ff-9b8540bd2bb1.config
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.6456446Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-e21f1abb-2e98-4917-a5ff-9b8540bd2bb1.config
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.6495778Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.6521136Z /github/runner_temp/git-credentials-e21f1abb-2e98-4917-a5ff-9b8540bd2bb1.config
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.6533950Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-e21f1abb-2e98-4917-a5ff-9b8540bd2bb1.config
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.6570299Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+polish	Post Run actions/checkout@v6	2026-07-26T10:22:14.6797984Z Removing credentials config '/home/runner/work/_temp/git-credentials-e21f1abb-2e98-4917-a5ff-9b8540bd2bb1.config'
+polish	Complete job	﻿2026-07-26T10:22:14.6947738Z Cleaning up orphan processes
