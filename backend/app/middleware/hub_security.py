@@ -185,7 +185,7 @@ class HubSecurityMiddleware:
             return
 
         if not self._origin_allowed(origin, headers, path=path, workspace_id=workspace_id):
-            await self._reject(scope, send, 403, "Источник запроса не разрешён для этого PaperFlow Hub")
+            await self._reject(scope, send, 403, "Источник запроса не разрешён для этого Чистовик")
             return
 
         is_pairing_display = path.startswith("/api/hub/pair/display/")
@@ -226,7 +226,7 @@ class HubSecurityMiddleware:
                     workspace_id=workspace_id,
                 )
             if client is None:
-                await self._reject(scope, send, 401, "Требуется сопряжение с PaperFlow Hub")
+                await self._reject(scope, send, 401, "Требуется сопряжение с Чистовик")
                 return
 
         if client is None:

@@ -162,7 +162,7 @@ export default function SettingsPage() {
   async function downloadBackup() {
     try {
       setError(null);
-      await api.download("/maintenance/backup", "paperflow_backup.zip");
+      await api.download("/maintenance/backup", "chistovik_backup.zip");
     } catch (e) {
       setError((e as Error).message);
     }

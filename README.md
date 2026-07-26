@@ -1,4 +1,4 @@
-# PaperFlow Hybrid Hub
+# Чистовик
 
 Система потокового сканирования письменных ответов учеников:
 веб-камера → автоматический захват листа → выравнивание → QR → локальный архив →
@@ -6,10 +6,10 @@ OCR → проверка учителем → экспорт.
 
 ## Архитектура 0.3
 
-PaperFlow разделён на два контура:
+Чистовик разделён на два контура:
 
-- **PaperFlow Web** — браузерный/PWA-интерфейс, который можно разместить в Vercel или Yandex Cloud;
-- **PaperFlow Hub** — локальный FastAPI/OpenCV/OCR-сервис на компьютере учителя или в школьной сети.
+- **Чистовик** — браузерный/PWA-интерфейс, который можно разместить в Vercel или Yandex Cloud;
+- **Чистовик** — локальный FastAPI/OpenCV/OCR-сервис на компьютере учителя или в школьной сети.
 
 ФИО, классы, изображения листов, OCR-текст, ответы и оценки обрабатываются только
 внутри Hub. Веб-клиент разрешает подключение только к loopback, `.local`, RFC1918
@@ -20,7 +20,7 @@ PaperFlow разделён на два контура:
 Документация:
 
 - [`docs/HYBRID_HUB_ARCHITECTURE.md`](docs/HYBRID_HUB_ARCHITECTURE.md) — архитектура и фундамент School Hub;
-- [`docs/VERCEL_DEPLOYMENT.md`](docs/VERCEL_DEPLOYMENT.md) — пилотный deploy PaperFlow Web на Vercel;
+- [`docs/VERCEL_DEPLOYMENT.md`](docs/VERCEL_DEPLOYMENT.md) — пилотный deploy Чистовик на Vercel;
 - [`deploy/yandex-cloud/README.md`](deploy/yandex-cloud/README.md) — статический deploy в Yandex Cloud.
 
 ## Быстрый локальный запуск
@@ -60,7 +60,7 @@ npm run dev
 
 - запускает Hub без консоли;
 - работает в системном трее;
-- открывает PaperFlow Web;
+- открывает Чистовик;
 - создаёт backup из меню;
 - открывает локальную папку данных;
 - устанавливает автозапуск текущего пользователя;
@@ -69,8 +69,8 @@ npm run dev
 Релизный workflow `.github/workflows/release-personal-hub.yml` собирает:
 
 ```text
-PaperFlowHubSetup-0.3.0.exe
-PaperFlowHubSetup-0.3.0.exe.sha256
+ChistovikSetup-0.3.2.exe
+ChistovikSetup-0.3.2.exe.sha256
 ```
 
 Он запускает security-тесты, собирает frontend, PyInstaller-пакет и per-user
@@ -93,7 +93,7 @@ python -m PyInstaller packaging\windows\PaperFlowHub.spec --noconfirm --clean
 При установке можно передать адрес облачного интерфейса:
 
 ```text
-PaperFlowHubSetup-0.3.0.exe /WebUrl=https://paperflow.example.ru
+ChistovikSetup-0.3.2.exe /WebUrl=https://chistovik.example.ru
 ```
 
 ## Настройка внешнего web-интерфейса
@@ -102,7 +102,7 @@ Desktop-host автоматически разрешает точный Origin �
 При ручном запуске Origin можно задать явно:
 
 ```bash
-PAPERFLOW_HUB_ALLOWED_ORIGINS='["https://paperflow.example.ru"]'
+PAPERFLOW_HUB_ALLOWED_ORIGINS='["https://chistovik.example.ru"]'
 PAPERFLOW_HUB_PUBLIC_URL=http://127.0.0.1:17841
 ```
 
@@ -138,7 +138,7 @@ Backend и ученические данные на Vercel не разворач
 После deploy сохрани точный production Origin в Hub:
 
 ```powershell
-PaperFlowHub.exe --set-web-url "https://paperflow-stream.vercel.app"
+Chistovik.exe --set-web-url "https://paperflow-stream.vercel.app"
 ```
 
 Полная инструкция: [`docs/VERCEL_DEPLOYMENT.md`](docs/VERCEL_DEPLOYMENT.md).
@@ -185,6 +185,6 @@ request. Отдельный workflow собирает Windows installer вруч
   релиз появляется только после успешного запуска release workflow и настройки
   сертификата подписи.
 - Production URL Vercel или другого web-хостинга должен быть явно разрешён в
-  PaperFlow Hub; wildcard Origins запрещены архитектурой.
+  Чистовик; wildcard Origins запрещены архитектурой.
 - Развёртывание статического frontend в конкретном аккаунте Yandex Cloud требует
   bucket/domain/CDN credentials владельца инфраструктуры.

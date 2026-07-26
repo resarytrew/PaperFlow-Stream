@@ -99,7 +99,7 @@ def download_backup(config: Config) -> Response:
             archive.write(snapshot_path, "paperflow.db")
             archive.writestr("manifest.json", json.dumps(manifest, ensure_ascii=False, indent=2))
 
-    filename = f"paperflow_backup_{stamp}.zip"
+    filename = f"chistovik_backup_{stamp}.zip"
     return Response(
         content=buffer.getvalue(),
         media_type="application/zip",

@@ -103,7 +103,7 @@ def cmd_retention(args: argparse.Namespace) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="paperflow", description="PaperFlow Stream utilities")
+    parser = argparse.ArgumentParser(prog="paperflow", description="Чистовик utilities")
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_init = sub.add_parser("init", help="create database and folders")

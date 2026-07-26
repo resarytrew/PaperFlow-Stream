@@ -18,12 +18,12 @@ from app.desktop import (
 
 
 def test_desktop_config_roundtrip(tmp_path):
-    save_desktop_config(tmp_path, {"web_url": "https://paperflow.example.ru"})
-    assert load_desktop_config(tmp_path) == {"web_url": "https://paperflow.example.ru"}
+    save_desktop_config(tmp_path, {"web_url": "https://chistovik.example.ru"})
+    assert load_desktop_config(tmp_path) == {"web_url": "https://chistovik.example.ru"}
 
 
 def test_cloud_origin_accepts_only_http_web_urls():
-    assert cloud_origin("https://paperflow.example.ru/app") == "https://paperflow.example.ru"
+    assert cloud_origin("https://chistovik.example.ru/app") == "https://chistovik.example.ru"
     assert cloud_origin("http://127.0.0.1:17841") == "http://127.0.0.1:17841"
     assert cloud_origin("file:///tmp/index.html") is None
     assert cloud_origin("not-a-url") is None
@@ -43,11 +43,11 @@ def test_configure_environment_allows_only_the_selected_web_origin(tmp_path, mon
     configure_environment(
         data_dir=tmp_path,
         port=17841,
-        web_url="https://paperflow.example.ru/workspace",
+        web_url="https://chistovik.example.ru/workspace",
     )
 
     assert json.loads(__import__("os").environ["PAPERFLOW_HUB_ALLOWED_ORIGINS"]) == [
-        "https://paperflow.example.ru"
+        "https://chistovik.example.ru"
     ]
     assert __import__("os").environ["PAPERFLOW_HUB_BIND_HOST"] == "127.0.0.1"
 
@@ -55,7 +55,7 @@ def test_configure_environment_allows_only_the_selected_web_origin(tmp_path, mon
 def test_autostart_command_uses_background_mode():
     command = windows_autostart_command()
     assert "--background" in command
-    assert "app.desktop" in command or "PaperFlowHub" in command
+    assert "app.desktop" in command or "Chistovik" in command
 
 
 def test_windowed_hub_does_not_require_console_streams(tmp_path, monkeypatch):

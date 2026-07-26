@@ -1,4 +1,4 @@
-# PaperFlow Stream — backend dependencies (Python 3.11+)
+# Чистовик — backend dependencies (Python 3.11+)
 # Install from this directory:
 #   cd backend && python -m venv .venv && .venv/bin/pip install -r requirements.txt
 
@@ -15,7 +15,7 @@ pydantic>=2.9
 pydantic-settings>=2.5
 
 # --- Computer vision ---------------------------------------------------
-# PaperFlow runs OpenCV in a local API process and does not need GUI bindings.
+# Чистовик runs OpenCV in a local API process and does not need GUI bindings.
 # RapidOCR depends on the GUI-enabled "opencv-python" distribution by name;
 # the local shim below satisfies that metadata while cv2 is actually provided
 # by opencv-python-headless. This avoids libGL.so.1 failures on clean Linux.

@@ -63,7 +63,7 @@ def export_csv(
     return Response(
         content=data,
         media_type="text/csv; charset=utf-8",
-        headers={"Content-Disposition": _content_disposition(f"paperflow_{_stamp(session)}.csv")},
+        headers={"Content-Disposition": _content_disposition(f"chistovik_{_stamp(session)}.csv")},
     )
 
 
@@ -80,7 +80,7 @@ def export_json(
     return Response(
         content=data,
         media_type="application/json; charset=utf-8",
-        headers={"Content-Disposition": _content_disposition(f"paperflow_{_stamp(session)}.json")},
+        headers={"Content-Disposition": _content_disposition(f"chistovik_{_stamp(session)}.json")},
     )
 
 
@@ -100,7 +100,7 @@ def export_xlsx(
     return Response(
         content=data,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": _content_disposition(f"paperflow_{_stamp(session)}.xlsx")},
+        headers={"Content-Disposition": _content_disposition(f"chistovik_{_stamp(session)}.xlsx")},
     )
 
 
@@ -129,7 +129,7 @@ def export_zip(
     return Response(
         content=data,
         media_type="application/zip",
-        headers={"Content-Disposition": _content_disposition(f"paperflow_{_stamp(session)}.zip")},
+        headers={"Content-Disposition": _content_disposition(f"chistovik_{_stamp(session)}.zip")},
     )
 
 

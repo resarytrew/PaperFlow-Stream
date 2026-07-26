@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build and publish only the static PaperFlow Web shell to Yandex Object Storage.
+# Build and publish only the static Чистовик shell to Yandex Object Storage.
 # Student data and the local Hub are never part of this deployment.
 
 set -euo pipefail
@@ -52,7 +52,7 @@ fi
   --exclude "index.html" \
   --exclude "sw.js" \
   --exclude "manifest.webmanifest" \
-  --exclude "paperflow-icon.svg" \
+  --exclude "chistovik-icon.svg" \
   --cache-control "public,max-age=31536000,immutable"
 
 NO_CACHE="no-cache,no-store,must-revalidate"
@@ -62,11 +62,11 @@ NO_CACHE="no-cache,no-store,must-revalidate"
   --content-type "application/javascript; charset=utf-8" --cache-control "${NO_CACHE}"
 "${AWS[@]}" s3 cp dist/manifest.webmanifest "s3://${YC_WEB_BUCKET}/manifest.webmanifest" \
   --content-type "application/manifest+json; charset=utf-8" --cache-control "${NO_CACHE}"
-"${AWS[@]}" s3 cp dist/paperflow-icon.svg "s3://${YC_WEB_BUCKET}/paperflow-icon.svg" \
+"${AWS[@]}" s3 cp dist/chistovik-icon.svg "s3://${YC_WEB_BUCKET}/chistovik-icon.svg" \
   --content-type "image/svg+xml" --cache-control "${NO_CACHE}"
 
 cat <<EOF
-PaperFlow Web uploaded to bucket: ${YC_WEB_BUCKET}
+Чистовик uploaded to bucket: ${YC_WEB_BUCKET}
 Only static HTML/CSS/JS/PWA assets were published.
 Configure a Yandex Cloud CDN/custom HTTPS domain in front of the bucket before production use.
 EOF

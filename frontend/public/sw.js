@@ -1,5 +1,5 @@
-const CACHE_NAME = "paperflow-web-v1";
-const APP_SHELL = ["/", "/manifest.webmanifest", "/paperflow-icon.svg"];
+const CACHE_NAME = "chistovik-web-v2";
+const APP_SHELL = ["/", "/manifest.webmanifest", "/chistovik-icon.svg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));

@@ -55,7 +55,7 @@ exe = EXE(
     analysis.scripts,
     [],
     exclude_binaries=True,
-    name="PaperFlowHub",
+    name="Chistovik",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -75,5 +75,5 @@ collection = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name="PaperFlowHub",
+    name="Chistovik",
 )

@@ -27,7 +27,7 @@ export default function App() {
     <div className="app-shell">
       <aside className="sidebar">
         <div className="brand">
-          Paper<span>Flow</span> Web
+          Чистовик
         </div>
         {links.map((l) => (
           <NavLink key={l.to} to={l.to} className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>
@@ -36,11 +36,11 @@ export default function App() {
         ))}
         <div className="footer">
           <div style={{ marginBottom: 8 }}>
-            Hub {hub.connection?.info.version} · {hub.connection?.info.deploymentMode === "school" ? "школьный" : "персональный"}
+            Локальный модуль {hub.connection?.info.version} · {hub.connection?.info.deploymentMode === "school" ? "школьный" : "персональный"}
           </div>
           <div>Данные учеников обрабатываются и хранятся локально.</div>
           <button className="btn small mt" onClick={hub.disconnect}>
-            Отключить Hub
+            Отключить модуль
           </button>
         </div>
       </aside>

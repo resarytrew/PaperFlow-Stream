@@ -1,14 +1,14 @@
 {
-  "name": "PaperFlow Web",
-  "short_name": "PaperFlow",
-  "description": "Веб-интерфейс локального PaperFlow Hub",
+  "name": "Чистовик",
+  "short_name": "Чистовик",
+  "description": "Локальное сканирование и проверка письменных работ",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f3f6f8",
-  "theme_color": "#15202b",
+  "background_color": "#f3f1ec",
+  "theme_color": "#171918",
   "icons": [
     {
-      "src": "/paperflow-icon.svg",
+      "src": "/chistovik-icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"

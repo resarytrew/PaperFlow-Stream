@@ -72,7 +72,7 @@ def render_sheet(
     strikethrough: bool = False,
     header: str = "9Б • Ученик 17 • Задание 04",
 ) -> np.ndarray:
-    """Render a standard PaperFlow form as a flat BGR image."""
+    """Render a standard Чистовик form as a flat BGR image."""
     sheet = np.full((SHEET_H, SHEET_W, 3), 250, np.uint8)
     cv2.rectangle(sheet, (6, 6), (SHEET_W - 7, SHEET_H - 7), (170, 170, 170), 2)
 

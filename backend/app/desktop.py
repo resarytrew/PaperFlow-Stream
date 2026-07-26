@@ -1,4 +1,4 @@
-"""Desktop host for the Personal PaperFlow Hub.
+"""Desktop host for the Personal Чистовик.
 
 The module is intentionally a thin process supervisor around the existing
 FastAPI application. It can run from source or as a PyInstaller executable,
@@ -169,7 +169,7 @@ def hub_is_running(port: int) -> bool:
             pass
         with urllib.request.urlopen(f"http://{DEFAULT_HOST}:{port}/api/health", timeout=1.0) as response:
             payload = json.loads(response.read().decode("utf-8"))
-            return payload.get("product") == "PaperFlow Hub"
+            return payload.get("product") in {"Чистовик", "PaperFlow Hub"}
     except (OSError, ValueError, json.JSONDecodeError):
         return False
 
@@ -246,7 +246,7 @@ def run_tray(server, *, web_url: str, local_url: str, data_dir: Path) -> None:
     thread.start()
     if not wait_until_ready(server.config.port):
         server.should_exit = True
-        raise RuntimeError("PaperFlow Hub не запустился")
+        raise RuntimeError("Чистовик не запустился")
 
     def open_web(_icon=None, _item=None) -> None:
         webbrowser.open(web_url)
@@ -264,9 +264,9 @@ def run_tray(server, *, web_url: str, local_url: str, data_dir: Path) -> None:
     icon = pystray.Icon(
         "PaperFlowHub",
         build_tray_icon(),
-        "PaperFlow Hub — работает локально",
+        "Чистовик — работает локально",
         menu=pystray.Menu(
-            pystray.MenuItem("Открыть PaperFlow", open_web, default=True),
+            pystray.MenuItem("Открыть Чистовик", open_web, default=True),
             pystray.MenuItem("Создать резервную копию", backup),
             pystray.MenuItem("Открыть папку данных", open_folder),
             pystray.Menu.SEPARATOR,
@@ -292,7 +292,7 @@ def run_server(*, port: int, web_url: str, data_dir: Path, background: bool) -> 
     local_url = f"http://{DEFAULT_HOST}:{port}"
 
     logging.getLogger(LOGGER_NAME).info(
-        "Starting PaperFlow Hub on %s (background=%s)", local_url, background
+        "Starting Чистовик on %s (background=%s)", local_url, background
     )
     if background:
         run_tray(server, web_url=web_url, local_url=local_url, data_dir=data_dir)
@@ -306,7 +306,7 @@ def run_server(*, port: int, web_url: str, data_dir: Path, background: bool) -> 
         thread.start()
         if not wait_until_ready(port):
             server.should_exit = True
-            raise RuntimeError("PaperFlow Hub не запустился")
+            raise RuntimeError("Чистовик не запустился")
         webbrowser.open(web_url)
         try:
             while thread.is_alive():
@@ -318,7 +318,7 @@ def run_server(*, port: int, web_url: str, data_dir: Path, background: bool) -> 
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="PaperFlow Personal Hub")
+    parser = argparse.ArgumentParser(description="Локальный модуль «Чистовик»")
     parser.add_argument("--port", type=int, default=int(os.getenv("PAPERFLOW_HUB_PORT", DEFAULT_PORT)))
     parser.add_argument("--data-dir", type=Path, default=default_data_dir())
     parser.add_argument("--web-url", default="")
@@ -353,7 +353,7 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def show_startup_error(error: BaseException) -> None:
-    logging.getLogger(LOGGER_NAME).exception("PaperFlow Hub failed to start", exc_info=error)
+    logging.getLogger(LOGGER_NAME).exception("Чистовик failed to start", exc_info=error)
     if sys.platform != "win32":
         return
     try:
@@ -361,10 +361,10 @@ def show_startup_error(error: BaseException) -> None:
 
         ctypes.windll.user32.MessageBoxW(  # type: ignore[attr-defined]
             0,
-            "PaperFlow Hub не удалось запустить.\n\n"
+            "Чистовик не удалось запустить.\n\n"
             f"{type(error).__name__}: {error}\n\n"
             f"Диагностика: {desktop_log_path(default_data_dir())}",
-            "PaperFlow Hub",
+            "Чистовик",
             0x10,
         )
     except Exception:

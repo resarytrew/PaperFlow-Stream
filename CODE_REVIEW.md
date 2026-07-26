@@ -1,4 +1,4 @@
-# PaperFlow Stream — Code Review и предложения по расширению
+# Чистовик — Code Review и предложения по расширению
 
 > Объект: backend FastAPI (`/backend/app`), ветка `arena/019f9863-paperflow-stream`.
 > Сфера: потоковое сканирование письменных работ учеников через браузерную камеру +

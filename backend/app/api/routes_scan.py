@@ -421,7 +421,7 @@ def download_diagnostics(session_id: int, db: DbSession, config: Config) -> Resp
     runtime.diagnostic_frames = []
 
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
-    filename = f"paperflow_diagnostics_s{session_id}_{stamp}.zip"
+    filename = f"chistovik_diagnostics_s{session_id}_{stamp}.zip"
     return Response(
         content=buffer.getvalue(),
         media_type="application/zip",

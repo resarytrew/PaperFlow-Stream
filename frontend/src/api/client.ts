@@ -1,4 +1,4 @@
-/** API client bound to the discovered local PaperFlow Hub. */
+/** API client bound to the discovered local Чистовик. */
 
 import { buildHubHeaders, getActiveHub, withHubNetworkAccess } from "../hub/runtime";
 

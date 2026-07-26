@@ -339,7 +339,7 @@ def export_zip(
         archive.writestr("works.csv", export_csv(db, session_id, **filters))
         archive.writestr("metadata.json", export_json(db, session_id, **filters))
         readme = (
-            "PaperFlow Stream — экспорт сессии\n\n"
+            "Чистовик — экспорт сессии\n\n"
             "normalized/ — выровненные цветные листы\n"
             "enhanced/   — контрастные Ч/Б версии\n"
             "answers/    — вырезанные области ответа\n"

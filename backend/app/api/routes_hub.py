@@ -18,7 +18,7 @@ router = APIRouter(prefix="/hub", tags=["hub"])
 
 
 class PairStartIn(BaseModel):
-    client_name: str = Field(default="PaperFlow Web", max_length=120)
+    client_name: str = Field(default="Чистовик", max_length=120)
     workspace_id: str = Field(default="personal", min_length=1, max_length=80)
 
 
@@ -74,7 +74,7 @@ def hub_info(request: Request) -> dict:
         )
 
     return {
-        "product": "PaperFlow Hub",
+        "product": "Чистовик",
         "protocolVersion": 1,
         "version": settings.version,
         "installationId": identity.installation_id,
@@ -152,7 +152,7 @@ def display_pairing_code(challenge_id: str, request: Request) -> HTMLResponse:
   <meta charset="utf-8">
   <meta name="referrer" content="no-referrer">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Подключение PaperFlow Hub</title>
+  <title>Подключение к «Чистовику»</title>
   <style>
     body {{ font-family: system-ui, sans-serif; margin: 0; min-height: 100vh; display: grid;
             place-items: center; background: #f4f6f8; color: #15202b; }}
@@ -167,15 +167,15 @@ def display_pairing_code(challenge_id: str, request: Request) -> HTMLResponse:
 </head>
 <body>
   <main>
-    <h1>Подключение к PaperFlow Hub</h1>
+    <h1>Подключение к «Чистовику»</h1>
     <div class="request">
       <strong>Кто запрашивает доступ</strong>
       <div>{client_name}</div>
       <div class="origin">{origin}</div>
     </div>
-    <p>Продолжай только если адрес совпадает с открытым PaperFlow Web.</p>
+    <p>Продолжай только если адрес совпадает с открытым приложением «Чистовик».</p>
     <div class="code">{code}</div>
-    <p>Введите код в окне PaperFlow Web. Код действует ограниченное время и не даёт сайту доступ без вашего подтверждения.</p>
+    <p>Введите код в окне «Чистовика». Код действует ограниченное время и не даёт сайту доступ без вашего подтверждения.</p>
   </main>
 </body>
 </html>"""

@@ -14,7 +14,7 @@ def test_cross_site_img_without_origin_requires_read_only_media_token(tmp_path):
     settings = Settings(
         _env_file=None,
         data_dir=tmp_path,
-        hub_allowed_origins=["https://web.paperflow.example"],
+        hub_allowed_origins=["https://web.chistovik.example"],
         hub_trusted_unpaired_origins=[],
         hub_public_url="https://127.0.0.1:17841",
     )
@@ -31,14 +31,14 @@ def test_cross_site_img_without_origin_requires_read_only_media_token(tmp_path):
         return {"private": True}
 
     challenge = identity.start_pairing(
-        origin="https://web.paperflow.example",
+        origin="https://web.chistovik.example",
         client_name="Teacher browser",
         workspace_id="personal",
     )
     api_token, media_token, _ = identity.confirm_pairing(
         challenge_id=challenge.id,
         code=challenge.code,
-        origin="https://web.paperflow.example",
+        origin="https://web.chistovik.example",
         workspace_id="personal",
     )
 

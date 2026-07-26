@@ -148,7 +148,7 @@ class HubIdentityStore:
                 id=secrets.token_urlsafe(18),
                 code=f"{secrets.randbelow(1_000_000):06d}",
                 origin=origin,
-                client_name=(client_name.strip() or "PaperFlow Web")[:120],
+                client_name=(client_name.strip() or "Чистовик")[:120],
                 workspace_id=workspace_id,
                 expires_at=_utcnow() + timedelta(seconds=self.settings.hub_pairing_code_ttl_seconds),
             )

@@ -1,4 +1,4 @@
-# PaperFlow Web в Yandex Cloud
+# Чистовик в Yandex Cloud
 
 Этот deployment публикует только статические файлы `frontend/dist` в Object
 Storage. В bucket не попадают база Hub, изображения работ, классы, ученики,
@@ -15,7 +15,7 @@ Storage. В bucket не попадают база Hub, изображения р
 ## Ручной deploy
 
 ```bash
-export YC_WEB_BUCKET=paperflow-web
+export YC_WEB_BUCKET=chistovik-web
 export AWS_ACCESS_KEY_ID=...
 export AWS_SECRET_ACCESS_KEY=...
 
@@ -40,17 +40,17 @@ YC_STATIC_SECRET_KEY
 ```
 
 Он собирает frontend в cloud mode и запускает тот же shell script. Deploy не
-требует доступа к PaperFlow Hub и не может прочитать локальные данные учителя.
+требует доступа к Чистовик и не может прочитать локальные данные учителя.
 
 ## Production-настройка
 
-1. Подключить CDN и HTTPS-домен, например `https://app.paperflow.ru`.
+1. Подключить CDN и HTTPS-домен, например `https://app.chistovik.ru`.
 2. Установить короткий cache для `index.html`, `sw.js` и manifest.
 3. Установить immutable cache для `/assets/*`.
 4. Передать точный Origin в installer Hub:
 
 ```text
-PaperFlowHubSetup-0.3.0.exe /WebUrl=https://app.paperflow.ru
+ChistovikSetup-0.3.2.exe /WebUrl=https://app.chistovik.ru
 ```
 
 5. Не добавлять в облачный frontend ключи Yandex Vision, service-account keys или

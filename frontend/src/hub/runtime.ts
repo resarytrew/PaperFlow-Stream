@@ -50,6 +50,7 @@ const SELECTED_HUB_KEY = "paperflow.hub.url";
 const TOKEN_PREFIX = "paperflow.hub.token.";
 const MEDIA_TOKEN_PREFIX = "paperflow.hub.media-token.";
 const DEFAULT_WORKSPACE = "personal";
+const SUPPORTED_PRODUCTS = new Set(["Чистовик", "PaperFlow Hub"]);
 
 let activeConnection: HubConnection | null = null;
 
@@ -173,7 +174,7 @@ function hubHeaders(baseUrl: string, workspaceId = DEFAULT_WORKSPACE): HeadersIn
 export async function probeHub(baseUrl: string): Promise<HubConnection> {
   const normalized = normalizeUrl(baseUrl);
   if (!isAllowedHubUrl(normalized)) {
-    throw new Error("Адрес Hub должен указывать на этот компьютер или частную школьную сеть");
+    throw new Error("Адрес локального модуля должен указывать на этот компьютер или частную школьную сеть");
   }
 
   const response = await fetch(
@@ -185,9 +186,9 @@ export async function probeHub(baseUrl: string): Promise<HubConnection> {
       headers: hubHeaders(normalized),
     }),
   );
-  if (!response.ok) throw new Error(`PaperFlow Hub ответил с кодом ${response.status}`);
+  if (!response.ok) throw new Error(`Локальный модуль «Чистовик» ответил с кодом ${response.status}`);
   const info = (await response.json()) as HubInfo;
-  if (info.product !== "PaperFlow Hub" || info.protocolVersion !== 1) {
+  if (!SUPPORTED_PRODUCTS.has(info.product) || info.protocolVersion !== 1) {
     throw new Error("Обнаружен несовместимый локальный сервис");
   }
 
@@ -218,10 +219,10 @@ export async function discoverHub(): Promise<HubConnection> {
       errors.push(`${candidate}: ${(error as Error).message}`);
     }
   }
-  throw new Error(errors[errors.length - 1] ?? "PaperFlow Hub не найден");
+  throw new Error(errors[errors.length - 1] ?? "Локальный модуль «Чистовик» не найден");
 }
 
-export async function beginPairing(connection: HubConnection, clientName = "PaperFlow Web"): Promise<PairingChallenge> {
+export async function beginPairing(connection: HubConnection, clientName = "Чистовик"): Promise<PairingChallenge> {
   const response = await fetch(
     `${connection.baseUrl}/api/hub/pair/start`,
     withHubNetworkAccess(connection.baseUrl, {
@@ -278,7 +279,7 @@ export async function finishPairing(
 }
 
 export function getActiveHub(): HubConnection {
-  if (!activeConnection) throw new Error("PaperFlow Hub ещё не подключён");
+  if (!activeConnection) throw new Error("Локальный модуль «Чистовик» ещё не подключён");
   return activeConnection;
 }
 

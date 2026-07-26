@@ -1,4 +1,4 @@
-"""PaperFlow Hybrid Local Hub FastAPI application."""
+"""Чистовик FastAPI application."""
 
 from __future__ import annotations
 
@@ -71,9 +71,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="PaperFlow Hub API",
+    title="Чистовик API",
     version=settings.version,
-    description="Локальный контур PaperFlow: сканирование, OCR и хранение без передачи ученических данных в облако",
+    description="Локальный контур «Чистовика»: сканирование, OCR и хранение без передачи ученических данных в облако",
     lifespan=lifespan,
 )
 
@@ -125,7 +125,7 @@ def health() -> dict:
     queue = ocr_queue.snapshot()
     return {
         "status": "ok",
-        "product": "PaperFlow Hub",
+        "product": "Чистовик",
         "version": settings.version,
         "protocolVersion": 1,
         "deploymentMode": settings.hub_mode,
@@ -195,7 +195,7 @@ else:  # pragma: no cover - depends on whether the SPA was built
                 "version": settings.version,
                 "mode": settings.hub_mode,
                 "installationId": hub_identity.installation_id,
-                "hint": "Откройте облачный PaperFlow Web или соберите frontend локально",
+                "hint": "Откройте веб-приложение «Чистовик» или соберите frontend локально",
                 "hubInfo": "/api/hub/info",
             }
         )

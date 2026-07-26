@@ -370,7 +370,7 @@ def generate_forms_pdf(
     forms_per_page: int = 3,
     include_cut_lines: bool = True,
     payload_format: str = "json",
-    document_title: str = "PaperFlow Stream — бланки",
+    document_title: str = "Чистовик — бланки",
     layout_kind: str = "lines",
     blocks: list[FormBlock] | list[dict] | None = None,
 ) -> bytes:

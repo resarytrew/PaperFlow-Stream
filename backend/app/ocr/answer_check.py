@@ -8,7 +8,7 @@ Design constraints (section 7.9 of the spec):
   the typical OCR confusions: Cyrillic/Latin lookalike letters, decimal
   comma vs dot, stray spaces, case, ``х = 7`` vs ``x=7``.
 * Works best for short factual answers (math results, dates, single
-  words) — exactly the kind of tasks PaperFlow forms are designed for.
+  words) — exactly the kind of tasks Чистовик forms are designed for.
 
 Verdicts:
 

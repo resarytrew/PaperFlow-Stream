@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# PaperFlow Hybrid Hub — one-command launcher (Linux / macOS).
+# Чистовик — one-command launcher (Linux / macOS).
 
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -9,7 +9,7 @@ export PAPERFLOW_HUB_PORT="${PORT}"
 export PAPERFLOW_HUB_PUBLIC_URL="${PAPERFLOW_HUB_PUBLIC_URL:-http://127.0.0.1:${PORT}}"
 PY="${PYTHON:-python3}"
 
-say() { printf '\033[1;34m[PaperFlow]\033[0m %s\n' "$*"; }
+say() { printf '\033[1;34m[Чистовик]\033[0m %s\n' "$*"; }
 install_backend_deps() {
   (cd backend && .venv/bin/pip install --disable-pip-version-check -q -r requirements.txt)
 }

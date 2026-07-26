@@ -181,8 +181,8 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_prefix="PAPERFLOW_", env_file=".env", extra="ignore")
 
-    app_name: str = "PaperFlow Hub"
-    version: str = "0.3.1"
+    app_name: str = "Чистовик"
+    version: str = "0.3.2"
     data_dir: Path = DEFAULT_DATA_DIR
     database_url: str = ""
     log_level: str = "INFO"

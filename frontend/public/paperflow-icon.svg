@@ -1,5 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="PaperFlow">
-  <rect width="512" height="512" rx="112" fill="#15202b"/>
-  <path d="M136 112h168c44 0 80 36 80 80v8h-72v-8c0-4-4-8-8-8h-96v72h128v72H208v72h-72V112z" fill="#f6f8fa"/>
-  <path d="M304 256h80v72h-80z" fill="#55d6be"/>
-</svg>

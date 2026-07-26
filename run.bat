@@ -1,5 +1,5 @@
 @echo off
-rem PaperFlow Hybrid Hub - one-command development launcher for Windows.
+rem Чистовик - one-command development launcher for Windows.
 
 setlocal
 cd /d "%~dp0"
@@ -8,13 +8,13 @@ set PAPERFLOW_HUB_PORT=%PAPERFLOW_PORT%
 if "%PAPERFLOW_HUB_PUBLIC_URL%"=="" set PAPERFLOW_HUB_PUBLIC_URL=http://127.0.0.1:%PAPERFLOW_PORT%
 
 if not exist backend\.venv\Scripts\python.exe (
-    echo [PaperFlow] Pervyj zapusk: sozdaju okruzhenie Python...
+    echo [Чистовик] Pervyj zapusk: sozdaju okruzhenie Python...
     python -m venv backend\.venv || goto :error
     call :install_backend_deps || goto :error
 ) else (
     backend\.venv\Scripts\python -c "import cv2, rapidocr_onnxruntime" >nul 2>nul
     if errorlevel 1 (
-        echo [PaperFlow] Obnovljaju zavisimosti Python ^(proverka OpenCV/OCR ne proshla^)...
+        echo [Чистовик] Obnovljaju zavisimosti Python ^(proverka OpenCV/OCR ne proshla^)...
         call :install_backend_deps || goto :error
     )
 )
@@ -22,18 +22,18 @@ if not exist backend\.venv\Scripts\python.exe (
 if not exist frontend\dist\index.html (
     where npm >nul 2>nul
     if %errorlevel%==0 (
-        echo [PaperFlow] Sobiraju veb-interfejs...
+        echo [Чистовик] Sobiraju veb-interfejs...
         pushd frontend
         call npm install --no-audit --no-fund || (popd & goto :error)
         call npm run build || (popd & goto :error)
         popd
     ) else (
-        echo [PaperFlow] VNIMANIE: Node.js ne najden i frontend\dist otsutstvuet.
-        echo [PaperFlow] Ustanovite Node.js LTS i zapustite snova.
+        echo [Чистовик] VNIMANIE: Node.js ne najden i frontend\dist otsutstvuet.
+        echo [Чистовик] Ustanovite Node.js LTS i zapustite snova.
     )
 )
 
-echo [PaperFlow] Personal Hub: http://localhost:%PAPERFLOW_PORT%
+echo [Чистовик] Personal Hub: http://localhost:%PAPERFLOW_PORT%
 start "" /b cmd /c "timeout /t 2 >nul & start http://localhost:%PAPERFLOW_PORT%"
 
 cd backend
@@ -49,5 +49,5 @@ popd
 exit /b %INSTALL_STATUS%
 
 :error
-echo [PaperFlow] Oshibka zapuska. Prover'te, chto ustanovlen Python 3.11+.
+echo [Чистовик] Oshibka zapuska. Prover'te, chto ustanovlen Python 3.11+.
 pause

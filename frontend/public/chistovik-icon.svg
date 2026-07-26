@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Чистовик">
+  <rect width="512" height="512" rx="96" fill="#F3F1EC"/>
+  <path d="M112 104h72v136h144V104h72v304h-72v-96H112V104z" fill="#171918"/>
+  <path d="M328 312h72v96h-72z" fill="#3157FF"/>
+</svg>

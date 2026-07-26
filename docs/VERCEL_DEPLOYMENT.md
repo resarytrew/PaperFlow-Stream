@@ -1,8 +1,8 @@
-# Развёртывание PaperFlow Web на Vercel
+# Развёртывание Чистовик на Vercel
 
 Vercel используется только для статического браузерного интерфейса. FastAPI,
 OpenCV, OCR, SQLite, изображения работ, ФИО, ответы и оценки остаются внутри
-локального PaperFlow Hub.
+локального Чистовик.
 
 ## Что уже подготовлено
 
@@ -47,7 +47,7 @@ Node.js Version: 22.x
 VITE_PAPERFLOW_UI_MODE=cloud
 VITE_PAPERFLOW_HUB_URLS=https://127.0.0.1:17841,https://localhost:17841,http://127.0.0.1:17841,http://localhost:17841
 VITE_PAPERFLOW_ALLOWED_HUB_HOSTS=
-VITE_PAPERFLOW_HUB_DOWNLOAD_URL=https://github.com/resarytrew/PaperFlow-Stream/releases/latest/download/PaperFlowHubSetup.exe
+VITE_PAPERFLOW_HUB_DOWNLOAD_URL=https://github.com/resarytrew/PaperFlow-Stream/releases/latest/download/ChistovikSetup.exe
 VITE_PAPERFLOW_HUB_RELEASES_URL=https://github.com/resarytrew/PaperFlow-Stream/releases/latest
 ```
 
@@ -58,7 +58,7 @@ VITE_PAPERFLOW_HUB_RELEASES_URL=https://github.com/resarytrew/PaperFlow-Stream/r
 `VITE_PAPERFLOW_ALLOWED_HUB_HOSTS`, например:
 
 ```text
-paperflow.school.local
+chistovik.school.local
 ```
 
 Для LAN Hub должен использоваться доверенный HTTPS-адрес.
@@ -66,8 +66,8 @@ paperflow.school.local
 ## Первый запуск учителем
 
 1. Учитель открывает production-сайт на Vercel.
-2. PaperFlow ищет Hub на локальных адресах.
-3. Если Hub отсутствует, интерфейс показывает кнопку **Скачать PaperFlow Hub для Windows**.
+2. Чистовик ищет Hub на локальных адресах.
+3. Если Hub отсутствует, интерфейс показывает кнопку **Скачать Чистовик для Windows**.
 4. Учитель устанавливает модуль и запускает его в системном трее.
 5. Страница автоматически повторяет подключение каждые несколько секунд.
 6. Hub разрешает незнакомому HTTPS Origin только публичные discovery/pairing endpoints.
@@ -86,7 +86,7 @@ Workflow `.github/workflows/release-personal-hub.yml`:
 - запускает security-тесты;
 - собирает frontend и Windows Hub;
 - формирует Inno Setup installer;
-- создаёт стабильный файл `PaperFlowHubSetup.exe`;
+- создаёт стабильный файл `ChistovikSetup.exe`;
 - формирует SHA-256;
 - публикует файлы в GitHub Release.
 
@@ -97,7 +97,7 @@ Workflow `.github/workflows/release-personal-hub.yml`:
 Стабильная ссылка интерфейса всегда указывает на:
 
 ```text
-https://github.com/resarytrew/PaperFlow-Stream/releases/latest/download/PaperFlowHubSetup.exe
+https://github.com/resarytrew/PaperFlow-Stream/releases/latest/download/ChistovikSetup.exe
 ```
 
 ## Production и Preview deployments
@@ -142,8 +142,8 @@ https://github.com/resarytrew/PaperFlow-Stream/releases/latest/download/PaperFlo
 После пилота можно подключить, например:
 
 ```text
-https://app.paperflow.ru
+https://app.chistovik.ru
 ```
 
 Новый домен пройдёт отдельный pairing. Старое подключение можно отозвать в
-настройках PaperFlow; wildcard-доверие между доменами не используется.
+настройках Чистовик; wildcard-доверие между доменами не используется.

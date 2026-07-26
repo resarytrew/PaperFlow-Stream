@@ -33,11 +33,11 @@ interface HubContextValue {
 const HubContext = createContext<HubContextValue | null>(null);
 
 const DEFAULT_HUB_URL = "http://127.0.0.1:17841";
-const REQUIRED_HUB_VERSION = "0.3.1";
+const REQUIRED_HUB_VERSION = "0.3.2";
 const DEFAULT_DOWNLOAD_URL =
-  "https://github.com/resarytrew/PaperFlow-Stream/releases/download/v0.3.1-pilot/PaperFlowHubSetup-0.3.1.exe";
+  "https://github.com/resarytrew/PaperFlow-Stream/releases/download/v0.3.2-pilot/ChistovikSetup-0.3.2.exe";
 const DEFAULT_RELEASES_URL =
-  "https://github.com/resarytrew/PaperFlow-Stream/releases/tag/v0.3.1-pilot";
+  "https://github.com/resarytrew/PaperFlow-Stream/releases/tag/v0.3.2-pilot";
 
 function friendlyConnectionError(error: string | null): string | null {
   if (!error) return null;
@@ -45,7 +45,7 @@ function friendlyConnectionError(error: string | null): string | null {
     return "Локальный Hub пока не отвечает. Обычно это означает, что он ещё не установлен, не запущен или браузер ожидает разрешение на доступ к локальной сети.";
   }
   if (error.includes("403")) {
-    return "Hub найден, но этот адрес PaperFlow Web ещё не подтверждён. Обнови Hub до актуальной версии и начни безопасное подключение заново.";
+    return "Локальный модуль найден, но этот адрес «Чистовика» ещё не подтверждён. Обнови Hub до актуальной версии и начни безопасное подключение заново.";
   }
   return error;
 }
@@ -197,9 +197,9 @@ export function HubConnectionGate({ children }: { children: ReactNode }) {
             color: "#687783",
           }}
         >
-          PaperFlow Web
+          Чистовик
         </div>
-        <h1 style={{ margin: "10px 0 8px" }}>Локальный PaperFlow Hub</h1>
+        <h1 style={{ margin: "10px 0 8px" }}>Локальный модуль «Чистовик»</h1>
 
         {hub.status === "discovering" && (
           <div style={{ padding: "22px 0" }}>
@@ -233,13 +233,13 @@ export function HubConnectionGate({ children }: { children: ReactNode }) {
                 background: "#f8fafb",
               }}
             >
-              <div style={{ fontSize: 18, fontWeight: 750 }}>Для работы нужен PaperFlow Hub</div>
+              <div style={{ fontSize: 18, fontWeight: 750 }}>Для работы нужен Чистовик</div>
               <p style={{ margin: "8px 0 18px", color: "#53636e", lineHeight: 1.55 }}>
                 Веб-интерфейс уже открыт на Vercel. Камера, OCR, база и ученические работы обрабатываются локальным модулем на этом компьютере.
               </p>
 
               <ol style={{ margin: "0 0 20px", paddingLeft: 22, lineHeight: 1.7 }}>
-                <li>Скачай и установи PaperFlow Hub {REQUIRED_HUB_VERSION}.</li>
+                <li>Скачай и установи Чистовик {REQUIRED_HUB_VERSION}.</li>
                 <li>Запусти его и оставь работать в системном трее.</li>
                 <li>Вернись сюда — подключение проверится автоматически.</li>
               </ol>
@@ -251,7 +251,7 @@ export function HubConnectionGate({ children }: { children: ReactNode }) {
                     onClick={() => setWaitingForInstall(true)}
                     style={primaryButton}
                   >
-                    Скачать PaperFlow Hub {REQUIRED_HUB_VERSION} для Windows
+                    Скачать Чистовик {REQUIRED_HUB_VERSION} для Windows
                   </a>
                   <button
                     type="button"
@@ -261,7 +261,7 @@ export function HubConnectionGate({ children }: { children: ReactNode }) {
                     }}
                     style={secondaryButton}
                   >
-                    Hub уже установлен — проверить
+                    Чистовик уже установлен — проверить
                   </button>
                 </div>
               ) : (
@@ -271,7 +271,7 @@ export function HubConnectionGate({ children }: { children: ReactNode }) {
               )}
 
               <div style={{ marginTop: 14, fontSize: 13, color: "#687783", lineHeight: 1.5 }}>
-                Загружаемый файл должен называться <strong>PaperFlowHubSetup-0.3.1.exe</strong>. Если в папке загрузок уже есть старый PaperFlowHubSetup.exe, удали его перед запуском. Открыть{" "}
+                Загружаемый файл должен называться <strong>ChistovikSetup-0.3.1.exe</strong>. Если в папке загрузок уже есть старый ChistovikSetup.exe, удали его перед запуском. Открыть{" "}
                 <a href={releasesUrl} target="_blank" rel="noreferrer">
                   релиз 0.3.1
                 </a>
@@ -281,7 +281,7 @@ export function HubConnectionGate({ children }: { children: ReactNode }) {
 
             {waitingForInstall && (
               <div style={{ marginTop: 16, padding: 14, borderRadius: 12, background: "#edf8f5", color: "#1f6655" }}>
-                Ожидаю запуск Hub. После установки он будет проверяться каждые несколько секунд.
+                Ожидаю запуск «Чистовика». После установки он будет проверяться каждые несколько секунд.
               </div>
             )}
 
@@ -295,7 +295,7 @@ export function HubConnectionGate({ children }: { children: ReactNode }) {
               <summary style={{ cursor: "pointer", fontWeight: 650 }}>Диагностика и ручной адрес Hub</summary>
               <div style={{ marginTop: 14, display: "grid", gap: 12 }}>
                 <label style={{ display: "grid", gap: 8 }}>
-                  <span>Адрес локального Hub</span>
+                  <span>Адрес локального модуля</span>
                   <input
                     value={url}
                     onChange={(event: ChangeEvent<HTMLInputElement>) => setUrl(event.target.value)}
@@ -329,9 +329,9 @@ export function HubConnectionGate({ children }: { children: ReactNode }) {
         {hub.status === "pairing-required" && (
           <>
             <div style={{ marginTop: 18, padding: 18, borderRadius: 14, background: "#edf8f5" }}>
-              <strong>Hub найден.</strong>
+              <strong>Чистовик найден.</strong>
               <p style={{ margin: "8px 0 0", lineHeight: 1.55 }}>
-                Осталось подтвердить этот адрес PaperFlow Web локальным кодом. Без подтверждения сайт не получает доступ к работам и настройкам.
+                Осталось подтвердить этот адрес Чистовик локальным кодом. Без подтверждения сайт не получает доступ к работам и настройкам.
               </p>
             </div>
             <button onClick={() => void hub.startPairing()} style={{ ...primaryButton, marginTop: 16 }}>
@@ -343,7 +343,7 @@ export function HubConnectionGate({ children }: { children: ReactNode }) {
         {hub.status === "pairing" && hub.challenge && (
           <>
             <p style={{ lineHeight: 1.55 }}>
-              Открой локальную страницу подтверждения. Проверь, что на ней указан текущий адрес PaperFlow Web, затем введи шестизначный код.
+              Открой локальную страницу подтверждения. Проверь, что на ней указан текущий адрес Чистовик, затем введи шестизначный код.
             </p>
             <a
               href={hub.challenge.displayUrl}

@@ -1,4 +1,4 @@
-"""SQLAlchemy ORM models for PaperFlow Stream."""
+"""SQLAlchemy ORM models for Чистовик."""
 
 from __future__ import annotations
 
