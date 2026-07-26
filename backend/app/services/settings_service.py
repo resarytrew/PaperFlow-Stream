@@ -26,6 +26,11 @@ def _deep_merge(base: dict, override: dict) -> dict:
     return result
 
 
+def _defaults() -> dict:
+    """Return complete defaults for internal validation/persistence only."""
+    return RuntimeConfig().model_dump(include_secrets=True)
+
+
 def load_config(db: Session, *, use_cache: bool = True) -> RuntimeConfig:
     """Return the effective runtime configuration."""
     global _cache
@@ -33,7 +38,7 @@ def load_config(db: Session, *, use_cache: bool = True) -> RuntimeConfig:
         return _cache
 
     row = db.execute(select(AppSetting).limit(1)).scalar_one_or_none()
-    defaults = RuntimeConfig().model_dump()
+    defaults = _defaults()
     if row and row.payload:
         try:
             merged = _deep_merge(defaults, row.payload)
@@ -49,14 +54,28 @@ def load_config(db: Session, *, use_cache: bool = True) -> RuntimeConfig:
 
 
 def save_config(db: Session, patch: dict[str, Any]) -> RuntimeConfig:
-    """Merge ``patch`` into the stored configuration and validate it."""
+    """Merge ``patch`` into the stored configuration and validate it.
+
+    An empty API key means "leave the existing secret unchanged". This lets the
+    settings API return a redacted value without a normal save erasing the key.
+    """
     global _cache
     row = db.execute(select(AppSetting).limit(1)).scalar_one_or_none()
     current = dict(row.payload) if row and row.payload else {}
+
+    vision_patch = patch.get("vision_ocr")
+    if isinstance(vision_patch, dict):
+        vision_patch = dict(vision_patch)
+        vision_patch.pop("api_key_configured", None)
+        if vision_patch.get("api_key") == "":
+            vision_patch.pop("api_key", None)
+        patch = dict(patch)
+        patch["vision_ocr"] = vision_patch
+
     merged_payload = _deep_merge(current, patch)
 
     # Validate against the full schema before persisting.
-    effective = RuntimeConfig.model_validate(_deep_merge(RuntimeConfig().model_dump(), merged_payload))
+    effective = RuntimeConfig.model_validate(_deep_merge(_defaults(), merged_payload))
 
     if row is None:
         row = AppSetting(payload=merged_payload)
