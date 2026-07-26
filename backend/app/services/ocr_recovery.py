@@ -6,7 +6,7 @@ import logging
 
 from sqlalchemy import select
 
-from app.db import SessionLocal
+import app.db as app_db
 from app.models import RecognitionResult, RecognitionStatus, ScannedSheet, ScanStatus
 from app.services.ocr_queue import ocr_queue
 
@@ -26,7 +26,7 @@ def recover_interrupted_ocr_jobs() -> int:
     reboot or forced shutdown cannot leave them permanently stuck. Deleted
     sheets and rows without a usable image are ignored.
     """
-    with SessionLocal() as db:
+    with app_db.SessionLocal() as db:
         sheet_ids = db.execute(
             select(RecognitionResult.scanned_sheet_id)
             .join(ScannedSheet, ScannedSheet.id == RecognitionResult.scanned_sheet_id)
