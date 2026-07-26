@@ -1,0 +1,32 @@
+name: Extract rebrand failure
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/extract-rebrand-error.yml
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Extract relevant failure lines
+        shell: bash
+        run: |
+          grep -Ein 'traceback|syntaxerror|error:|exception|failed|exit code|no such file|not found|npm err|typeerror|valueerror' rebrand-log.txt > rebrand-error.txt || true
+          tail -n 80 rebrand-log.txt >> rebrand-error.txt
+      - name: Commit failure excerpt
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add rebrand-error.txt
+          git commit -m "chore: extract Chistovik rebrand failure"
+          git push
