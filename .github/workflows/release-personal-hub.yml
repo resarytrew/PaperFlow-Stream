@@ -2,12 +2,18 @@ name: Build Personal Hub
 
 on:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "GitHub Release tag; leave empty to build artifact only"
+        required: false
+        default: "v0.3.0-pilot"
+        type: string
   push:
     tags:
       - "v*"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   windows-installer:
@@ -65,7 +71,7 @@ jobs:
             & signtool sign /fd SHA256 /td SHA256 /tr http://timestamp.digicert.com /f $certificate /p $env:WINDOWS_CERTIFICATE_PASSWORD dist\PaperFlowHub\PaperFlowHub.exe
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           } else {
-            Write-Host "Signing secrets are not configured; producing an unsigned development installer."
+            Write-Host "Signing secrets are not configured; producing an unsigned pilot installer."
           }
 
       - name: Install Inno Setup
@@ -78,25 +84,59 @@ jobs:
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" packaging\windows\PaperFlowHub.iss
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      - name: Optionally sign installer
+      - name: Sign and prepare stable release filenames
         shell: pwsh
         env:
           WINDOWS_CERTIFICATE_BASE64: ${{ secrets.WINDOWS_CERTIFICATE_BASE64 }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
         run: |
           $installer = Get-ChildItem release\PaperFlowHubSetup-*.exe | Select-Object -First 1
+          if (-not $installer) { throw "Installer was not produced" }
+
           if ($env:WINDOWS_CERTIFICATE_BASE64) {
             $certificate = Join-Path $env:RUNNER_TEMP "paperflow-signing.pfx"
             & signtool sign /fd SHA256 /td SHA256 /tr http://timestamp.digicert.com /f $certificate /p $env:WINDOWS_CERTIFICATE_PASSWORD $installer.FullName
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
-          $hash = (Get-FileHash $installer.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
-          "$hash  $($installer.Name)" | Set-Content "$($installer.FullName).sha256"
+
+          $versionedHash = (Get-FileHash $installer.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$versionedHash  $($installer.Name)" | Set-Content "$($installer.FullName).sha256"
+
+          $stableInstaller = Join-Path $installer.DirectoryName "PaperFlowHubSetup.exe"
+          Copy-Item $installer.FullName $stableInstaller -Force
+          $stableHash = (Get-FileHash $stableInstaller -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$stableHash  PaperFlowHubSetup.exe" | Set-Content "$stableInstaller.sha256"
 
       - uses: actions/upload-artifact@v4
         with:
           name: PaperFlowHub-Windows
           path: |
+            release/PaperFlowHubSetup*.exe
+            release/PaperFlowHubSetup*.exe.sha256
+          if-no-files-found: error
+
+      - name: Resolve release tag
+        id: release
+        shell: pwsh
+        run: |
+          if ("${{ github.ref_type }}" -eq "tag") {
+            $tag = "${{ github.ref_name }}"
+          } else {
+            $tag = "${{ inputs.release_tag }}"
+          }
+          "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Publish public GitHub Release
+        if: steps.release.outputs.tag != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: PaperFlow Hub ${{ steps.release.outputs.tag }}
+          generate_release_notes: true
+          make_latest: true
+          files: |
+            release/PaperFlowHubSetup.exe
+            release/PaperFlowHubSetup.exe.sha256
             release/PaperFlowHubSetup-*.exe
             release/PaperFlowHubSetup-*.exe.sha256
-          if-no-files-found: error
