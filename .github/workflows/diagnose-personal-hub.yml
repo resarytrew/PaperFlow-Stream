@@ -1,5 +1,6 @@
 name: Diagnose Personal Hub
 
+# One-time rerun after Windows portability and PyInstaller root fixes.
 on:
   push:
     branches: [main]
