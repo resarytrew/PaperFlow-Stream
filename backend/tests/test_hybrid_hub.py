@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 
 import pytest
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, WebSocket
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
@@ -64,6 +64,34 @@ def test_pairing_tokens_are_hashed_and_bound_to_origin_and_workspace(tmp_path):
     ) is None
 
 
+def test_pairing_code_is_invalidated_after_five_failed_attempts(tmp_path):
+    settings = _settings(tmp_path)
+    store = HubIdentityStore(settings, tmp_path / "hub")
+    challenge = store.start_pairing(
+        origin="https://web.paperflow.example",
+        client_name="Teacher browser",
+        workspace_id="personal",
+    )
+
+    for _ in range(4):
+        with pytest.raises(ValueError, match="Неверный код"):
+            store.confirm_pairing(
+                challenge_id=challenge.id,
+                code="000000" if challenge.code != "000000" else "999999",
+                origin="https://web.paperflow.example",
+                workspace_id="personal",
+            )
+
+    with pytest.raises(ValueError, match="заблокирован"):
+        store.confirm_pairing(
+            challenge_id=challenge.id,
+            code="000000" if challenge.code != "000000" else "999999",
+            origin="https://web.paperflow.example",
+            workspace_id="personal",
+        )
+    assert store.pending_pairing_code(challenge.id) is None
+
+
 def test_security_middleware_requires_pairing_for_external_web_origin(tmp_path):
     settings = _settings(tmp_path)
     identity = HubIdentityStore(settings, tmp_path / "hub")
@@ -88,6 +116,10 @@ def test_security_middleware_requires_pairing_for_external_web_origin(tmp_path):
 
     assert client.get("/api/private", headers=origin_headers).status_code == 401
     assert client.get("/api/private", headers={"Origin": "https://evil.example"}).status_code == 403
+    assert client.get(
+        "/api/hub/pair/display/challenge",
+        headers={"Origin": "https://web.paperflow.example"},
+    ).status_code == 403
 
     challenge = identity.start_pairing(
         origin="https://web.paperflow.example",
@@ -120,6 +152,39 @@ def test_security_middleware_requires_pairing_for_external_web_origin(tmp_path):
         },
     )
     assert wrong_workspace.status_code == 403
+
+
+def test_websocket_uses_subprotocol_token_instead_of_query_string(tmp_path):
+    settings = _settings(tmp_path)
+    identity = HubIdentityStore(settings, tmp_path / "hub")
+    app = FastAPI()
+    app.add_middleware(HubSecurityMiddleware, settings=settings, identity=identity)
+
+    @app.websocket("/api/ws/private")
+    async def private_socket(websocket: WebSocket) -> None:
+        await websocket.accept()
+        context = websocket.scope["state"]["hub_context"]
+        await websocket.send_json({"client": context.client_id, "workspace": context.workspace_id})
+        await websocket.close()
+
+    challenge = identity.start_pairing(
+        origin="https://web.paperflow.example",
+        client_name="Teacher browser",
+        workspace_id="personal",
+    )
+    token, connected = identity.confirm_pairing(
+        challenge_id=challenge.id,
+        code=challenge.code,
+        origin="https://web.paperflow.example",
+        workspace_id="personal",
+    )
+
+    with TestClient(app).websocket_connect(
+        "/api/ws/private?workspace=personal",
+        headers={"Origin": "https://web.paperflow.example"},
+        subprotocols=["paperflow.v1", f"paperflow-auth.{token}"],
+    ) as websocket:
+        assert websocket.receive_json() == {"client": connected.id, "workspace": "personal"}
 
 
 def test_private_network_preflight_header_is_added(tmp_path):
@@ -156,6 +221,8 @@ def test_public_hub_info_contains_only_architecture_metadata(api_client):
 
     health = api_client.get("/api/health").json()
     assert "dataDir" not in health
+    assert "history" not in json.dumps(health)
+    assert "sheetId" not in json.dumps(health)
     assert health["product"] == "PaperFlow Hub"
 
 
