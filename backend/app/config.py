@@ -12,7 +12,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -172,16 +172,54 @@ class RuntimeConfig(BaseModel):
 
 
 class Settings(BaseSettings):
-    """Process level settings (env driven, immutable at runtime)."""
+    """Process-level and Hybrid Hub settings (environment driven)."""
 
     model_config = SettingsConfigDict(env_prefix="PAPERFLOW_", env_file=".env", extra="ignore")
 
-    app_name: str = "PaperFlow Stream"
-    version: str = "0.2.0"
+    app_name: str = "PaperFlow Hub"
+    version: str = "0.3.0"
     data_dir: Path = DEFAULT_DATA_DIR
     database_url: str = ""
-    cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
     log_level: str = "INFO"
+
+    # Hybrid Local Hub transport. The public web UI is allowed to connect only
+    # when its exact Origin is configured and the browser has paired locally.
+    hub_mode: Literal["personal", "school"] = "personal"
+    hub_bind_host: str = "127.0.0.1"
+    hub_port: int = Field(default=17841, ge=1024, le=65535)
+    hub_public_url: str = "https://127.0.0.1:17841"
+    hub_default_workspace_id: str = "personal"
+    hub_allowed_origins: list[str] = []
+    hub_trusted_unpaired_origins: list[str] = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]
+    hub_require_pairing: bool = False
+    hub_pairing_code_ttl_seconds: int = Field(default=300, ge=60, le=1800)
+    hub_token_ttl_days: int = Field(default=365, ge=1, le=3650)
+    hub_pairing_dev_echo_code: bool = False
+
+    # This guard prevents an operator from enabling school mode before the
+    # workspace-scoped schema and user administration migration is installed.
+    hub_school_tenancy_enabled: bool = False
+
+    # Backward-compatible local development origins.
+    cors_origins: list[str] = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]
+
+    @model_validator(mode="after")
+    def validate_deployment_mode(self) -> "Settings":
+        if self.hub_mode == "school" and not self.hub_school_tenancy_enabled:
+            raise ValueError(
+                "school mode is blocked until workspace-scoped persistence and user administration are enabled"
+            )
+        return self
+
+    @property
+    def all_cors_origins(self) -> list[str]:
+        return list(dict.fromkeys([*self.cors_origins, *self.hub_allowed_origins]))
 
     @property
     def storage_dir(self) -> Path:
@@ -207,6 +245,10 @@ class Settings(BaseSettings):
     def calibration_dir(self) -> Path:
         return self.storage_dir / "calibration"
 
+    @property
+    def hub_dir(self) -> Path:
+        return self.data_dir / "hub"
+
     def resolved_database_url(self) -> str:
         if self.database_url:
             return self.database_url
@@ -221,6 +263,7 @@ class Settings(BaseSettings):
             self.forms_dir,
             self.exports_dir,
             self.calibration_dir,
+            self.hub_dir,
         ):
             path.mkdir(parents=True, exist_ok=True)
 
