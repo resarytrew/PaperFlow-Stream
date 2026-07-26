@@ -19,6 +19,10 @@ on:
       - frontend/public/chistovik-icon.svg
       - frontend/public/manifest.webmanifest
       - frontend/src/App.tsx
+      - frontend/src/main.tsx
+      - frontend/src/styles.css
+      - frontend/src/chistovik-theme.css
+      - frontend/src/pages/**
       - frontend/src/hub/HubProvider.tsx
       - frontend/src/hub/runtime.ts
       - packaging/windows/PaperFlowHub.spec
