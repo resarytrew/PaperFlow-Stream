@@ -132,8 +132,10 @@ class HubSecurityMiddleware:
             return
 
         is_pairing_display = path.startswith("/api/hub/pair/display/")
+        is_media_request = path.startswith("/api/sheets/") and "/image/" in path
         fetch_site = headers.get("sec-fetch-site", "").lower()
-        if not origin and fetch_site == "cross-site" and not is_pairing_display:
+        cross_site_without_origin = not origin and fetch_site == "cross-site"
+        if cross_site_without_origin and not is_pairing_display and not is_media_request:
             await self._reject(scope, send, 403, "Кросс-сайтовый браузерный запрос без Origin запрещён")
             return
 
@@ -157,15 +159,16 @@ class HubSecurityMiddleware:
             await self._reject(scope, send, 403, "Персональный Hub поддерживает только личное рабочее пространство")
             return
 
-        requires_auth = self._requires_auth(origin, headers)
+        # A cross-site <img> request normally has no Origin header. It is allowed
+        # only when the read-only media token validates successfully below.
+        requires_auth = self._requires_auth(origin, headers) or (cross_site_without_origin and is_media_request)
         client = None
         is_public_path = path in _PUBLIC_PATHS or is_pairing_display
         if not is_public_path and requires_auth:
-            is_media_request = path.startswith("/api/sheets/") and "/image/" in path
             if is_media_request:
                 client = self.identity.verify_media_token(
                     self._query_token(scope),
-                    origin=origin or "local-native",
+                    origin=origin,
                     workspace_id=workspace_id,
                 )
             else:
