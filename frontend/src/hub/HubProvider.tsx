@@ -35,9 +35,9 @@ const HubContext = createContext<HubContextValue | null>(null);
 const DEFAULT_HUB_URL = "http://127.0.0.1:17841";
 const REQUIRED_HUB_VERSION = "0.3.2";
 const DEFAULT_DOWNLOAD_URL =
-  "https://github.com/resarytrew/PaperFlow-Stream/releases/download/v0.3.2-pilot/ChistovikSetup-0.3.2.exe";
+  "https://github.com/resarytrew/PaperFlow-Stream/releases/download/v0.3.1-pilot/ChistovikSetup-0.3.2.exe";
 const DEFAULT_RELEASES_URL =
-  "https://github.com/resarytrew/PaperFlow-Stream/releases/tag/v0.3.2-pilot";
+  "https://github.com/resarytrew/PaperFlow-Stream/releases/tag/v0.3.1-pilot";
 
 function friendlyConnectionError(error: string | null): string | null {
   if (!error) return null;
