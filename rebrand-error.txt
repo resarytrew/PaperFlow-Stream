@@ -1,0 +1,83 @@
+200:rebrand	Apply product rebrand	2026-07-26T10:11:25.6804904Z ^[[36;1m    except UnicodeDecodeError:^[[0m
+477:rebrand	Commit rebrand	2026-07-26T10:11:39.2324826Z error: failed to push some refs to 'https://github.com/resarytrew/PaperFlow-Stream'
+478:rebrand	Commit rebrand	2026-07-26T10:11:39.2353343Z ##[error]Process completed with exit code 1.
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:37.3485204Z computing gzip size...
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:37.5858607Z ^[[2mdist/^[[22m^[[32mindex.html                 ^[[39m^[[1m^[[2m  0.55 kB^[[22m^[[1m^[[22m^[[2m │ gzip:  0.34 kB^[[22m
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:37.5860150Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[35mindex-DhhaW4Cq.css  ^[[39m^[[1m^[[2m 16.34 kB^[[22m^[[1m^[[22m^[[2m │ gzip:  4.20 kB^[[22m
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:37.5861710Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mindex-BcQd8ilU.js   ^[[39m^[[1m^[[2m256.28 kB^[[22m^[[1m^[[22m^[[2m │ gzip: 82.71 kB^[[22m
+rebrand	Verify frontend and Python syntax	2026-07-26T10:11:37.5862566Z ^[[32m✓ built in 1.40s^[[39m
+rebrand	Record remaining legacy references	﻿2026-07-26T10:11:38.0622183Z ##[group]Run grep -RInE 'PaperFlow|PAPERFLOW|paperflow' . \
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0622671Z ^[[36;1mgrep -RInE 'PaperFlow|PAPERFLOW|paperflow' . \^[[0m
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0623024Z ^[[36;1m  --exclude-dir=.git \^[[0m
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0623310Z ^[[36;1m  --exclude=brand-audit.txt \^[[0m
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0623607Z ^[[36;1m  --exclude=brand-audit-after.txt \^[[0m
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0623911Z ^[[36;1m  --exclude=package-lock.json \^[[0m
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0624207Z ^[[36;1m  --exclude=rebrand-chistovik.yml \^[[0m
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0624681Z ^[[36;1m  --exclude=audit-brand.yml \^[[0m
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0624974Z ^[[36;1m  > brand-audit-after.txt || true^[[0m
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0673494Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0673850Z env:
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0674133Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.15/x64
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0674565Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib/pkgconfig
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0674988Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0675411Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0675810Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0676367Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib
+rebrand	Record remaining legacy references	2026-07-26T10:11:38.0676703Z ##[endgroup]
+rebrand	Commit rebrand	﻿2026-07-26T10:11:38.1848014Z ##[group]Run git config user.name "github-actions[bot]"
+rebrand	Commit rebrand	2026-07-26T10:11:38.1848455Z ^[[36;1mgit config user.name "github-actions[bot]"^[[0m
+rebrand	Commit rebrand	2026-07-26T10:11:38.1848920Z ^[[36;1mgit config user.email "41898282+github-actions[bot]@users.noreply.github.com"^[[0m
+rebrand	Commit rebrand	2026-07-26T10:11:38.1849337Z ^[[36;1mgit add -A^[[0m
+rebrand	Commit rebrand	2026-07-26T10:11:38.1849628Z ^[[36;1mgit commit -m "feat: rebrand PaperFlow as Chistovik"^[[0m
+rebrand	Commit rebrand	2026-07-26T10:11:38.1849962Z ^[[36;1mgit push^[[0m
+rebrand	Commit rebrand	2026-07-26T10:11:38.1898959Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+rebrand	Commit rebrand	2026-07-26T10:11:38.1899314Z env:
+rebrand	Commit rebrand	2026-07-26T10:11:38.1899590Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.15/x64
+rebrand	Commit rebrand	2026-07-26T10:11:38.1900034Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib/pkgconfig
+rebrand	Commit rebrand	2026-07-26T10:11:38.1900455Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+rebrand	Commit rebrand	2026-07-26T10:11:38.1900835Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+rebrand	Commit rebrand	2026-07-26T10:11:38.1901223Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+rebrand	Commit rebrand	2026-07-26T10:11:38.1901643Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib
+rebrand	Commit rebrand	2026-07-26T10:11:38.1901975Z ##[endgroup]
+rebrand	Commit rebrand	2026-07-26T10:11:38.2375687Z [main 58a0021] feat: rebrand PaperFlow as Chistovik
+rebrand	Commit rebrand	2026-07-26T10:11:38.2376649Z  46 files changed, 371 insertions(+), 208 deletions(-)
+rebrand	Commit rebrand	2026-07-26T10:11:38.2377253Z  create mode 100644 brand-audit-after.txt
+rebrand	Commit rebrand	2026-07-26T10:11:38.2377898Z  create mode 100644 frontend/public/chistovik-icon.svg
+rebrand	Commit rebrand	2026-07-26T10:11:38.2378684Z  delete mode 100644 frontend/public/paperflow-icon.svg
+rebrand	Commit rebrand	2026-07-26T10:11:39.2321738Z To https://github.com/resarytrew/PaperFlow-Stream
+rebrand	Commit rebrand	2026-07-26T10:11:39.2323291Z  ! [remote rejected] main -> main (refusing to allow a GitHub App to create or update workflow `.github/workflows/deploy-web-yandex.yml` without `workflows` permission)
+rebrand	Commit rebrand	2026-07-26T10:11:39.2324826Z error: failed to push some refs to 'https://github.com/resarytrew/PaperFlow-Stream'
+rebrand	Commit rebrand	2026-07-26T10:11:39.2353343Z ##[error]Process completed with exit code 1.
+rebrand	Post Run actions/checkout@v6	﻿2026-07-26T10:11:39.2497326Z Post job cleanup.
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.3385823Z [command]/usr/bin/git version
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.3433604Z git version 2.54.0
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.3507989Z Temporarily overriding HOME='/home/runner/work/_temp/e3d0e96c-6425-4daa-bc9c-57e414eb4e7c' before making global git config changes
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.3509867Z Adding repository directory to the temporary git global config as a safe directory
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.3514202Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/PaperFlow-Stream/PaperFlow-Stream
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.3559042Z Removing SSH command configuration
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.3567638Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.3605171Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.3885835Z Removing HTTP extra header
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.3892352Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.3934936Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4217198Z Removing includeIf entries pointing to credentials config files
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4226731Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4259645Z includeif.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git.path
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4261101Z includeif.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git/worktrees/*.path
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4262312Z includeif.gitdir:/github/workspace/.git.path
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4263321Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4270997Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git.path
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4301701Z /home/runner/work/_temp/git-credentials-ba6a6471-0470-41d8-8e53-57bc6fdaee85.config
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4315068Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git.path /home/runner/work/_temp/git-credentials-ba6a6471-0470-41d8-8e53-57bc6fdaee85.config
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4365343Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git/worktrees/*.path
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4399609Z /home/runner/work/_temp/git-credentials-ba6a6471-0470-41d8-8e53-57bc6fdaee85.config
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4412498Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/PaperFlow-Stream/PaperFlow-Stream/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-ba6a6471-0470-41d8-8e53-57bc6fdaee85.config
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4457387Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4488861Z /github/runner_temp/git-credentials-ba6a6471-0470-41d8-8e53-57bc6fdaee85.config
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4497968Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-ba6a6471-0470-41d8-8e53-57bc6fdaee85.config
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4538979Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4567437Z /github/runner_temp/git-credentials-ba6a6471-0470-41d8-8e53-57bc6fdaee85.config
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4576653Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-ba6a6471-0470-41d8-8e53-57bc6fdaee85.config
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4617781Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+rebrand	Post Run actions/checkout@v6	2026-07-26T10:11:39.4863945Z Removing credentials config '/home/runner/work/_temp/git-credentials-ba6a6471-0470-41d8-8e53-57bc6fdaee85.config'
+rebrand	Complete job	﻿2026-07-26T10:11:39.5030613Z Cleaning up orphan processes
