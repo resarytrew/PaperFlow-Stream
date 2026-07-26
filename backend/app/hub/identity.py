@@ -139,8 +139,6 @@ class HubIdentityStore:
     def start_pairing(self, *, origin: str, client_name: str, workspace_id: str) -> _Challenge:
         with self._lock:
             self._prune()
-            # One live challenge per browser origin/workspace prevents an
-            # allowed-but-compromised frontend from accumulating brute-force windows.
             self._challenges = {
                 key: value
                 for key, value in self._challenges.items()
@@ -158,7 +156,6 @@ class HubIdentityStore:
             return challenge
 
     def pending_pairing_code(self, challenge_id: str) -> str | None:
-        """Return a code for the local confirmation page or future tray app."""
         with self._lock:
             self._prune()
             challenge = self._challenges.get(challenge_id)
@@ -246,7 +243,7 @@ class HubIdentityStore:
         token: str,
         *,
         hash_field: str,
-        origin: str,
+        origin: str | None,
         workspace_id: str,
     ) -> HubClient | None:
         if not token:
@@ -258,7 +255,9 @@ class HubIdentityStore:
                 stored_hash = str(item.get(hash_field, ""))
                 if not stored_hash or not hmac.compare_digest(stored_hash, digest):
                     continue
-                if item.get("origin") != origin or item.get("workspace_id") != workspace_id:
+                if item.get("workspace_id") != workspace_id:
+                    return None
+                if origin is not None and item.get("origin") != origin:
                     return None
 
                 now = _utcnow()
@@ -287,7 +286,13 @@ class HubIdentityStore:
             workspace_id=workspace_id,
         )
 
-    def verify_media_token(self, token: str, *, origin: str, workspace_id: str) -> HubClient | None:
+    def verify_media_token(
+        self,
+        token: str,
+        *,
+        origin: str | None,
+        workspace_id: str,
+    ) -> HubClient | None:
         return self._verify_token_field(
             token,
             hash_field="media_token_hash",
