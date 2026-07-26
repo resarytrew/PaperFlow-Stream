@@ -8,78 +8,122 @@ export default function DashboardPage() {
 
   return (
     <>
-      <h1 className="page-title">
-        Главная
-        <span className="spacer" />
-        <button className="btn small" onClick={refresh}>
-          Обновить
-        </button>
-      </h1>
+      <section className="page-heading">
+        <div className="page-heading-copy">
+          <div className="eyebrow">Обзор проверки</div>
+          <h1>Рабочий стол</h1>
+          <p>Здесь собран текущий поток: сколько листов принято, что требует внимания и где продолжить работу.</p>
+        </div>
+        <div className="page-heading-actions">
+          <button className="btn" onClick={refresh}>
+            Обновить данные
+          </button>
+          <Link className="btn primary" to="/sessions">
+            Новая сессия
+          </Link>
+        </div>
+      </section>
 
-      {error && <div className="error-box">Backend недоступен: {error}. Запустите `uvicorn app.main:app` в каталоге backend.</div>}
-      {loading && <p className="muted">Загрузка…</p>}
+      {error && <div className="error-box">Локальный модуль недоступен: {error}</div>}
+      {loading && <p className="muted">Собираю актуальные данные…</p>}
 
       {data && (
         <>
-          <div className="grid cols-4">
-            <div className="stat-card">
+          <div className="grid dashboard-stats">
+            <div className="stat-card" data-index="01">
+              <span className="stat-accent" />
               <div className="value">{data.sheets_today}</div>
-              <div className="label">Листов сегодня</div>
+              <div className="label">Листов обработано сегодня</div>
             </div>
-            <div className="stat-card">
+            <div className="stat-card attention" data-index="02">
+              <span className="stat-accent" />
               <div className="value">{data.needs_review}</div>
-              <div className="label">Требуют внимания</div>
+              <div className="label">Работ требуют внимания учителя</div>
             </div>
-            <div className="stat-card">
+            <div className="stat-card speed" data-index="03">
+              <span className="stat-accent" />
               <div className="value">{data.average_speed || "—"}</div>
-              <div className="label">Листов/мин (сегодня)</div>
+              <div className="label">Средняя скорость, листов в минуту</div>
             </div>
-            <div className="stat-card">
+            <div className="stat-card storage" data-index="04">
+              <span className="stat-accent" />
               <div className="value">{fmtBytes(data.storage_bytes)}</div>
-              <div className="label">Занято на диске · всего листов: {data.total_sheets}</div>
+              <div className="label">Локальный архив · всего {data.total_sheets} листов</div>
             </div>
           </div>
 
-          <h3 className="section">Последняя сессия</h3>
-          {data.last_session ? (
-            <div className="panel">
-              <div className="row">
-                <strong>{data.last_session.title}</strong>
-                <Badge map={SESSION_STATUS_RU} value={data.last_session.status} />
-                <span className="muted">{fmtDate(data.last_session.created_at)}</span>
-                <span className="spacer" style={{ flex: 1 }} />
-                <Link className="btn small" to={`/sessions/${data.last_session.id}/scan`}>
-                  Продолжить сканирование
-                </Link>
-                <Link className="btn small" to={`/sessions/${data.last_session.id}/review`}>
-                  Проверка
-                </Link>
-              </div>
-              <div className="row mt muted">
-                <span>Всего: {data.last_session.stats.total}</span>
-                <span>OK: {data.last_session.stats.ok}</span>
-                <span>Дубликаты: {data.last_session.stats.duplicates}</span>
-                <span>Без QR: {data.last_session.stats.unidentified}</span>
-                <span>Ожидают OCR: {data.last_session.stats.pending_ocr}</span>
-              </div>
+          <section className="section-block">
+            <div className="section-heading">
+              <h2>Последняя сессия</h2>
+              <span className="section-kicker">Продолжи с того места, где остановился</span>
             </div>
-          ) : (
-            <div className="panel muted">
-              Сессий пока нет. <Link to="/sessions">Создайте первую сессию</Link>, распечатайте бланки и начните сканирование.
-            </div>
-          )}
 
-          <h3 className="section">События оборудования</h3>
-          <div className="panel">
-            {data.hardware_events.length === 0 && <span className="muted">Событий нет — всё в порядке.</span>}
-            {data.hardware_events.map((e) => (
-              <div key={e.id} className="row" style={{ padding: "4px 0" }}>
-                <span className={`badge ${e.level === "error" ? "red" : "amber"}`}>{e.level}</span>
-                <span>{e.message || e.code}</span>
-                <span className="muted">{fmtDate(e.created_at)}</span>
+            {data.last_session ? (
+              <div className="panel session-card">
+                <div className="session-card-head">
+                  <div>
+                    <h3 className="session-title">{data.last_session.title}</h3>
+                    <div className="session-meta">
+                      <Badge map={SESSION_STATUS_RU} value={data.last_session.status} />
+                      <span>{fmtDate(data.last_session.created_at)}</span>
+                    </div>
+                  </div>
+                  <div className="session-actions">
+                    <Link className="btn" to={`/sessions/${data.last_session.id}/scan`}>
+                      Продолжить сканирование
+                    </Link>
+                    <Link className="btn teacher" to={`/sessions/${data.last_session.id}/review`}>
+                      Перейти к проверке
+                    </Link>
+                  </div>
+                </div>
+
+                <div className="session-stats">
+                  <div className="session-stat">
+                    <strong>{data.last_session.stats.total}</strong>
+                    <span>Всего листов</span>
+                  </div>
+                  <div className="session-stat">
+                    <strong>{data.last_session.stats.ok}</strong>
+                    <span>Принято без замечаний</span>
+                  </div>
+                  <div className="session-stat">
+                    <strong>{data.last_session.stats.duplicates}</strong>
+                    <span>Найдено дубликатов</span>
+                  </div>
+                  <div className="session-stat">
+                    <strong>{data.last_session.stats.unidentified}</strong>
+                    <span>Листов без QR</span>
+                  </div>
+                  <div className="session-stat">
+                    <strong>{data.last_session.stats.pending_ocr}</strong>
+                    <span>Ожидают распознавания</span>
+                  </div>
+                </div>
               </div>
-            ))}
-          </div>
+            ) : (
+              <div className="panel empty-state muted">
+                Сессий пока нет. <Link to="/sessions">Создай первую сессию</Link>, подготовь бланки и запусти потоковую проверку.
+              </div>
+            )}
+          </section>
+
+          <section className="section-block">
+            <div className="section-heading">
+              <h2>Состояние оборудования</h2>
+              <span className="section-kicker">Камера и локальные сервисы</span>
+            </div>
+            <div className="panel hardware-list">
+              {data.hardware_events.length === 0 && <div className="all-clear">Событий нет — система готова к работе</div>}
+              {data.hardware_events.map((event) => (
+                <div key={event.id} className="hardware-row">
+                  <span className={`badge ${event.level === "error" ? "red" : "amber"}`}>{event.level}</span>
+                  <span>{event.message || event.code}</span>
+                  <span className="muted">{fmtDate(event.created_at)}</span>
+                </div>
+              ))}
+            </div>
+          </section>
         </>
       )}
     </>
