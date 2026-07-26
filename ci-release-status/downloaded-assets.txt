@@ -1,0 +1,4 @@
+release/PaperFlowHubSetup-0.3.0.exe
+release/PaperFlowHubSetup-0.3.0.exe.sha256
+release/PaperFlowHubSetup.exe
+release/PaperFlowHubSetup.exe.sha256

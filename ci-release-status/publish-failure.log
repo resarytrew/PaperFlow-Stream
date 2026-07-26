@@ -1,0 +1,32 @@
+windows-installer	Publish public GitHub Release	﻿2026-07-26T07:53:44.4491494Z ##[group]Run $assets = @(
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4491931Z ^[[36;1m$assets = @(^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4492215Z ^[[36;1m  "release/PaperFlowHubSetup.exe",^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4492563Z ^[[36;1m  "release/PaperFlowHubSetup.exe.sha256",^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4493046Z ^[[36;1m  (Get-ChildItem release\PaperFlowHubSetup-*.exe | Select-Object -First 1).FullName,^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4493653Z ^[[36;1m  (Get-ChildItem release\PaperFlowHubSetup-*.exe.sha256 | Select-Object -First 1).FullName^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4494112Z ^[[36;1m)^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4494354Z ^[[36;1m^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4494667Z ^[[36;1mgh release view $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY *> $null^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4495083Z ^[[36;1mif ($LASTEXITCODE -eq 0) {^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4495500Z ^[[36;1m  gh release upload $env:RELEASE_TAG @assets --repo $env:GITHUB_REPOSITORY --clobber^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4495927Z ^[[36;1m} else {^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4496193Z ^[[36;1m  gh release create $env:RELEASE_TAG @assets `^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4496644Z ^[[36;1m    --repo $env:GITHUB_REPOSITORY `^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4496960Z ^[[36;1m    --target $env:GITHUB_SHA `^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4497291Z ^[[36;1m    --title "PaperFlow Hub $env:RELEASE_TAG" `^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4497627Z ^[[36;1m    --generate-notes `^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4497882Z ^[[36;1m    --latest^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4498149Z ^[[36;1m}^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4498422Z ^[[36;1mif ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }^[[0m
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4557047Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4557424Z env:
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4557733Z   pythonLocation: C:\hostedtoolcache\windows\Python\3.11.9\x64
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4558183Z   PKG_CONFIG_PATH: C:\hostedtoolcache\windows\Python\3.11.9\x64/lib/pkgconfig
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4558618Z   Python_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.11.9\x64
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4559082Z   Python2_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.11.9\x64
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4559748Z   Python3_ROOT_DIR: C:\hostedtoolcache\windows\Python\3.11.9\x64
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4562644Z   GH_TOKEN: ***
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4562883Z   RELEASE_TAG: v0.3.0-pilot
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:44.4563161Z ##[endgroup]
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:58.2957800Z HTTP 403: Resource not accessible by integration (https://api.github.com/repos/resarytrew/PaperFlow-Stream/releases)
+windows-installer	Publish public GitHub Release	2026-07-26T07:53:58.3285665Z ##[error]Process completed with exit code 1.
