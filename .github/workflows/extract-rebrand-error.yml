@@ -1,4 +1,4 @@
-name: Snapshot Chistovik release
+name: Diagnose Chistovik release
 
 on:
   push:
@@ -12,24 +12,27 @@ permissions:
   actions: read
 
 jobs:
-  snapshot:
+  diagnose:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - name: Capture current release run
+      - name: Extract failed release output
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          gh run list --repo "$GITHUB_REPOSITORY" --workflow release-personal-hub.yml --limit 5 --json databaseId,status,conclusion,headSha,url,createdAt > release-snapshot.json
-      - name: Commit snapshot
+          gh run view 30198021822 --repo "$GITHUB_REPOSITORY" --log-failed > release-publish-error.txt 2>&1 || true
+          if [ ! -s release-publish-error.txt ]; then
+            gh run view 30198021822 --repo "$GITHUB_REPOSITORY" --log > release-publish-error.txt 2>&1 || true
+          fi
+      - name: Commit diagnostic
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add release-snapshot.json
-          git commit -m "chore: snapshot Chistovik release status"
+          git add release-publish-error.txt
+          git commit -m "chore: record Chistovik release publish error"
           git pull --rebase origin main
           git push
