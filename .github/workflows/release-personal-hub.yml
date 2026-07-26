@@ -1,0 +1,102 @@
+name: Build Personal Hub
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  windows-installer:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-desktop.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build PaperFlow Web assets
+        working-directory: frontend
+        env:
+          VITE_PAPERFLOW_UI_MODE: cloud
+          VITE_PAPERFLOW_HUB_URLS: https://127.0.0.1:17841,https://localhost:17841,http://127.0.0.1:17841,http://localhost:17841
+        run: |
+          npm ci
+          npm run build
+
+      - name: Install Hub and packaging dependencies
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-desktop.txt
+
+      - name: Run Hybrid Hub security tests
+        working-directory: backend
+        env:
+          PAPERFLOW_DATA_DIR: ${{ runner.temp }}\paperflow-tests
+        run: python -m pytest tests/test_hybrid_hub.py tests/test_hybrid_hub_media.py tests/test_security_backup_recovery.py
+
+      - name: Build desktop Hub
+        run: python -m PyInstaller packaging/windows/PaperFlowHub.spec --noconfirm --clean
+
+      - name: Optionally sign Hub executable
+        shell: pwsh
+        env:
+          WINDOWS_CERTIFICATE_BASE64: ${{ secrets.WINDOWS_CERTIFICATE_BASE64 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          if ($env:WINDOWS_CERTIFICATE_BASE64) {
+            $certificate = Join-Path $env:RUNNER_TEMP "paperflow-signing.pfx"
+            [IO.File]::WriteAllBytes($certificate, [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE_BASE64))
+            & signtool sign /fd SHA256 /td SHA256 /tr http://timestamp.digicert.com /f $certificate /p $env:WINDOWS_CERTIFICATE_PASSWORD dist\PaperFlowHub\PaperFlowHub.exe
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          } else {
+            Write-Host "Signing secrets are not configured; producing an unsigned development installer."
+          }
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force release | Out-Null
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" packaging\windows\PaperFlowHub.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Optionally sign installer
+        shell: pwsh
+        env:
+          WINDOWS_CERTIFICATE_BASE64: ${{ secrets.WINDOWS_CERTIFICATE_BASE64 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          $installer = Get-ChildItem release\PaperFlowHubSetup-*.exe | Select-Object -First 1
+          if ($env:WINDOWS_CERTIFICATE_BASE64) {
+            $certificate = Join-Path $env:RUNNER_TEMP "paperflow-signing.pfx"
+            & signtool sign /fd SHA256 /td SHA256 /tr http://timestamp.digicert.com /f $certificate /p $env:WINDOWS_CERTIFICATE_PASSWORD $installer.FullName
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          $hash = (Get-FileHash $installer.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $($installer.Name)" | Set-Content "$($installer.FullName).sha256"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PaperFlowHub-Windows
+          path: |
+            release/PaperFlowHubSetup-*.exe
+            release/PaperFlowHubSetup-*.exe.sha256
+          if-no-files-found: error
