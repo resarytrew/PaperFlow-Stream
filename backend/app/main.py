@@ -1,4 +1,4 @@
-"""PaperFlow Stream FastAPI application."""
+"""PaperFlow Hybrid Local Hub FastAPI application."""
 
 from __future__ import annotations
 
@@ -17,6 +17,7 @@ from app.api import (
     routes_camera,
     routes_catalog,
     routes_export,
+    routes_hub,
     routes_maintenance,
     routes_review,
     routes_scan,
@@ -24,12 +25,15 @@ from app.api import (
 )
 from app.config import get_settings
 from app.db import SessionLocal, init_db
+from app.hub.identity import get_hub_identity_store
+from app.middleware.hub_security import HubSecurityMiddleware, PrivateNetworkAccessMiddleware
 from app.services.events import OCR_TOPIC, hub
 from app.services.ocr_queue import ocr_queue
 from app.services.ocr_recovery import recover_interrupted_ocr_jobs
 from app.services.settings_service import load_config
 
 settings = get_settings()
+hub_identity = get_hub_identity_store()
 
 logging.basicConfig(
     level=getattr(logging, settings.log_level.upper(), logging.INFO),
@@ -52,9 +56,11 @@ async def lifespan(app: FastAPI):
     await ocr_queue.start(config.ocr.concurrency)
     recovered = recover_interrupted_ocr_jobs()
     logger.info(
-        "%s %s ready — data dir: %s; recovered OCR jobs: %s",
+        "%s %s ready — mode: %s; installation: %s; data dir: %s; recovered OCR jobs: %s",
         settings.app_name,
         settings.version,
+        settings.hub_mode,
+        hub_identity.installation_id,
         settings.data_dir,
         recovered,
     )
@@ -65,20 +71,29 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="PaperFlow Stream API",
+    title="PaperFlow Hub API",
     version=settings.version,
-    description="Локальная система потокового сканирования письменных ответов",
+    description="Локальный контур PaperFlow: сканирование, OCR и хранение без передачи ученических данных в облако",
     lifespan=lifespan,
 )
 
+# Order matters: Hub security is inside CORS so authorization failures still
+# receive correct CORS headers. PNA is outermost and amends browser preflights.
+app.add_middleware(HubSecurityMiddleware, settings=settings, identity=hub_identity)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
-    allow_credentials=True,
+    allow_origins=settings.all_cors_origins,
+    allow_credentials=False,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+        "X-PaperFlow-Hub-Token",
+        "X-PaperFlow-Workspace",
+    ],
     expose_headers=["Content-Disposition", "X-Form-Count"],
 )
+app.add_middleware(PrivateNetworkAccessMiddleware)
 
 
 @app.exception_handler(Exception)
@@ -90,6 +105,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
 
 @app.get("/api/health")
 def health() -> dict:
+    """Public liveness probe without paths, student data or local configuration."""
     from app.cv.qr import get_backend
     from app.ocr.providers import get_provider
 
@@ -104,13 +120,16 @@ def health() -> dict:
 
     return {
         "status": "ok",
+        "product": "PaperFlow Hub",
         "version": settings.version,
-        "dataDir": str(settings.data_dir),
+        "protocolVersion": 1,
+        "deploymentMode": settings.hub_mode,
         "qrBackends": qr_backends,
         "ocr": {"queue": ocr_queue.snapshot(), "local": get_provider("local").describe()},
     }
 
 
+app.include_router(routes_hub.router, prefix="/api")
 app.include_router(routes_catalog.router, prefix="/api")
 app.include_router(routes_sessions.router, prefix="/api")
 app.include_router(routes_scan.router, prefix="/api")
@@ -138,9 +157,9 @@ async def ocr_socket(websocket: WebSocket) -> None:
 
 
 # ------------------------------------------------------------------ frontend
-# In production the teacher runs a single process: the built SPA
-# (frontend/dist) is served straight from FastAPI, so http://localhost:8000
-# is all they need. During development the Vite dev server proxies /api.
+# Personal/offline builds may still serve the SPA directly from the Hub. The
+# cloud deployment serves the same frontend separately and connects through the
+# pairing protocol above.
 
 
 def _frontend_dist() -> Path | None:
@@ -155,8 +174,6 @@ def _frontend_dist() -> Path | None:
 
 _dist = _frontend_dist()
 if _dist is not None:
-    # html=True serves index.html at "/"; the SPA uses hash routing, so no
-    # extra history-mode fallback is required.
     app.mount("/", StaticFiles(directory=_dist, html=True), name="frontend")
     logger.info("serving frontend from %s", _dist)
 else:  # pragma: no cover - depends on whether the SPA was built
@@ -166,7 +183,9 @@ else:  # pragma: no cover - depends on whether the SPA was built
             {
                 "app": settings.app_name,
                 "version": settings.version,
-                "hint": "Соберите интерфейс (cd frontend && npm run build) или откройте dev-сервер Vite на http://localhost:5173",
-                "api": "/api/health",
+                "mode": settings.hub_mode,
+                "installationId": hub_identity.installation_id,
+                "hint": "Откройте облачный PaperFlow Web или соберите frontend локально",
+                "hubInfo": "/api/hub/info",
             }
         )
