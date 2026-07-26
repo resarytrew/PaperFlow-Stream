@@ -1,4 +1,4 @@
-name: Polish Chistovik copy
+name: Update Chistovik download link
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  polish:
+  update:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -24,27 +24,21 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Polish user-facing copy
+      - name: Use existing public release
         shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
-
           path = Path("frontend/src/hub/HubProvider.tsx")
           text = path.read_text(encoding="utf-8")
-          replacements = [
-              ("Локальный Hub пока не отвечает.", "Локальный модуль пока не отвечает."),
-              ("Обнови Hub до актуальной версии", "Обнови «Чистовик» до актуальной версии"),
-              ("Ищу защищённый Hub на этом компьютере или в школьной сети…", "Ищу локальный модуль «Чистовик» на этом компьютере или в школьной сети…"),
-              ("Для другой ОС Hub пока запускается из исходного кода.", "Для другой ОС локальный модуль пока запускается из исходного кода."),
-              ("ChistovikSetup-0.3.1.exe", "ChistovikSetup-0.3.2.exe"),
-              ("релиз 0.3.1", "релиз 0.3.2"),
-              ("Диагностика и ручной адрес Hub", "Диагностика и ручной адрес локального модуля"),
-              ("Осталось подтвердить этот адрес Чистовик локальным кодом.", "Осталось подтвердить подключение этого адреса к «Чистовику» локальным кодом."),
-              ("текущий адрес Чистовик", "текущий адрес веб-приложения «Чистовик»"),
-          ]
-          for old, new in replacements:
-              text = text.replace(old, new)
+          text = text.replace(
+              "releases/download/v0.3.2-pilot/ChistovikSetup-0.3.2.exe",
+              "releases/download/v0.3.1-pilot/ChistovikSetup-0.3.2.exe",
+          )
+          text = text.replace(
+              "releases/tag/v0.3.2-pilot",
+              "releases/tag/v0.3.1-pilot",
+          )
           path.write_text(text, encoding="utf-8")
           PY
 
@@ -54,12 +48,12 @@ jobs:
           npm ci
           npm run build
 
-      - name: Commit polished copy
+      - name: Commit download link
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add frontend/src/hub/HubProvider.tsx
-          git commit -m "fix: polish Chistovik onboarding copy"
+          git commit -m "fix: use public release for Chistovik 0.3.2"
           git pull --rebase origin main
           git push
