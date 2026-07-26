@@ -131,9 +131,15 @@ class HubSecurityMiddleware:
             await self._reject(scope, send, 403, "Источник запроса не разрешён для этого PaperFlow Hub")
             return
 
+        is_pairing_display = path.startswith("/api/hub/pair/display/")
+        fetch_site = headers.get("sec-fetch-site", "").lower()
+        if not origin and fetch_site == "cross-site" and not is_pairing_display:
+            await self._reject(scope, send, 403, "Кросс-сайтовый браузерный запрос без Origin запрещён")
+            return
+
         # The one-time code may only be viewed by top-level local navigation.
         # A CORS fetch from the cloud UI must never be able to read it.
-        if path.startswith("/api/hub/pair/display/") and origin:
+        if is_pairing_display and origin:
             await self._reject(scope, send, 403, "Код подключения можно открыть только как локальную страницу")
             return
 
@@ -153,18 +159,22 @@ class HubSecurityMiddleware:
 
         requires_auth = self._requires_auth(origin, headers)
         client = None
-        is_public_path = path in _PUBLIC_PATHS or path.startswith("/api/hub/pair/display/")
+        is_public_path = path in _PUBLIC_PATHS or is_pairing_display
         if not is_public_path and requires_auth:
-            token = _websocket_protocol_token(headers) if scope["type"] == "websocket" else _bearer_token(headers)
-            if not token and path.startswith("/api/sheets/") and "/image/" in path:
-                # <img> cannot send an authorization header. The page has a
-                # global no-referrer policy and these responses are never cached.
-                token = self._query_token(scope)
-            client = self.identity.verify_token(
-                token,
-                origin=origin or "local-native",
-                workspace_id=workspace_id,
-            )
+            is_media_request = path.startswith("/api/sheets/") and "/image/" in path
+            if is_media_request:
+                client = self.identity.verify_media_token(
+                    self._query_token(scope),
+                    origin=origin or "local-native",
+                    workspace_id=workspace_id,
+                )
+            else:
+                token = _websocket_protocol_token(headers) if scope["type"] == "websocket" else _bearer_token(headers)
+                client = self.identity.verify_token(
+                    token,
+                    origin=origin or "local-native",
+                    workspace_id=workspace_id,
+                )
             if client is None:
                 await self._reject(scope, send, 401, "Требуется сопряжение с PaperFlow Hub")
                 return
