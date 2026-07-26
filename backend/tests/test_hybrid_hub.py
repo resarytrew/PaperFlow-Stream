@@ -26,7 +26,7 @@ def _settings(tmp_path, **overrides) -> Settings:
     return Settings(_env_file=None, **values)
 
 
-def test_pairing_tokens_are_hashed_and_bound_to_origin_and_workspace(tmp_path):
+def test_pairing_tokens_are_hashed_scoped_and_bound_to_origin_workspace(tmp_path):
     settings = _settings(tmp_path)
     store = HubIdentityStore(settings, tmp_path / "hub")
 
@@ -35,7 +35,7 @@ def test_pairing_tokens_are_hashed_and_bound_to_origin_and_workspace(tmp_path):
         client_name="Teacher browser",
         workspace_id="personal",
     )
-    token, client = store.confirm_pairing(
+    token, media_token, client = store.confirm_pairing(
         challenge_id=challenge.id,
         code=challenge.code,
         origin="https://web.paperflow.example",
@@ -44,14 +44,32 @@ def test_pairing_tokens_are_hashed_and_bound_to_origin_and_workspace(tmp_path):
 
     identity_file = (tmp_path / "hub" / "identity.json").read_text(encoding="utf-8")
     assert token not in identity_file
+    assert media_token not in identity_file
     assert "token_hash" in identity_file
+    assert "media_token_hash" in identity_file
+
     verified = store.verify_token(
         token,
         origin="https://web.paperflow.example",
         workspace_id="personal",
     )
-    assert verified is not None
-    assert verified.id == client.id
+    media_verified = store.verify_media_token(
+        media_token,
+        origin="https://web.paperflow.example",
+        workspace_id="personal",
+    )
+    assert verified is not None and verified.id == client.id
+    assert media_verified is not None and media_verified.id == client.id
+    assert store.verify_token(
+        media_token,
+        origin="https://web.paperflow.example",
+        workspace_id="personal",
+    ) is None
+    assert store.verify_media_token(
+        token,
+        origin="https://web.paperflow.example",
+        workspace_id="personal",
+    ) is None
     assert store.verify_token(
         token,
         origin="https://evil.example",
@@ -73,11 +91,12 @@ def test_pairing_code_is_invalidated_after_five_failed_attempts(tmp_path):
         workspace_id="personal",
     )
 
+    wrong_code = "000000" if challenge.code != "000000" else "999999"
     for _ in range(4):
         with pytest.raises(ValueError, match="Неверный код"):
             store.confirm_pairing(
                 challenge_id=challenge.id,
-                code="000000" if challenge.code != "000000" else "999999",
+                code=wrong_code,
                 origin="https://web.paperflow.example",
                 workspace_id="personal",
             )
@@ -85,7 +104,7 @@ def test_pairing_code_is_invalidated_after_five_failed_attempts(tmp_path):
     with pytest.raises(ValueError, match="заблокирован"):
         store.confirm_pairing(
             challenge_id=challenge.id,
-            code="000000" if challenge.code != "000000" else "999999",
+            code=wrong_code,
             origin="https://web.paperflow.example",
             workspace_id="personal",
         )
@@ -108,6 +127,10 @@ def test_security_middleware_requires_pairing_for_external_web_origin(tmp_path):
             "actor": context.actor_id,
         }
 
+    @app.get("/api/sheets/1/image/thumbnail")
+    def media_endpoint() -> dict:
+        return {"image": True}
+
     client = TestClient(app)
     origin_headers = {
         "Origin": "https://web.paperflow.example",
@@ -120,13 +143,17 @@ def test_security_middleware_requires_pairing_for_external_web_origin(tmp_path):
         "/api/hub/pair/display/challenge",
         headers={"Origin": "https://web.paperflow.example"},
     ).status_code == 403
+    assert client.get(
+        "/api/private",
+        headers={"Sec-Fetch-Site": "cross-site"},
+    ).status_code == 403
 
     challenge = identity.start_pairing(
         origin="https://web.paperflow.example",
         client_name="Teacher browser",
         workspace_id="personal",
     )
-    token, connected = identity.confirm_pairing(
+    token, media_token, connected = identity.confirm_pairing(
         challenge_id=challenge.id,
         code=challenge.code,
         origin="https://web.paperflow.example",
@@ -142,6 +169,15 @@ def test_security_middleware_requires_pairing_for_external_web_origin(tmp_path):
         "client": connected.id,
         "actor": "local-owner",
     }
+
+    assert client.get(
+        f"/api/sheets/1/image/thumbnail?workspace=personal&hub_token={token}",
+        headers={"Origin": "https://web.paperflow.example"},
+    ).status_code == 401
+    assert client.get(
+        f"/api/sheets/1/image/thumbnail?workspace=personal&hub_token={media_token}",
+        headers={"Origin": "https://web.paperflow.example"},
+    ).status_code == 200
 
     wrong_workspace = client.get(
         "/api/private",
@@ -172,7 +208,7 @@ def test_websocket_uses_subprotocol_token_instead_of_query_string(tmp_path):
         client_name="Teacher browser",
         workspace_id="personal",
     )
-    token, connected = identity.confirm_pairing(
+    token, _, connected = identity.confirm_pairing(
         challenge_id=challenge.id,
         code=challenge.code,
         origin="https://web.paperflow.example",
@@ -217,6 +253,7 @@ def test_public_hub_info_contains_only_architecture_metadata(api_client):
     assert body["protocolVersion"] == 1
     assert body["privacy"]["cloudStudentDataTransfer"] is False
     assert body["workspace"]["id"] == "personal"
+    assert body["authorization"]["mediaQueryParameter"] == "hub_token"
     assert "dataDir" not in body
 
     health = api_client.get("/api/health").json()
