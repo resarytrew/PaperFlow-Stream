@@ -88,6 +88,7 @@ def hub_info(request: Request) -> dict:
             "authorized": not authorization_required or client is not None,
             "tokenHeader": "X-PaperFlow-Hub-Token",
             "webSocketSubprotocol": "paperflow-auth.<token>",
+            "mediaQueryParameter": "hub_token",
             "pairingSupported": True,
         },
         "capabilities": {
@@ -179,7 +180,7 @@ def display_pairing_code(challenge_id: str, request: Request) -> HTMLResponse:
 @router.post("/pair/confirm")
 def confirm_pairing(payload: PairConfirmIn, request: Request) -> dict:
     try:
-        token, client = get_hub_identity_store().confirm_pairing(
+        token, media_token, client = get_hub_identity_store().confirm_pairing(
             challenge_id=payload.challenge_id,
             code=payload.code,
             origin=_request_origin(request),
@@ -190,6 +191,7 @@ def confirm_pairing(payload: PairConfirmIn, request: Request) -> dict:
 
     return {
         "token": token,
+        "mediaToken": media_token,
         "tokenType": "PaperFlowHub",
         "client": client.public_dict(),
     }
