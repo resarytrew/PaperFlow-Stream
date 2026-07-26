@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import timezone
+from html import escape
 from urllib.parse import urlsplit
 
 from fastapi import APIRouter, HTTPException, Request, status
@@ -138,9 +139,13 @@ def display_pairing_code(challenge_id: str, request: Request) -> HTMLResponse:
     if request.headers.get("origin") or (fetch_mode and fetch_mode != "navigate"):
         raise HTTPException(status_code=403, detail="Код подключения доступен только при локальном открытии страницы")
 
-    code = get_hub_identity_store().pending_pairing_code(challenge_id)
-    if code is None:
+    details = get_hub_identity_store().pending_pairing_details(challenge_id)
+    if details is None:
         raise HTTPException(status_code=404, detail="Код подключения истёк или не существует")
+
+    code = escape(details["code"])
+    origin = escape(details["origin"])
+    client_name = escape(details["client_name"])
     html = f"""<!doctype html>
 <html lang="ru">
 <head>
@@ -151,18 +156,26 @@ def display_pairing_code(challenge_id: str, request: Request) -> HTMLResponse:
   <style>
     body {{ font-family: system-ui, sans-serif; margin: 0; min-height: 100vh; display: grid;
             place-items: center; background: #f4f6f8; color: #15202b; }}
-    main {{ width: min(520px, calc(100% - 40px)); background: white; border-radius: 20px;
+    main {{ width: min(560px, calc(100% - 40px)); background: white; border-radius: 20px;
             padding: 36px; box-shadow: 0 20px 60px rgba(20, 32, 43, .12); text-align: center; }}
+    .request {{ margin: 20px 0; padding: 16px; border-radius: 12px; background: #f1f6f5; text-align: left; }}
+    .origin {{ overflow-wrap: anywhere; font: 600 14px/1.5 ui-monospace, monospace; }}
     .code {{ font: 700 48px/1.1 ui-monospace, monospace; letter-spacing: .18em; margin: 24px 0; }}
     p {{ color: #5f6b76; line-height: 1.55; }}
+    strong {{ color: #15202b; }}
   </style>
 </head>
 <body>
   <main>
     <h1>Подключение к PaperFlow Hub</h1>
-    <p>Введите этот код в окне PaperFlow Web. Код действует ограниченное время.</p>
+    <div class="request">
+      <strong>Кто запрашивает доступ</strong>
+      <div>{client_name}</div>
+      <div class="origin">{origin}</div>
+    </div>
+    <p>Продолжай только если адрес совпадает с открытым PaperFlow Web.</p>
     <div class="code">{code}</div>
-    <p>Не передавайте код другим людям. После подключения эту вкладку можно закрыть.</p>
+    <p>Введите код в окне PaperFlow Web. Код действует ограниченное время и не даёт сайту доступ без вашего подтверждения.</p>
   </main>
 </body>
 </html>"""
