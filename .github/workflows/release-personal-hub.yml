@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: "GitHub Release tag; leave empty to build artifact only"
+        description: "Existing GitHub Release tag used for public installer assets"
         required: false
-        default: "v0.3.2-pilot"
+        default: "v0.3.1-pilot"
         type: string
   push:
     branches:
@@ -163,17 +163,14 @@ jobs:
         id: release
         shell: pwsh
         run: |
-          if ("${{ github.ref_type }}" -eq "tag") {
-            $tag = "${{ github.ref_name }}"
-          } elseif ("${{ github.event_name }}" -eq "workflow_dispatch") {
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
             $tag = "${{ inputs.release_tag }}"
           } else {
-            $tag = "v0.3.2-pilot"
+            $tag = "v0.3.1-pilot"
           }
           "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
-      - name: Publish public GitHub Release
-        id: publish
+      - name: Update public Chistovik Release
         if: steps.release.outputs.tag != ''
         shell: bash
         env:
@@ -183,25 +180,14 @@ jobs:
           set -euo pipefail
           mapfile -t assets < <(find release -maxdepth 1 -type f \( -name 'ChistovikSetup*.exe' -o -name 'ChistovikSetup*.exe.sha256' \) -print | sort)
           test "${#assets[@]}" -ge 2
-
-          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" "${assets[@]}" --repo "$GITHUB_REPOSITORY" --clobber
-            gh release edit "$RELEASE_TAG" \
-              --repo "$GITHUB_REPOSITORY" \
-              --draft=false \
-              --prerelease=false \
-              --latest
-          else
-            gh release create "$RELEASE_TAG" "${assets[@]}" \
-              --repo "$GITHUB_REPOSITORY" \
-              --target "$GITHUB_SHA" \
-              --title "Чистовик $RELEASE_TAG" \
-              --generate-notes \
-              --latest
-          fi
-
-          release_state="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,isPrerelease --jq '"\(.isDraft) \(.isPrerelease)"')"
-          test "$release_state" = "false false"
+          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null
+          gh release upload "$RELEASE_TAG" "${assets[@]}" --repo "$GITHUB_REPOSITORY" --clobber
+          gh release edit "$RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Чистовик 0.3.2" \
+            --draft=false \
+            --prerelease=false \
+            --latest
 
           published_assets="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name')"
           for asset in "${assets[@]}"; do
