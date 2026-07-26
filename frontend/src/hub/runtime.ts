@@ -14,6 +14,7 @@ export interface HubInfo {
     authorized: boolean;
     tokenHeader: string;
     webSocketSubprotocol: string;
+    mediaQueryParameter: string;
     pairingSupported: boolean;
   };
   capabilities: Record<string, boolean>;
@@ -27,6 +28,7 @@ export interface HubInfo {
 export interface HubConnection {
   baseUrl: string;
   token: string;
+  mediaToken: string;
   workspaceId: string;
   info: HubInfo;
 }
@@ -42,6 +44,7 @@ export interface PairingChallenge {
 
 const SELECTED_HUB_KEY = "paperflow.hub.url";
 const TOKEN_PREFIX = "paperflow.hub.token.";
+const MEDIA_TOKEN_PREFIX = "paperflow.hub.media-token.";
 const DEFAULT_WORKSPACE = "personal";
 
 let activeConnection: HubConnection | null = null;
@@ -104,8 +107,16 @@ function tokenKey(baseUrl: string): string {
   return `${TOKEN_PREFIX}${baseUrl}`;
 }
 
+function mediaTokenKey(baseUrl: string): string {
+  return `${MEDIA_TOKEN_PREFIX}${baseUrl}`;
+}
+
 function readToken(baseUrl: string): string {
   return window.localStorage.getItem(tokenKey(baseUrl)) ?? "";
+}
+
+function readMediaToken(baseUrl: string): string {
+  return window.localStorage.getItem(mediaTokenKey(baseUrl)) ?? "";
 }
 
 function candidateUrls(): string[] {
@@ -151,9 +162,16 @@ export async function probeHub(baseUrl: string): Promise<HubConnection> {
     throw new Error("Обнаружен несовместимый локальный сервис");
   }
 
+  const token = readToken(normalized);
+  const mediaToken = readMediaToken(normalized);
+  if (info.authorization.required && info.authorization.authorized && (!token || !mediaToken)) {
+    info.authorization.authorized = false;
+  }
+
   const connection: HubConnection = {
     baseUrl: normalized,
-    token: readToken(normalized),
+    token,
+    mediaToken,
     workspaceId: info.workspace.id || DEFAULT_WORKSPACE,
     info,
   };
@@ -218,8 +236,9 @@ export async function finishPairing(
     const body = await response.json().catch(() => null);
     throw new Error(body?.detail ?? "Код подключения не принят");
   }
-  const body = (await response.json()) as { token: string };
+  const body = (await response.json()) as { token: string; mediaToken: string };
   window.localStorage.setItem(tokenKey(connection.baseUrl), body.token);
+  window.localStorage.setItem(mediaTokenKey(connection.baseUrl), body.mediaToken);
   return probeHub(connection.baseUrl);
 }
 
@@ -231,6 +250,7 @@ export function getActiveHub(): HubConnection {
 export function clearHubConnection(): void {
   if (activeConnection) {
     window.localStorage.removeItem(tokenKey(activeConnection.baseUrl));
+    window.localStorage.removeItem(mediaTokenKey(activeConnection.baseUrl));
   }
   activeConnection = null;
   window.localStorage.removeItem(SELECTED_HUB_KEY);
