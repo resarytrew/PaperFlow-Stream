@@ -1,4 +1,4 @@
-name: Build Personal Hub
+name: Build Chistovik
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
       release_tag:
         description: "GitHub Release tag; leave empty to build artifact only"
         required: false
-        default: "v0.3.1-pilot"
+        default: "v0.3.2-pilot"
         type: string
   push:
     branches:
@@ -44,7 +44,7 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Build PaperFlow Web assets
+      - name: Build Chistovik web assets
         working-directory: frontend
         env:
           VITE_PAPERFLOW_UI_MODE: cloud
@@ -53,27 +53,27 @@ jobs:
           npm ci
           npm run build
 
-      - name: Install Hub and packaging dependencies
+      - name: Install Chistovik and packaging dependencies
         working-directory: backend
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-desktop.txt
 
-      - name: Run Hybrid Hub security tests
+      - name: Run Chistovik security tests
         working-directory: backend
         env:
           PAPERFLOW_DATA_DIR: ${{ runner.temp }}\paperflow-tests
         run: python -m pytest tests/test_hybrid_hub.py tests/test_hybrid_hub_media.py tests/test_security_backup_recovery.py tests/test_desktop_host.py
 
-      - name: Build desktop Hub
+      - name: Build desktop Chistovik
         run: python -m PyInstaller packaging/windows/PaperFlowHub.spec --noconfirm --clean
 
-      - name: Smoke-test packaged windowed Hub
+      - name: Smoke-test packaged windowed Chistovik
         shell: pwsh
         run: |
-          $smokeData = Join-Path $env:RUNNER_TEMP "paperflow-packaged-smoke"
+          $smokeData = Join-Path $env:RUNNER_TEMP "chistovik-packaged-smoke"
           $arguments = "--web-url http://127.0.0.1:17841 --data-dir `"$smokeData`""
-          $process = Start-Process -FilePath "dist\PaperFlowHub\PaperFlowHub.exe" -ArgumentList $arguments -PassThru
+          $process = Start-Process -FilePath "dist\Chistovik\Chistovik.exe" -ArgumentList $arguments -PassThru
           $ready = $false
           try {
             for ($attempt = 0; $attempt -lt 80; $attempt++) {
@@ -81,7 +81,7 @@ jobs:
               if ($process.HasExited) { break }
               try {
                 $health = Invoke-RestMethod -Uri "http://127.0.0.1:17841/api/health" -TimeoutSec 1
-                if ($health.product -eq "PaperFlow Hub") {
+                if ($health.product -in @("Чистовик", "PaperFlow Hub")) {
                   $ready = $true
                   break
                 }
@@ -90,23 +90,23 @@ jobs:
             if (-not $ready) {
               $log = Join-Path $smokeData "logs\hub.log"
               if (Test-Path $log) { Get-Content $log }
-              if ($process.HasExited) { throw "Packaged Hub exited with code $($process.ExitCode)" }
-              throw "Packaged Hub did not become healthy"
+              if ($process.HasExited) { throw "Packaged Chistovik exited with code $($process.ExitCode)" }
+              throw "Packaged Chistovik did not become healthy"
             }
           } finally {
             if (-not $process.HasExited) { Stop-Process -Id $process.Id -Force }
           }
 
-      - name: Optionally sign Hub executable
+      - name: Optionally sign Chistovik executable
         shell: pwsh
         env:
           WINDOWS_CERTIFICATE_BASE64: ${{ secrets.WINDOWS_CERTIFICATE_BASE64 }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
         run: |
           if ($env:WINDOWS_CERTIFICATE_BASE64) {
-            $certificate = Join-Path $env:RUNNER_TEMP "paperflow-signing.pfx"
+            $certificate = Join-Path $env:RUNNER_TEMP "chistovik-signing.pfx"
             [IO.File]::WriteAllBytes($certificate, [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE_BASE64))
-            & signtool sign /fd SHA256 /td SHA256 /tr http://timestamp.digicert.com /f $certificate /p $env:WINDOWS_CERTIFICATE_PASSWORD dist\PaperFlowHub\PaperFlowHub.exe
+            & signtool sign /fd SHA256 /td SHA256 /tr http://timestamp.digicert.com /f $certificate /p $env:WINDOWS_CERTIFICATE_PASSWORD dist\Chistovik\Chistovik.exe
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           } else {
             Write-Host "Signing secrets are not configured; producing an unsigned pilot installer."
@@ -128,11 +128,11 @@ jobs:
           WINDOWS_CERTIFICATE_BASE64: ${{ secrets.WINDOWS_CERTIFICATE_BASE64 }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
         run: |
-          $installer = Get-ChildItem release\PaperFlowHubSetup-*.exe | Select-Object -First 1
+          $installer = Get-ChildItem release\ChistovikSetup-*.exe | Select-Object -First 1
           if (-not $installer) { throw "Installer was not produced" }
 
           if ($env:WINDOWS_CERTIFICATE_BASE64) {
-            $certificate = Join-Path $env:RUNNER_TEMP "paperflow-signing.pfx"
+            $certificate = Join-Path $env:RUNNER_TEMP "chistovik-signing.pfx"
             & signtool sign /fd SHA256 /td SHA256 /tr http://timestamp.digicert.com /f $certificate /p $env:WINDOWS_CERTIFICATE_PASSWORD $installer.FullName
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
@@ -140,17 +140,17 @@ jobs:
           $versionedHash = (Get-FileHash $installer.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
           "$versionedHash  $($installer.Name)" | Set-Content "$($installer.FullName).sha256"
 
-          $stableInstaller = Join-Path $installer.DirectoryName "PaperFlowHubSetup.exe"
+          $stableInstaller = Join-Path $installer.DirectoryName "ChistovikSetup.exe"
           Copy-Item $installer.FullName $stableInstaller -Force
           $stableHash = (Get-FileHash $stableInstaller -Algorithm SHA256).Hash.ToLowerInvariant()
-          "$stableHash  PaperFlowHubSetup.exe" | Set-Content "$stableInstaller.sha256"
+          "$stableHash  ChistovikSetup.exe" | Set-Content "$stableInstaller.sha256"
 
       - uses: actions/upload-artifact@v7
         with:
-          name: PaperFlowHub-Windows
+          name: Chistovik-Windows
           path: |
-            release/PaperFlowHubSetup*.exe
-            release/PaperFlowHubSetup*.exe.sha256
+            release/ChistovikSetup*.exe
+            release/ChistovikSetup*.exe.sha256
           if-no-files-found: error
 
       - name: Resolve release tag
@@ -162,21 +162,20 @@ jobs:
           } elseif ("${{ github.event_name }}" -eq "workflow_dispatch") {
             $tag = "${{ inputs.release_tag }}"
           } else {
-            $tag = "v0.3.1-pilot"
+            $tag = "v0.3.2-pilot"
           }
           "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
       - name: Publish public GitHub Release
         id: publish
         if: steps.release.outputs.tag != ''
-        continue-on-error: true
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.PAPERFLOW_RELEASE_TOKEN || github.token }}
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
           set -euo pipefail
-          mapfile -t assets < <(find release -maxdepth 1 -type f \( -name 'PaperFlowHubSetup*.exe' -o -name 'PaperFlowHubSetup*.exe.sha256' \) -print | sort)
+          mapfile -t assets < <(find release -maxdepth 1 -type f \( -name 'ChistovikSetup*.exe' -o -name 'ChistovikSetup*.exe.sha256' \) -print | sort)
           test "${#assets[@]}" -ge 2
 
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
@@ -190,7 +189,7 @@ jobs:
             gh release create "$RELEASE_TAG" "${assets[@]}" \
               --repo "$GITHUB_REPOSITORY" \
               --target "$GITHUB_SHA" \
-              --title "PaperFlow Hub $RELEASE_TAG" \
+              --title "Чистовик $RELEASE_TAG" \
               --generate-notes \
               --latest
           fi
@@ -202,9 +201,3 @@ jobs:
           for asset in "${assets[@]}"; do
             grep -Fx "$(basename "$asset")" <<< "$published_assets" >/dev/null
           done
-
-      - name: Explain optional Release failure
-        if: steps.release.outputs.tag != '' && steps.publish.outcome == 'failure'
-        shell: pwsh
-        run: |
-          Write-Host "::warning title=Installer built; public Release not updated::The tested installer remains available as the PaperFlowHub-Windows workflow artifact. For workflow-changing target commits, add PAPERFLOW_RELEASE_TOKEN with Contents: write and Workflows: write, then rerun."
