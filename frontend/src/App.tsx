@@ -9,6 +9,7 @@ import ReviewPage from "./pages/ReviewPage";
 import SummaryPage from "./pages/SummaryPage";
 import CalibrationPage from "./pages/CalibrationPage";
 import SettingsPage from "./pages/SettingsPage";
+import { useHub } from "./hub/HubProvider";
 
 const links = [
   { to: "/dashboard", label: "Главная" },
@@ -20,18 +21,28 @@ const links = [
 ];
 
 export default function App() {
+  const hub = useHub();
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
         <div className="brand">
-          Paper<span>Flow</span> Stream
+          Paper<span>Flow</span> Web
         </div>
         {links.map((l) => (
           <NavLink key={l.to} to={l.to} className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>
             {l.label}
           </NavLink>
         ))}
-        <div className="footer">Локальная система потокового сканирования. Данные не покидают этот компьютер.</div>
+        <div className="footer">
+          <div style={{ marginBottom: 8 }}>
+            Hub {hub.connection?.info.version} · {hub.connection?.info.deploymentMode === "school" ? "школьный" : "персональный"}
+          </div>
+          <div>Данные учеников обрабатываются и хранятся локально.</div>
+          <button className="btn small mt" onClick={hub.disconnect}>
+            Отключить Hub
+          </button>
+        </div>
       </aside>
       <main className="main">
         <Routes>
