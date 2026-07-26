@@ -1,6 +1,6 @@
-/** Thin fetch wrapper around the local FastAPI backend. */
+/** API client bound to the discovered local PaperFlow Hub. */
 
-const BASE = "/api";
+import { buildHubHeaders, getActiveHub } from "../hub/runtime";
 
 export class ApiError extends Error {
   status: number;
@@ -8,6 +8,11 @@ export class ApiError extends Error {
     super(message);
     this.status = status;
   }
+}
+
+function apiUrl(path: string): string {
+  const hub = getActiveHub();
+  return `${hub.baseUrl}/api${path}`;
 }
 
 async function handle<T>(response: Response): Promise<T> {
@@ -25,35 +30,49 @@ async function handle<T>(response: Response): Promise<T> {
   return (await response.json()) as T;
 }
 
+function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers = buildHubHeaders(init?.headers);
+  return fetch(apiUrl(path), {
+    ...init,
+    mode: "cors",
+    cache: "no-store",
+    headers,
+  }).then((response) => handle<T>(response));
+}
+
 export const api = {
-  get: <T>(path: string) => fetch(`${BASE}${path}`).then((r) => handle<T>(r)),
+  get: <T>(path: string) => request<T>(path),
 
   post: <T>(path: string, body?: unknown) =>
-    fetch(`${BASE}${path}`, {
+    request<T>(path, {
       method: "POST",
       headers: body !== undefined ? { "Content-Type": "application/json" } : undefined,
       body: body !== undefined ? JSON.stringify(body) : undefined,
-    }).then((r) => handle<T>(r)),
+    }),
 
   patch: <T>(path: string, body: unknown) =>
-    fetch(`${BASE}${path}`, {
+    request<T>(path, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
-    }).then((r) => handle<T>(r)),
+    }),
 
   put: <T>(path: string, body: unknown) =>
-    fetch(`${BASE}${path}`, {
+    request<T>(path, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
-    }).then((r) => handle<T>(r)),
+    }),
 
-  delete: (path: string) => fetch(`${BASE}${path}`, { method: "DELETE" }).then((r) => handle<void>(r)),
+  delete: (path: string) => request<void>(path, { method: "DELETE" }),
 
-  /** Download a binary endpoint and trigger the browser "save file" flow. */
+  /** Download a binary endpoint and trigger the browser save-file flow. */
   async download(path: string, fallbackName: string): Promise<void> {
-    const response = await fetch(`${BASE}${path}`);
+    const response = await fetch(apiUrl(path), {
+      mode: "cors",
+      cache: "no-store",
+      headers: buildHubHeaders(),
+    });
     if (!response.ok) {
       let detail = response.statusText;
       try {
@@ -79,12 +98,23 @@ export const api = {
   },
 };
 
-/** Build the WebSocket URL for a given API path (works through the Vite proxy). */
+/** Build a token-bound WebSocket URL for the local Hub. */
 export function wsUrl(path: string): string {
-  const proto = window.location.protocol === "https:" ? "wss" : "ws";
-  return `${proto}://${window.location.host}${BASE}${path}`;
+  const hub = getActiveHub();
+  const url = new URL(`${hub.baseUrl}/api${path}`);
+  url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
+  url.searchParams.set("workspace", hub.workspaceId);
+  if (hub.token) url.searchParams.set("hub_token", hub.token);
+  return url.toString();
 }
 
-export function sheetImageUrl(sheetId: number, kind: "source" | "normalized" | "enhanced" | "answer" | "thumbnail" | "qr"): string {
-  return `${BASE}/sheets/${sheetId}/image/${kind}`;
+export function sheetImageUrl(
+  sheetId: number,
+  kind: "source" | "normalized" | "enhanced" | "answer" | "thumbnail" | "qr",
+): string {
+  const hub = getActiveHub();
+  const url = new URL(`${hub.baseUrl}/api/sheets/${sheetId}/image/${kind}`);
+  url.searchParams.set("workspace", hub.workspaceId);
+  if (hub.token) url.searchParams.set("hub_token", hub.token);
+  return url.toString();
 }
