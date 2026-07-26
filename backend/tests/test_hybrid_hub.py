@@ -291,5 +291,5 @@ def test_school_mode_cannot_be_enabled_before_tenant_schema(tmp_path):
     with pytest.raises(ValidationError):
         _settings(tmp_path, hub_mode="school", hub_school_tenancy_enabled=False)
 
-    settings = _settings(tmp_path, hub_mode="school", hub_school_tenancy_enabled=True)
-    assert settings.hub_mode == "school"
+    with pytest.raises(ValidationError):
+        _settings(tmp_path, hub_mode="school", hub_school_tenancy_enabled=True)
