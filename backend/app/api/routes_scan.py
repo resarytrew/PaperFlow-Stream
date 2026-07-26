@@ -64,7 +64,8 @@ async def scan_socket(websocket: WebSocket, session_id: int) -> None:
     """Receive frames from the browser, return state + overlay data.
 
     Protocol (client → server):
-        {"type": "frame", "image": "data:image/jpeg;base64,..."}
+        raw JPEG/PNG/WebP bytes (preferred binary transport)
+        {"type": "frame", "image": "data:image/jpeg;base64,..."}  # legacy
         {"type": "pause"} / {"type": "resume"} / {"type": "reset"}
         {"type": "diagnostics", "enabled": true}
     Server → client:
@@ -87,8 +88,6 @@ async def scan_socket(websocket: WebSocket, session_id: int) -> None:
         await websocket.close()
         return
 
-    busy = False
-
     try:
         while True:
             message = await websocket.receive()
@@ -101,7 +100,7 @@ async def scan_socket(websocket: WebSocket, session_id: int) -> None:
             if binary is not None:
                 # Optimised transport: raw encoded image bytes (no base64 overhead).
                 # Existing clients that send a JSON frame keep working unchanged.
-                if busy:
+                if runtime.processing:
                     await websocket.send_json({"type": "busy"})
                     continue
                 try:
@@ -146,8 +145,8 @@ async def scan_socket(websocket: WebSocket, session_id: int) -> None:
                 if kind != "frame":
                     continue
 
-                if busy:
-                    # Drop frames while a sheet is being persisted – keeps the UI fluid.
+                if runtime.processing:
+                    # Drop frames while another tab/call analyses or persists this runtime.
                     await websocket.send_json({"type": "busy"})
                     continue
 
@@ -161,52 +160,57 @@ async def scan_socket(websocket: WebSocket, session_id: int) -> None:
                 continue
 
             # ---------------------------------------------------------- common path
-            try:
-                decision, overlay = await asyncio.to_thread(scan_service.analyse_frame, runtime, frame)
-            except Exception as exc:  # one bad frame must never kill the stream
-                logger.exception("frame analysis failed")
-                await websocket.send_json({"type": "error", "message": f"analysis failed: {exc}"})
+            if runtime.processing:
+                await websocket.send_json({"type": "busy"})
                 continue
 
-            payload = {
-                "type": "state",
-                **decision.to_dict(),
-                "overlay": overlay,
-                "counters": runtime.counters,
-                "speed": round(runtime.average_speed(), 2),
-            }
-            await websocket.send_json(payload)
-
-            if decision.action == DecisionAction.PROCESS_BEST:
-                busy = True
+            runtime.processing = True
+            try:
                 try:
-                    outcome = await asyncio.to_thread(_process_sheet, session_id, runtime)
-                except Exception as exc:
-                    logger.exception("sheet processing failed")
-                    runtime.machine.notify_warning("processing_error")
-                    await websocket.send_json({"type": "error", "message": str(exc)})
-                    busy = False
-                    continue
-                busy = False
-
-                if outcome is None:
+                    decision, overlay = await asyncio.to_thread(scan_service.analyse_frame, runtime, frame)
+                except Exception as exc:  # one bad frame must never kill the stream
+                    logger.exception("frame analysis failed")
+                    await websocket.send_json({"type": "error", "message": f"analysis failed: {exc}"})
                     continue
 
-                if outcome["success"]:
-                    runtime.machine.notify_success()
-                else:
-                    runtime.machine.notify_warning(outcome.get("reason") or "warning")
+                payload = {
+                    "type": "state",
+                    **decision.to_dict(),
+                    "overlay": overlay,
+                    "counters": runtime.counters,
+                    "speed": round(runtime.average_speed(), 2),
+                }
+                await websocket.send_json(payload)
 
-                await websocket.send_json(
-                    {
-                        "type": "scan_result",
-                        "result": outcome,
-                        "counters": runtime.counters,
-                        "speed": round(runtime.average_speed(), 2),
-                        "state": runtime.machine.state.value,
-                        "prompt": "ЛИСТ ПРИНЯТ" if outcome["success"] else "ПОВТОРИТЕ ПОДАЧУ",
-                    }
-                )
+                if decision.action == DecisionAction.PROCESS_BEST:
+                    try:
+                        outcome = await asyncio.to_thread(_process_sheet, session_id, runtime)
+                    except Exception as exc:
+                        logger.exception("sheet processing failed")
+                        runtime.machine.notify_warning("processing_error")
+                        await websocket.send_json({"type": "error", "message": str(exc)})
+                        continue
+
+                    if outcome is None:
+                        continue
+
+                    if outcome["success"]:
+                        runtime.machine.notify_success()
+                    else:
+                        runtime.machine.notify_warning(outcome.get("reason") or "warning")
+
+                    await websocket.send_json(
+                        {
+                            "type": "scan_result",
+                            "result": outcome,
+                            "counters": runtime.counters,
+                            "speed": round(runtime.average_speed(), 2),
+                            "state": runtime.machine.state.value,
+                            "prompt": "ЛИСТ ПРИНЯТ" if outcome["success"] else "ПОВТОРИТЕ ПОДАЧУ",
+                        }
+                    )
+            finally:
+                runtime.processing = False
     except WebSocketDisconnect:
         logger.info("scan socket for session %s disconnected", session_id)
     except Exception:  # pragma: no cover
@@ -251,6 +255,7 @@ def get_scan_state(session_id: int, db: DbSession) -> dict:
         "speed": round(runtime.average_speed(), 2),
         "candidates": len(runtime.candidates),
         "diagnostics": runtime.diagnostics_enabled,
+        "processing": runtime.processing,
     }
 
 
@@ -338,7 +343,7 @@ def export_diagnostics(session_id: int, db: DbSession, config: Config) -> dict:
 
 
 @router.get("/sessions/{session_id}/diagnostics/download")
-def download_diagnostics(session_id: int, db: DbSession) -> Response:
+def download_diagnostics(session_id: int, db: DbSession, config: Config) -> Response:
     """One-click support bundle: recorded frames + logs + config as a ZIP.
 
     The teacher presses one button and gets a file to attach to a support
@@ -349,6 +354,10 @@ def download_diagnostics(session_id: int, db: DbSession) -> Response:
     import zipfile
 
     session = get_session_or_404(db, session_id)
+    if not config.privacy.diagnostics_recording_enabled:
+        raise HTTPException(
+            status_code=403, detail="Запись диагностики отключена в настройках приватности"
+        )
     runtime = scan_service.get_runtime(session_id)
     if runtime is None:
         raise HTTPException(status_code=400, detail="Сессия не активна — нечего выгружать")

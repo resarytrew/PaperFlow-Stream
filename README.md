@@ -27,6 +27,8 @@
 
 ```bash
 # бэкенд
+# Важно: установку зависимостей выполняйте из каталога backend —
+# requirements.txt содержит локальный headless-shim для OpenCV/RapidOCR.
 cd backend
 python -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python -m uvicorn app.main:app --reload --port 8000
@@ -60,9 +62,10 @@ npm run dev            # http://localhost:5173
 cd backend && .venv/bin/python -m pytest
 ```
 
-126 тестов: CV-ядро (детекция, геометрия, качество, QR, окклюзия) и
+160+ тестов: CV-ядро (детекция, геометрия, качество, QR, окклюзия),
 сквозные интеграционные сценарии API/WebSocket на синтетических кадрах
-(захват листа, дубликаты, нечитаемый QR, OCR-очередь, экспорт).
+(захват листа, дубликаты, нечитаемый QR, OCR-очередь, экспорт) и smoke-test
+миграций Alembic для чистой локальной базы.
 
 ## Ограничения
 

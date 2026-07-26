@@ -124,7 +124,11 @@ class SessionRuntime:
         self.diagnostic_frames: list[np.ndarray] = []
         self.yolo_counter = 0
         self.last_yolo_boxes: list[dict] = []
+        self.last_qr_readability = 0.5
+        self.last_qr_readability_frame = -10_000
         self.counters = {"scanned": 0, "errors": 0, "duplicates": 0, "unidentified": 0}
+        # Process-wide per-session frame gate used by the WebSocket layer.
+        # Prevents two browser tabs from mutating the same runtime concurrently.
         self.processing = False
 
     # -------------------------------------------------------------- utilities
@@ -209,6 +213,19 @@ class ScanService:
 
     # ------------------------------------------------------------ frame path
 
+    @staticmethod
+    def _remember_candidate(runtime: SessionRuntime, candidate: Candidate) -> None:
+        """Keep a bounded candidate buffer, replacing the weakest frame if needed."""
+        limit = max(runtime.config.stability.max_candidates, 1)
+        if len(runtime.candidates) < limit:
+            runtime.candidates.append(candidate)
+            return
+        worst_index, worst = min(
+            enumerate(runtime.candidates), key=lambda item: item[1].metrics.quality
+        )
+        if candidate.metrics.quality > worst.metrics.quality:
+            runtime.candidates[worst_index] = candidate
+
     def analyse_frame(self, runtime: SessionRuntime, frame: np.ndarray) -> tuple[Decision, dict]:
         """Analyse one incoming frame and advance the state machine."""
         started = time.perf_counter()
@@ -273,6 +290,21 @@ class ScanService:
                 occlusion_answer = max(occ.answer_region, occ.qr_region * 0.6)
                 occlusion_overall = occ.overall
                 frame_area = float(small.shape[0] * small.shape[1])
+                # Full QR decode is comparatively expensive. Sample it only once
+                # every N frames and reuse the last score for interim quality
+                # overlays; authoritative QR reading still happens on selected
+                # full-resolution candidates in process_best_candidate().
+                every = max(config.stability.qr_readability_every_n_frames, 1)
+                should_sample_qr = (
+                    runtime.frame_index - runtime.last_qr_readability_frame >= every
+                    or (runtime.machine.state == ScanState.SELECTING_BEST_FRAME and not runtime.candidates)
+                )
+                qr_readability = runtime.last_qr_readability
+                if should_sample_qr:
+                    qr_readability = qr_readability_score(warped_small, runtime.qr_region)
+                    runtime.last_qr_readability = qr_readability
+                    runtime.last_qr_readability_frame = runtime.frame_index
+
                 metrics = evaluate_frame(
                     warped_small,
                     weights=config.quality_weights,
@@ -281,7 +313,7 @@ class ScanService:
                     perspective=detection.perspective,
                     motion=motion,
                     occlusion=occlusion_answer,
-                    qr_readability=qr_readability_score(warped_small, runtime.qr_region),
+                    qr_readability=qr_readability,
                     sharpness_reference=config.stability.sharpness_reference,
                 )
             except Exception as exc:
@@ -318,8 +350,9 @@ class ScanService:
             runtime.reset_candidates()
 
         if decision.action in (DecisionAction.COLLECT_CANDIDATE, DecisionAction.PROCESS_BEST):
-            if quad_full is not None and len(runtime.candidates) < config.stability.max_candidates:
-                runtime.candidates.append(
+            if quad_full is not None:
+                self._remember_candidate(
+                    runtime,
                     Candidate(
                         index=runtime.frame_index,
                         frame=frame.copy(),
@@ -327,7 +360,7 @@ class ScanService:
                         metrics=metrics,
                         detection=detection,
                         timestamp_ms=now_ms,
-                    )
+                    ),
                 )
 
         if runtime.diagnostics_enabled and len(runtime.diagnostic_frames) < config.privacy.diagnostics_max_clip_frames:
@@ -497,12 +530,26 @@ class ScanService:
             thumb_path = storage.save_image(normalized.thumbnail, directory / f"thumb-{stamp}.jpg", 80)
 
             answer_crop_path = None
-            if runtime.answer_regions:
-                crop = crop_normalized(normalized.color, runtime.answer_regions[0])
-                if crop.size > 0:
-                    answer_crop_path = storage.save_image(
-                        crop, directory / f"answer-{stamp}.jpg", config.normalization.jpeg_quality
-                    )
+            answer_crops_json: list[dict] = []
+            for region_index, region in enumerate(runtime.answer_regions):
+                crop = crop_normalized(normalized.color, region)
+                if crop.size <= 0:
+                    continue
+                label = str(region.get("label") or f"answer-{region_index + 1}")
+                suffix = "answer" if region_index == 0 else f"answer-{region_index + 1}"
+                crop_path = storage.save_image(
+                    crop, directory / f"{suffix}-{stamp}.jpg", config.normalization.jpeg_quality
+                )
+                if answer_crop_path is None:
+                    answer_crop_path = crop_path
+                answer_crops_json.append(
+                    {
+                        "index": region_index,
+                        "label": label,
+                        "path": crop_path,
+                        "region": dict(region),
+                    }
+                )
         except Exception as exc:
             logger.exception("storage failure")
             runtime.counters["errors"] += 1
@@ -511,7 +558,10 @@ class ScanService:
 
         sequence = int(
             db.execute(
-                select(func.count(ScannedSheet.id)).where(ScannedSheet.session_id == session.id)
+                select(func.count(ScannedSheet.id)).where(
+                    ScannedSheet.session_id == session.id,
+                    ScannedSheet.scan_status != ScanStatus.deleted.value,
+                )
             ).scalar_one()
             or 0
         ) + 1
@@ -527,6 +577,7 @@ class ScanService:
             normalized_image_path=normalized_path,
             enhanced_image_path=enhanced_path,
             answer_crop_path=answer_crop_path,
+            answer_crops_json=answer_crops_json or None,
             thumbnail_path=thumb_path,
             qr_payload=payload.to_dict() if payload else None,
             qr_status=qr_status,

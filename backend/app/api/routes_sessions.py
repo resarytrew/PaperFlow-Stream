@@ -503,6 +503,11 @@ def reprocess_sheet(sheet_id: int, db: DbSession, config: Config) -> ScannedShee
 def delete_sheet(sheet_id: int, db: DbSession, purge: bool = False) -> None:
     sheet = get_sheet_or_404(db, sheet_id)
     if purge:
+        extra_answer_paths = [
+            item.get("path")
+            for item in (sheet.answer_crops_json or [])
+            if isinstance(item, dict)
+        ]
         get_storage().delete_paths(
             [
                 sheet.source_frame_path,
@@ -510,6 +515,7 @@ def delete_sheet(sheet_id: int, db: DbSession, purge: bool = False) -> None:
                 sheet.enhanced_image_path,
                 sheet.answer_crop_path,
                 sheet.thumbnail_path,
+                *extra_answer_paths,
             ]
         )
         db.delete(sheet)
@@ -529,9 +535,19 @@ def get_sheet_image(sheet_id: int, kind: str, db: DbSession) -> FileResponse:
         "answer": sheet.answer_crop_path,
         "thumbnail": sheet.thumbnail_path,
     }
-    if kind not in mapping:
-        raise HTTPException(status_code=400, detail=f"Неизвестный тип изображения: {kind}")
-    relative = mapping[kind]
+    if kind.startswith("answer-"):
+        try:
+            answer_index = int(kind.removeprefix("answer-")) - 1
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=f"Неизвестный тип изображения: {kind}") from exc
+        crops = sheet.answer_crops_json or []
+        relative = None
+        if 0 <= answer_index < len(crops) and isinstance(crops[answer_index], dict):
+            relative = crops[answer_index].get("path")
+    else:
+        if kind not in mapping:
+            raise HTTPException(status_code=400, detail=f"Неизвестный тип изображения: {kind}")
+        relative = mapping[kind]
     if not relative:
         raise HTTPException(status_code=404, detail="Изображение отсутствует")
     try:

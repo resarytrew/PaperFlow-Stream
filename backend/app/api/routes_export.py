@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from urllib.parse import quote
 
 from fastapi import APIRouter, HTTPException, Query, Response
@@ -266,7 +266,7 @@ def dashboard(db: DbSession) -> DashboardOut:
     # Average speed across today's sessions.
     average_speed = 0.0
     today_sessions = db.execute(
-        select(ScanSession).where(ScanSession.created_at >= midnight - timedelta(days=1))
+        select(ScanSession).where(ScanSession.created_at >= midnight)
     ).scalars().all()
     speeds: list[float] = []
     for session in today_sessions:
