@@ -5,6 +5,7 @@ import App from "./App";
 import { installHubWebSocketAuth } from "./api/client";
 import { HubConnectionGate, HubProvider } from "./hub/HubProvider";
 import "./styles.css";
+import "./chistovik-theme.css";
 
 installHubWebSocketAuth();
 
