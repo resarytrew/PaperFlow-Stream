@@ -48,7 +48,7 @@ jobs:
         working-directory: backend
         env:
           PAPERFLOW_DATA_DIR: ${{ runner.temp }}\paperflow-tests
-        run: python -m pytest tests/test_hybrid_hub.py tests/test_hybrid_hub_media.py tests/test_security_backup_recovery.py
+        run: python -m pytest tests/test_hybrid_hub.py tests/test_hybrid_hub_media.py tests/test_security_backup_recovery.py tests/test_desktop_host.py
 
       - name: Build desktop Hub
         run: python -m PyInstaller packaging/windows/PaperFlowHub.spec --noconfirm --clean
