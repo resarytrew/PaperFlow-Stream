@@ -42,7 +42,7 @@ def test_settings_never_return_api_key_and_blank_patch_preserves_it(api_client):
     assert secret not in response.text
 
 
-def test_backup_is_consistent_and_manifest_is_redacted(api_client):
+def test_backup_is_consistent_and_manifest_is_redacted(api_client, tmp_path):
     secret = "backup-secret-must-not-leak"
     response = api_client.patch("/api/settings", json={"vision_ocr": {"api_key": secret}})
     assert response.status_code == 200
@@ -59,12 +59,18 @@ def test_backup_is_consistent_and_manifest_is_redacted(api_client):
         assert manifest["config"]["vision_ocr"]["api_key"] == ""
         assert manifest["config"]["vision_ocr"]["api_key_configured"] is True
 
-        database = io.BytesIO(archive.read("paperflow.db"))
-        # sqlite3 cannot open BytesIO directly; materialise through deserialize
-        connection = sqlite3.connect(":memory:")
-        connection.deserialize(database.getvalue())
-        tables = {row[0] for row in connection.execute("select name from sqlite_master where type='table'")}
-        connection.close()
+        # Validate the exact exported bytes through an ordinary file-backed
+        # connection. sqlite3.Connection.deserialize() behaves differently on
+        # Windows when the source database uses WAL-compatible header flags.
+        database_path = tmp_path / "restored-paperflow.db"
+        database_path.write_bytes(archive.read("paperflow.db"))
+        with sqlite3.connect(database_path) as connection:
+            tables = {
+                row[0]
+                for row in connection.execute(
+                    "select name from sqlite_master where type='table'"
+                )
+            }
         assert "scan_sessions" in tables
         assert "app_settings" in tables
 
