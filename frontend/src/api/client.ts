@@ -2,6 +2,8 @@
 
 import { buildHubHeaders, getActiveHub } from "../hub/runtime";
 
+const WS_AUTH_PREFIX = "paperflow-auth.";
+
 export class ApiError extends Error {
   status: number;
   constructor(status: number, message: string) {
@@ -98,14 +100,19 @@ export const api = {
   },
 };
 
-/** Build a token-bound WebSocket URL for the local Hub. */
+/** Build a WebSocket URL without credentials in the query string. */
 export function wsUrl(path: string): string {
   const hub = getActiveHub();
   const url = new URL(`${hub.baseUrl}/api${path}`);
   url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
   url.searchParams.set("workspace", hub.workspaceId);
-  if (hub.token) url.searchParams.set("hub_token", hub.token);
   return url.toString();
+}
+
+/** Carry the bearer token in a WebSocket subprotocol header, not access logs. */
+export function wsProtocols(): string[] {
+  const hub = getActiveHub();
+  return hub.token ? ["paperflow.v1", `${WS_AUTH_PREFIX}${hub.token}`] : ["paperflow.v1"];
 }
 
 export function sheetImageUrl(
