@@ -8,7 +8,7 @@ OCR → проверка учителем → экспорт.
 
 PaperFlow разделён на два контура:
 
-- **PaperFlow Web** — браузерный/PWA-интерфейс, который можно разместить в Yandex Cloud;
+- **PaperFlow Web** — браузерный/PWA-интерфейс, который можно разместить в Vercel или Yandex Cloud;
 - **PaperFlow Hub** — локальный FastAPI/OpenCV/OCR-сервис на компьютере учителя или в школьной сети.
 
 ФИО, классы, изображения листов, OCR-текст, ответы и оценки обрабатываются только
@@ -17,7 +17,11 @@ PaperFlow разделён на два контура:
 сопряжение по шестизначному коду; API- и media-токены разделены, хешируются и
 привязываются к браузерному клиенту и рабочему пространству.
 
-Подробное описание: [`docs/HYBRID_HUB_ARCHITECTURE.md`](docs/HYBRID_HUB_ARCHITECTURE.md).
+Документация:
+
+- [`docs/HYBRID_HUB_ARCHITECTURE.md`](docs/HYBRID_HUB_ARCHITECTURE.md) — архитектура и фундамент School Hub;
+- [`docs/VERCEL_DEPLOYMENT.md`](docs/VERCEL_DEPLOYMENT.md) — пилотный deploy PaperFlow Web на Vercel;
+- [`deploy/yandex-cloud/README.md`](deploy/yandex-cloud/README.md) — статический deploy в Yandex Cloud.
 
 ## Быстрый локальный запуск
 
@@ -114,6 +118,31 @@ npm run build
 сети и подключиться к локальному HTTP Hub. Локально доверенный HTTPS остаётся
 рекомендуемым вариантом для максимальной совместимости и для School Hub в LAN.
 
+### Пилотный deploy на Vercel
+
+Репозиторий подготовлен для статического Vercel-проекта:
+
+```text
+Root Directory: frontend
+Framework: Vite
+Install: npm ci
+Build: npm run build
+Output: dist
+Node.js: 22.x
+```
+
+`frontend/vercel.json` содержит SPA fallback, cache policy и security headers, а
+`frontend/.env.production` — безопасные публичные настройки поиска локального Hub.
+Backend и ученические данные на Vercel не разворачиваются.
+
+После deploy сохрани точный production Origin в Hub:
+
+```powershell
+PaperFlowHub.exe --set-web-url "https://paperflow-stream.vercel.app"
+```
+
+Полная инструкция: [`docs/VERCEL_DEPLOYMENT.md`](docs/VERCEL_DEPLOYMENT.md).
+
 ## Подготовка к School Hub
 
 API уже использует стабильный контракт `X-PaperFlow-Workspace` и request context
@@ -155,5 +184,7 @@ request. Отдельный workflow собирает Windows installer вруч
 - Репозиторий содержит сборочный pipeline установщика, но готовый подписанный
   релиз появляется только после успешного запуска release workflow и настройки
   сертификата подписи.
+- Production URL Vercel или другого web-хостинга должен быть явно разрешён в
+  PaperFlow Hub; wildcard Origins запрещены архитектурой.
 - Развёртывание статического frontend в конкретном аккаунте Yandex Cloud требует
   bucket/domain/CDN credentials владельца инфраструктуры.
