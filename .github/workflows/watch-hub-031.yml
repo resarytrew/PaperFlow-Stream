@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
-      TARGET_SHA: 91d9f368c975d5f4b46f57deb0e1fb69d60d2f5f
+      TARGET_SHA: a7681e5eaa5b9e1c41527e48047175cc1a0e9010
     steps:
       - uses: actions/checkout@v6
         with:
