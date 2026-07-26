@@ -1,0 +1,117 @@
+name: Diagnose Personal Hub
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/diagnose-personal-hub.yml
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose-windows-installer:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Prepare diagnostics
+        shell: pwsh
+        run: New-Item -ItemType Directory -Force ci-diagnostics | Out-Null
+
+      - name: Build frontend
+        id: frontend
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          Push-Location frontend
+          try {
+            npm ci *>&1 | Tee-Object ..\ci-diagnostics\01-npm-ci.log
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            npm run build *>&1 | Tee-Object ..\ci-diagnostics\02-frontend-build.log
+            exit $LASTEXITCODE
+          } finally { Pop-Location }
+
+      - name: Install backend dependencies
+        id: dependencies
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          Push-Location backend
+          try {
+            python -m pip install --upgrade pip *>&1 | Tee-Object ..\ci-diagnostics\03-pip-upgrade.log
+            pip install -r requirements-desktop.txt *>&1 | Tee-Object ..\ci-diagnostics\04-pip-install.log
+            exit $LASTEXITCODE
+          } finally { Pop-Location }
+
+      - name: Run focused tests
+        id: tests
+        continue-on-error: true
+        if: steps.dependencies.outcome == 'success'
+        shell: pwsh
+        env:
+          PAPERFLOW_DATA_DIR: ${{ runner.temp }}\paperflow-tests
+        run: |
+          Push-Location backend
+          try {
+            python -m pytest tests/test_hybrid_hub.py tests/test_hybrid_hub_media.py tests/test_security_backup_recovery.py tests/test_desktop_host.py -vv *>&1 | Tee-Object ..\ci-diagnostics\05-tests.log
+            exit $LASTEXITCODE
+          } finally { Pop-Location }
+
+      - name: Build PyInstaller bundle
+        id: pyinstaller
+        continue-on-error: true
+        if: steps.dependencies.outcome == 'success' && steps.frontend.outcome == 'success'
+        shell: pwsh
+        run: |
+          python -m PyInstaller packaging/windows/PaperFlowHub.spec --noconfirm --clean *>&1 | Tee-Object ci-diagnostics\06-pyinstaller.log
+          exit $LASTEXITCODE
+
+      - name: Install Inno Setup
+        id: inno
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          choco install innosetup --no-progress -y *>&1 | Tee-Object ci-diagnostics\07-inno-install.log
+          exit $LASTEXITCODE
+
+      - name: Build installer
+        id: installer
+        continue-on-error: true
+        if: steps.pyinstaller.outcome == 'success' && steps.inno.outcome == 'success'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force release | Out-Null
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" packaging\windows\PaperFlowHub.iss *>&1 | Tee-Object ci-diagnostics\08-inno-build.log
+          exit $LASTEXITCODE
+
+      - name: Write summary
+        shell: pwsh
+        run: |
+          @"
+          frontend=${{ steps.frontend.outcome }}
+          dependencies=${{ steps.dependencies.outcome }}
+          tests=${{ steps.tests.outcome }}
+          pyinstaller=${{ steps.pyinstaller.outcome }}
+          inno=${{ steps.inno.outcome }}
+          installer=${{ steps.installer.outcome }}
+          run=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          "@ | Set-Content ci-diagnostics\summary.txt
+
+      - name: Commit diagnostics
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ci-diagnostics
+          git commit -m "ci: record Personal Hub diagnostic logs"
+          git push origin HEAD:main
