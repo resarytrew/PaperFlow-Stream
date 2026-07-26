@@ -1,6 +1,5 @@
 @echo off
 rem PaperFlow Hybrid Hub - one-command development launcher for Windows.
-rem Production cloud pairing requires the signed installer and trusted HTTPS.
 
 setlocal
 cd /d "%~dp0"
@@ -38,7 +37,8 @@ echo [PaperFlow] Personal Hub: http://localhost:%PAPERFLOW_PORT%
 start "" /b cmd /c "timeout /t 2 >nul & start http://localhost:%PAPERFLOW_PORT%"
 
 cd backend
-.venv\Scripts\python -m uvicorn app.main:app --host 127.0.0.1 --port %PAPERFLOW_PORT%
+rem Access log is disabled so read-only media tokens never enter URL logs.
+.venv\Scripts\python -m uvicorn app.main:app --host 127.0.0.1 --port %PAPERFLOW_PORT% --no-access-log
 goto :eof
 
 :install_backend_deps
