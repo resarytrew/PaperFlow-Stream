@@ -3,6 +3,7 @@
 import { buildHubHeaders, getActiveHub } from "../hub/runtime";
 
 const WS_AUTH_PREFIX = "paperflow-auth.";
+let webSocketAuthInstalled = false;
 
 export class ApiError extends Error {
   status: number;
@@ -113,6 +114,49 @@ export function wsUrl(path: string): string {
 export function wsProtocols(): string[] {
   const hub = getActiveHub();
   return hub.token ? ["paperflow.v1", `${WS_AUTH_PREFIX}${hub.token}`] : ["paperflow.v1"];
+}
+
+/**
+ * Existing scanner pages construct the native WebSocket directly. Install a
+ * narrow adapter that adds Hub protocols only for the active Hub origin. Other
+ * WebSocket traffic is left untouched. This keeps credentials out of URLs while
+ * the UI migrates incrementally to an explicit transport factory.
+ */
+export function installHubWebSocketAuth(): void {
+  if (webSocketAuthInstalled) return;
+  webSocketAuthInstalled = true;
+
+  const NativeWebSocket = window.WebSocket;
+  const HubAwareWebSocket = function (
+    this: WebSocket,
+    url: string | URL,
+    protocols?: string | string[],
+  ): WebSocket {
+    let selectedProtocols = protocols;
+    try {
+      const target = new URL(String(url), window.location.href);
+      const hub = getActiveHub();
+      const hubUrl = new URL(hub.baseUrl);
+      if (selectedProtocols === undefined && target.host === hubUrl.host) {
+        selectedProtocols = wsProtocols();
+      }
+    } catch {
+      // Hub is not connected yet or URL is malformed; native constructor owns the error.
+    }
+
+    return selectedProtocols === undefined
+      ? new NativeWebSocket(url)
+      : new NativeWebSocket(url, selectedProtocols);
+  } as unknown as typeof WebSocket;
+
+  HubAwareWebSocket.prototype = NativeWebSocket.prototype;
+  Object.defineProperties(HubAwareWebSocket, {
+    CONNECTING: { value: NativeWebSocket.CONNECTING },
+    OPEN: { value: NativeWebSocket.OPEN },
+    CLOSING: { value: NativeWebSocket.CLOSING },
+    CLOSED: { value: NativeWebSocket.CLOSED },
+  });
+  window.WebSocket = HubAwareWebSocket;
 }
 
 export function sheetImageUrl(
