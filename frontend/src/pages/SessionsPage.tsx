@@ -14,10 +14,12 @@ export default function SessionsPage() {
   const [taskId, setTaskId] = useState<number | "">("");
   const [title, setTitle] = useState("");
   const [expected, setExpected] = useState(0);
+  const [showCreate, setShowCreate] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function createSession(startScan: boolean) {
     try {
+      setError(null);
       const session = await api.post<ScanSession>("/sessions", {
         class_id: classId || null,
         task_id: taskId || null,
@@ -26,6 +28,9 @@ export default function SessionsPage() {
       });
       setTitle("");
       setExpected(0);
+      setClassId("");
+      setTaskId("");
+      setShowCreate(false);
       sessions.refresh();
       if (startScan) navigate(`/sessions/${session.id}/scan`);
     } catch (e) {
@@ -41,125 +46,208 @@ export default function SessionsPage() {
     }
   }
 
+  async function removeSession(session: ScanSession) {
+    if (!confirm(`Удалить сессию «${session.title}» вместе с листами?`)) return;
+    try {
+      setError(null);
+      await api.delete(`/sessions/${session.id}`);
+      sessions.refresh();
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }
+
+  const items = sessions.data ?? [];
+  const activeCount = items.filter((session) => session.status === "scanning" || session.status === "paused").length;
+  const attentionCount = items.reduce(
+    (sum, session) =>
+      sum + session.stats.duplicates + session.stats.unidentified + session.stats.low_quality + session.stats.rescan_required,
+    0,
+  );
+
   return (
     <>
-      <h1 className="page-title">Сессии сканирования</h1>
-      {error && <div className="error-box">{error}</div>}
-
-      <div className="panel mb">
-        <h3 style={{ marginTop: 0 }}>Новая сессия</h3>
-        <div className="row">
-          <select value={classId} onChange={(e) => setClassId(e.target.value ? Number(e.target.value) : "")} style={{ maxWidth: 200 }}>
-            <option value="">Класс (необязательно)</option>
-            {(classes.data ?? []).map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-          <select value={taskId} onChange={(e) => setTaskId(e.target.value ? Number(e.target.value) : "")} style={{ maxWidth: 260 }}>
-            <option value="">Задание (необязательно)</option>
-            {(tasks.data ?? []).map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.external_id} — {t.title}
-              </option>
-            ))}
-          </select>
-          <input type="text" placeholder="Название (автоматически, если пусто)" value={title} onChange={(e) => setTitle(e.target.value)} style={{ maxWidth: 280 }} />
-          <input
-            type="number"
-            min={0}
-            placeholder="Ожидается листов"
-            value={expected || ""}
-            onChange={(e) => setExpected(Number(e.target.value) || 0)}
-            style={{ maxWidth: 150 }}
-            title="Ожидаемое количество листов"
-          />
-          <button className="btn primary" onClick={() => createSession(true)}>
-            Создать и сканировать
-          </button>
-          <button className="btn" onClick={() => createSession(false)}>
-            Только создать
+      <section className="page-heading sessions-heading">
+        <div className="page-heading-copy">
+          <div className="eyebrow">Архив работы</div>
+          <h1>Сессии</h1>
+          <p>Каждая сессия — отдельный поток листов: от первого скана до итоговой ведомости.</p>
+        </div>
+        <div className="page-heading-actions">
+          <button className="btn primary" onClick={() => setShowCreate((value) => !value)}>
+            {showCreate ? "Закрыть создание" : "Новая сессия"}
           </button>
         </div>
-      </div>
+      </section>
 
-      <div className="panel">
-        <table className="data">
-          <thead>
-            <tr>
-              <th>Сессия</th>
-              <th>Статус</th>
-              <th>Листов</th>
-              <th>Проблем</th>
-              <th>Создана</th>
-              <th>Действия</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(sessions.data ?? []).map((s) => {
-              const problems = s.stats.duplicates + s.stats.unidentified + s.stats.low_quality + s.stats.rescan_required;
-              return (
-                <tr key={s.id}>
-                  <td>
-                    <strong>{s.title}</strong>
-                    {s.class_name && <div className="muted" style={{ fontSize: 12 }}>{s.class_name}{s.task_title ? ` · ${s.task_title}` : ""}</div>}
-                  </td>
-                  <td>
-                    <Badge map={SESSION_STATUS_RU} value={s.status} />
-                  </td>
-                  <td>
-                    {s.stats.total}
-                    {s.expected_sheet_count ? ` / ${s.expected_sheet_count}` : ""}
-                  </td>
-                  <td>{problems ? <span className="badge amber">{problems}</span> : <span className="muted">0</span>}</td>
-                  <td className="muted">{fmtDate(s.created_at)}</td>
-                  <td>
-                    <div className="row" style={{ gap: 6 }}>
-                      <Link className="btn small primary" to={`/sessions/${s.id}/scan`}>
-                        Сканировать
-                      </Link>
-                      <Link className="btn small" to={`/sessions/${s.id}/review`}>
-                        Проверка
-                      </Link>
-                      <Link className="btn small" to={`/sessions/${s.id}/summary`}>
-                        Итоги
-                      </Link>
-                      <button className="btn small" onClick={() => exportAs(s.id, "xlsx")} title="Экспорт XLSX">
-                        XLSX
-                      </button>
-                      <button className="btn small" onClick={() => exportAs(s.id, "zip")} title="ZIP-архив изображений">
-                        ZIP
-                      </button>
-                      <button
-                        className="btn small danger"
-                        onClick={async () => {
-                          if (!confirm(`Удалить сессию «${s.title}» вместе с листами?`)) return;
-                          try {
-                            await api.delete(`/sessions/${s.id}`);
-                            sessions.refresh();
-                          } catch (e) {
-                            setError((e as Error).message);
-                          }
-                        }}
-                      >
-                        ×
+      {error && <div className="error-box">{error}</div>}
+
+      <section className="session-overview" aria-label="Сводка по сессиям">
+        <div>
+          <strong>{items.length}</strong>
+          <span>всего сессий</span>
+        </div>
+        <div>
+          <strong>{activeCount}</strong>
+          <span>в работе сейчас</span>
+        </div>
+        <div className={attentionCount ? "attention" : ""}>
+          <strong>{attentionCount}</strong>
+          <span>листов требуют внимания</span>
+        </div>
+      </section>
+
+      {showCreate && (
+        <section className="session-create-sheet" aria-label="Создание сессии">
+          <div className="session-create-intro">
+            <div className="eyebrow">Новый поток</div>
+            <h2>Подготовить сессию</h2>
+            <p>Класс и задание можно не указывать. Название сформируется автоматически, если оставить поле пустым.</p>
+          </div>
+
+          <div className="session-create-form">
+            <label className="field">
+              <span>Класс</span>
+              <select value={classId} onChange={(event) => setClassId(event.target.value ? Number(event.target.value) : "")}>
+                <option value="">Без привязки к классу</option>
+                {(classes.data ?? []).map((classGroup) => (
+                  <option key={classGroup.id} value={classGroup.id}>
+                    {classGroup.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="field">
+              <span>Задание</span>
+              <select value={taskId} onChange={(event) => setTaskId(event.target.value ? Number(event.target.value) : "")}>
+                <option value="">Без привязки к заданию</option>
+                {(tasks.data ?? []).map((task) => (
+                  <option key={task.id} value={task.id}>
+                    {task.external_id} — {task.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="field session-title-field">
+              <span>Название</span>
+              <input
+                type="text"
+                placeholder="Например: 8Б · Контрольная по истории"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+              />
+            </label>
+
+            <label className="field">
+              <span>Ожидается листов</span>
+              <input
+                type="number"
+                min={0}
+                placeholder="0"
+                value={expected || ""}
+                onChange={(event) => setExpected(Number(event.target.value) || 0)}
+              />
+            </label>
+          </div>
+
+          <div className="session-create-actions">
+            <button className="btn" onClick={() => createSession(false)}>
+              Сохранить черновик
+            </button>
+            <button className="btn primary" onClick={() => createSession(true)}>
+              Создать и открыть камеру
+            </button>
+          </div>
+        </section>
+      )}
+
+      <section className="section-block">
+        <div className="section-heading">
+          <h2>Последние сессии</h2>
+          <span className="section-kicker">{sessions.loading ? "Обновляю список…" : `${items.length} записей`}</span>
+        </div>
+
+        <div className="sessions-library">
+          {items.map((session) => {
+            const problems = session.stats.duplicates + session.stats.unidentified + session.stats.low_quality + session.stats.rescan_required;
+            const progress = session.expected_sheet_count
+              ? Math.min(100, Math.round((session.stats.total / session.expected_sheet_count) * 100))
+              : null;
+
+            return (
+              <article className="session-library-card" key={session.id}>
+                <div className="session-library-main">
+                  <div className="session-card-index">#{String(session.id).padStart(3, "0")}</div>
+                  <div className="session-library-copy">
+                    <div className="session-library-topline">
+                      <Badge map={SESSION_STATUS_RU} value={session.status} />
+                      <span>{fmtDate(session.created_at)}</span>
+                    </div>
+                    <h3>{session.title}</h3>
+                    <p>
+                      {session.class_name || "Без класса"}
+                      {session.task_title ? ` · ${session.task_title}` : ""}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="session-progress-block">
+                  <div className="session-progress-copy">
+                    <span>Обработано</span>
+                    <strong>
+                      {session.stats.total}
+                      {session.expected_sheet_count ? ` / ${session.expected_sheet_count}` : ""}
+                    </strong>
+                  </div>
+                  {progress !== null && (
+                    <div className="session-progress-track" aria-label={`Прогресс ${progress}%`}>
+                      <span style={{ width: `${progress}%` }} />
+                    </div>
+                  )}
+                  <div className={`session-problem-line${problems ? " has-problems" : ""}`}>
+                    {problems ? `${problems} требуют внимания` : "Замечаний нет"}
+                  </div>
+                </div>
+
+                <div className="session-library-actions">
+                  <Link className="btn primary" to={`/sessions/${session.id}/scan`}>
+                    Открыть
+                  </Link>
+                  <Link className="btn teacher" to={`/sessions/${session.id}/review`}>
+                    Проверить
+                  </Link>
+                  <details className="session-more">
+                    <summary aria-label="Дополнительные действия">•••</summary>
+                    <div className="session-more-menu">
+                      <Link to={`/sessions/${session.id}/summary`}>Итоги сессии</Link>
+                      <button onClick={() => exportAs(session.id, "xlsx")}>Экспорт XLSX</button>
+                      <button onClick={() => exportAs(session.id, "csv")}>Экспорт CSV</button>
+                      <button onClick={() => exportAs(session.id, "json")}>Экспорт JSON</button>
+                      <button onClick={() => exportAs(session.id, "zip")}>Архив изображений</button>
+                      <button className="danger-text" onClick={() => removeSession(session)}>
+                        Удалить сессию
                       </button>
                     </div>
-                  </td>
-                </tr>
-              );
-            })}
-            {sessions.data?.length === 0 && (
-              <tr>
-                <td colSpan={6} className="muted">
-                  Сессий пока нет.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+                  </details>
+                </div>
+              </article>
+            );
+          })}
+
+          {!sessions.loading && items.length === 0 && (
+            <div className="panel empty-state sessions-empty">
+              <div className="empty-state-mark">✓</div>
+              <h3>Пока нет ни одной сессии</h3>
+              <p>Создай первый поток, подключи камеру и начни принимать работы учеников.</p>
+              <button className="btn primary" onClick={() => setShowCreate(true)}>
+                Создать первую сессию
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
     </>
   );
 }
