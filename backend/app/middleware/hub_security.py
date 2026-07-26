@@ -19,6 +19,11 @@ _PUBLIC_PATHS = {
     "/api/hub/pair/start",
     "/api/hub/pair/confirm",
 }
+_BOOTSTRAP_PATHS = {
+    "/api/hub/info",
+    "/api/hub/pair/start",
+    "/api/hub/pair/confirm",
+}
 _WEBSOCKET_TOKEN_PREFIX = "paperflow-auth."
 
 
@@ -111,7 +116,7 @@ class HubSecurityMiddleware:
         # discover the Hub and start pairing without being preconfigured. The
         # code is still displayed only on a local top-level page, and no private
         # endpoint is opened until the exact Origin is persisted as a client.
-        if path in _PUBLIC_PATHS and _is_secure_bootstrap_origin(origin):
+        if path in _BOOTSTRAP_PATHS and _is_secure_bootstrap_origin(origin):
             return True
 
         return self.identity.has_paired_origin(origin=origin, workspace_id=workspace_id)
