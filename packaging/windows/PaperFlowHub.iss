@@ -1,5 +1,5 @@
 #define MyAppName "PaperFlow Hub"
-#define MyAppVersion "0.3.0"
+#define MyAppVersion "0.3.1"
 #define MyAppPublisher "PaperFlow"
 #define MyAppExeName "PaperFlowHub.exe"
 
@@ -8,6 +8,7 @@ AppId={{A5D4D704-1F95-4F0C-9C42-4D7F26495F53}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
+VersionInfoVersion=0.3.1.0
 DefaultDirName={localappdata}\Programs\PaperFlow Hub
 DefaultGroupName=PaperFlow
 DisableProgramGroupPage=yes
@@ -20,6 +21,8 @@ WizardStyle=modern
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 UninstallDisplayIcon={app}\{#MyAppExeName}
+CloseApplications=force
+RestartApplications=no
 
 [Files]
 Source: "..\..\dist\PaperFlowHub\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
