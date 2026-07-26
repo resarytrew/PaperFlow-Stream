@@ -13,7 +13,7 @@ export interface HubInfo {
     required: boolean;
     authorized: boolean;
     tokenHeader: string;
-    webSocketQueryParameter: string;
+    webSocketSubprotocol: string;
     pairingSupported: boolean;
   };
   capabilities: Record<string, boolean>;
