@@ -128,6 +128,9 @@ class Task(TimestampMixin, Base):
     description: Mapped[str] = mapped_column(Text, nullable=False, default="")
     expected_answer: Mapped[str] = mapped_column(Text, nullable=False, default="")
     answer_region_config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    # Grading support (section 5.1 / 5.8): the teacher records a mark here.
+    max_score: Mapped[float | None] = mapped_column(Float, default=None)
+    rubric: Mapped[list | None] = mapped_column(JSON, nullable=True)
 
 
 class FormTemplate(TimestampMixin, Base):
@@ -181,6 +184,7 @@ class ScannedSheet(TimestampMixin, Base):
     normalized_image_path: Mapped[str | None] = mapped_column(String(512))
     enhanced_image_path: Mapped[str | None] = mapped_column(String(512))
     answer_crop_path: Mapped[str | None] = mapped_column(String(512))
+    answer_crops_json: Mapped[list | None] = mapped_column(JSON, default=None)
     thumbnail_path: Mapped[str | None] = mapped_column(String(512))
 
     qr_payload: Mapped[dict | None] = mapped_column(JSON)
@@ -247,6 +251,9 @@ class ReviewDecision(TimestampMixin, Base):
     teacher_text: Mapped[str] = mapped_column(Text, default="")
     decision: Mapped[str] = mapped_column(String(32), default=ReviewDecisionType.accepted.value, index=True)
     comment: Mapped[str] = mapped_column(Text, default="")
+    # Grading support (section 5.1 / 5.8).
+    score: Mapped[float | None] = mapped_column(Float, default=None)
+    rubric_result: Mapped[list | None] = mapped_column(JSON, nullable=True)
     reviewed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     sheet: Mapped[ScannedSheet] = relationship(back_populates="review")
@@ -310,3 +317,40 @@ class HardwareEvent(TimestampMixin, Base):
     code: Mapped[str] = mapped_column(String(64), default="")
     message: Mapped[str] = mapped_column(Text, default="")
     context: Mapped[dict | None] = mapped_column(JSON, default=dict)
+
+
+class SessionPreset(TimestampMixin, Base):
+    """Reusable scan configuration (section 5.12): class + task + template + camera + settings.
+
+    Lets a teacher start a familiar session (e.g. "9Б · history-09-04") in two clicks
+    instead of walking through the calibration/settings wizard every lesson.
+    """
+
+    __tablename__ = "session_presets"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(128), nullable=False, unique=True)
+    class_id: Mapped[int | None] = mapped_column(ForeignKey("class_groups.id", ondelete="SET NULL"), index=True)
+    task_id: Mapped[int | None] = mapped_column(ForeignKey("tasks.id", ondelete="SET NULL"), index=True)
+    template_id: Mapped[int | None] = mapped_column(ForeignKey("form_templates.id", ondelete="SET NULL"))
+    camera_profile_id: Mapped[int | None] = mapped_column(
+        ForeignKey("camera_profiles.id", ondelete="SET NULL")
+    )
+    expected_sheet_count: Mapped[int] = mapped_column(Integer, default=0)
+    config_override: Mapped[dict] = mapped_column(JSON, default=dict)
+
+
+class ShareToken(TimestampMixin, Base):
+    """Time-limited read-only link to one student's results (section 5.11).
+
+    Generates a URL the teacher can hand to a pupil/parent. It exposes only that
+    student's own sheets and never other pupils' data.
+    """
+
+    __tablename__ = "share_tokens"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    token: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    student_id: Mapped[int] = mapped_column(ForeignKey("students.id", ondelete="CASCADE"), index=True)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    note: Mapped[str] = mapped_column(String(255), default="")
