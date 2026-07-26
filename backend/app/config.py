@@ -1,7 +1,7 @@
 """Application configuration.
 
 Every sensitive CV / OCR parameter lives here so it can be tuned from the
-settings screen without touching code.  Values are persisted in the database
+settings screen without touching code. Values are persisted in the database
 (``app_settings`` table) and layered on top of these defaults at runtime.
 """
 
@@ -10,7 +10,7 @@ from __future__ import annotations
 import os
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -141,7 +141,12 @@ class PrivacyConfig(BaseModel):
 
 
 class RuntimeConfig(BaseModel):
-    """The full mutable configuration tree exposed on /settings."""
+    """The full mutable configuration tree exposed on /settings.
+
+    Secret values are redacted from ``model_dump()`` by default. Internal code
+    that intentionally needs to persist the complete configuration must pass
+    ``include_secrets=True`` explicitly.
+    """
 
     capture: CaptureConfig = CaptureConfig()
     detection: DetectionConfig = DetectionConfig()
@@ -151,6 +156,19 @@ class RuntimeConfig(BaseModel):
     ocr: OcrConfig = OcrConfig()
     vision_ocr: VisionOcrConfig = VisionOcrConfig()
     privacy: PrivacyConfig = PrivacyConfig()
+
+    def model_dump(self, *, include_secrets: bool = False, **kwargs: Any) -> dict[str, Any]:
+        """Serialise safely, hiding credentials unless explicitly requested."""
+        data = super().model_dump(**kwargs)
+        if include_secrets:
+            return data
+
+        vision = data.get("vision_ocr")
+        if isinstance(vision, dict):
+            configured = bool(vision.get("api_key"))
+            vision["api_key"] = ""
+            vision["api_key_configured"] = configured
+        return data
 
 
 class Settings(BaseSettings):
