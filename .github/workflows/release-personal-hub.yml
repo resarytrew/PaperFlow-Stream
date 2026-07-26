@@ -181,6 +181,11 @@ jobs:
 
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$RELEASE_TAG" "${assets[@]}" --repo "$GITHUB_REPOSITORY" --clobber
+            gh release edit "$RELEASE_TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --draft=false \
+              --prerelease=false \
+              --latest
           else
             gh release create "$RELEASE_TAG" "${assets[@]}" \
               --repo "$GITHUB_REPOSITORY" \
@@ -189,6 +194,14 @@ jobs:
               --generate-notes \
               --latest
           fi
+
+          release_state="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,isPrerelease --jq '"\(.isDraft) \(.isPrerelease)"')"
+          test "$release_state" = "false false"
+
+          published_assets="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name')"
+          for asset in "${assets[@]}"; do
+            grep -Fx "$(basename "$asset")" <<< "$published_assets" >/dev/null
+          done
 
       - name: Explain optional Release failure
         if: steps.release.outputs.tag != '' && steps.publish.outcome == 'failure'
