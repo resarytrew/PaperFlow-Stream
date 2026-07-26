@@ -156,10 +156,32 @@ class HubIdentityStore:
             return challenge
 
     def pending_pairing_code(self, challenge_id: str) -> str | None:
+        details = self.pending_pairing_details(challenge_id)
+        return str(details["code"]) if details else None
+
+    def pending_pairing_details(self, challenge_id: str) -> dict[str, str] | None:
+        """Return data shown only on the top-level local confirmation page."""
         with self._lock:
             self._prune()
             challenge = self._challenges.get(challenge_id)
-            return challenge.code if challenge else None
+            if challenge is None:
+                return None
+            return {
+                "code": challenge.code,
+                "origin": challenge.origin,
+                "client_name": challenge.client_name,
+                "workspace_id": challenge.workspace_id,
+                "expires_at": _iso(challenge.expires_at),
+            }
+
+    def has_paired_origin(self, *, origin: str, workspace_id: str) -> bool:
+        """Allow CORS preflight only for origins previously approved by a user."""
+        with self._lock:
+            self._prune()
+            return any(
+                item.get("origin") == origin and item.get("workspace_id") == workspace_id
+                for item in self._data.get("clients", [])
+            )
 
     def confirm_pairing(
         self,
