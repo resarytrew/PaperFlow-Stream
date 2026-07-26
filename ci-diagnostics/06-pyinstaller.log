@@ -1,14 +1,334 @@
-184 INFO: PyInstaller: 6.21.0, contrib hooks: 2026.6
-184 INFO: Python: 3.11.9
-193 INFO: Platform: Windows-10-10.0.26100-SP0
-193 INFO: Python environment: C:\hostedtoolcache\windows\Python\3.11.9\x64
-202 INFO: Removing temporary files and cleaning cache in C:\Users\runneradmin\AppData\Local\pyinstaller
-272 WARNING: Failed to collect submodules for 'onnxruntime.quantization' because importing 'onnxruntime.quantization' raised: ModuleNotFoundError: No module named 'onnx'
-321 INFO: setup plugin alembic.autogenerate.schemas
-321 INFO: setup plugin alembic.autogenerate.tables
-321 INFO: setup plugin alembic.autogenerate.types
-321 INFO: setup plugin alembic.autogenerate.constraints
-321 INFO: setup plugin alembic.autogenerate.defaults
-321 INFO: setup plugin alembic.autogenerate.comments
-426 WARNING: Failed to collect submodules for 'alembic.testing.suite' because importing 'alembic.testing.suite' raised: AttributeError: 'SuiteRequirements' object has no attribute 'comments'
-ERROR: script 'D:\a\PaperFlow-Stream\backend\app\desktop.py' not found
+154 INFO: PyInstaller: 6.21.0, contrib hooks: 2026.6
+154 INFO: Python: 3.11.9
+164 INFO: Platform: Windows-10-10.0.26100-SP0
+164 INFO: Python environment: C:\hostedtoolcache\windows\Python\3.11.9\x64
+170 INFO: Removing temporary files and cleaning cache in C:\Users\runneradmin\AppData\Local\pyinstaller
+276 WARNING: Failed to collect submodules for 'onnxruntime.quantization' because importing 'onnxruntime.quantization' raised: ModuleNotFoundError: No module named 'onnx'
+345 INFO: setup plugin alembic.autogenerate.schemas
+345 INFO: setup plugin alembic.autogenerate.tables
+345 INFO: setup plugin alembic.autogenerate.types
+346 INFO: setup plugin alembic.autogenerate.constraints
+346 INFO: setup plugin alembic.autogenerate.defaults
+346 INFO: setup plugin alembic.autogenerate.comments
+465 WARNING: Failed to collect submodules for 'alembic.testing.suite' because importing 'alembic.testing.suite' raised: AttributeError: 'SuiteRequirements' object has no attribute 'comments'
+4700 INFO: Module search paths (PYTHONPATH):
+['D:\\a\\PaperFlow-Stream\\PaperFlow-Stream',
+ 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\python311.zip',
+ 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\DLLs',
+ 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib',
+ 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64',
+ 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages',
+ 'D:\\a\\PaperFlow-Stream\\PaperFlow-Stream\\backend']
+4984 INFO: Appending 'binaries' from .spec
+4984 INFO: Appending 'datas' from .spec
+5051 INFO: checking Analysis
+5051 INFO: Building Analysis because Analysis-00.toc is non existent
+5051 INFO: Looking for Python shared library...
+5051 INFO: Using Python shared library: C:\hostedtoolcache\windows\Python\3.11.9\x64\python311.dll
+5051 INFO: Running Analysis Analysis-00.toc
+5051 INFO: Target bytecode optimization level: 0
+5051 INFO: Initializing module dependency graph...
+5053 INFO: Initializing module graph hook caches...
+5083 INFO: Analyzing modules for base_library.zip ...
+5918 INFO: Processing standard module hook 'hook-heapq.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks'
+6035 INFO: Processing standard module hook 'hook-encodings.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks'
+7609 INFO: Processing standard module hook 'hook-math.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks'
+7724 INFO: Processing standard module hook 'hook-pickle.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks'
+9361 INFO: Caching module dependency graph...
+9399 INFO: Analyzing D:\a\PaperFlow-Stream\PaperFlow-Stream\backend\app\desktop.py
+9763 INFO: Processing standard module hook 'hook-webbrowser.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks'
+9771 INFO: Processing standard module hook 'hook-PIL.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks'
+9880 INFO: Processing standard module hook 'hook-PIL.Image.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks'
+10135 INFO: Processing standard module hook 'hook-numpy.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks'
+10423 INFO: Processing standard module hook 'hook-platform.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks'
+10615 INFO: Processing standard module hook 'hook-sysconfig.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks'
+11324 INFO: Processing standard module hook 'hook-difflib.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks'
+11553 INFO: Processing standard module hook 'hook-multiprocessing.util.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks'
+11652 INFO: Processing standard module hook 'hook-xml.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks'
+11997 INFO: Processing standard module hook 'hook-_ctypes.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks'
+13437 INFO: Processing pre-safe-import-module hook 'hook-typing_extensions.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+13439 INFO: SetuptoolsInfo: initializing cached setuptools info...
+16684 INFO: Processing standard module hook 'hook-charset_normalizer.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+17151 INFO: Processing standard module hook 'hook-xml.etree.cElementTree.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks'
+17304 INFO: Processing standard module hook 'hook-PIL.ImageFilter.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks'
+17578 INFO: Processing standard module hook 'hook-pystray.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+17838 INFO: Processing pre-safe-import-module hook 'hook-six.moves.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+17893 INFO: Processing pre-safe-import-module hook 'hook-gi.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+17945 INFO: Processing standard module hook 'hook-uvicorn.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+18949 INFO: Processing standard module hook 'hook-websockets.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+19541 INFO: Processing standard module hook 'hook-anyio.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+20208 INFO: Analyzing hidden import 'rapidocr_onnxruntime'
+20225 INFO: Processing standard module hook 'hook-cv2.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+20608 INFO: Processing standard module hook 'hook-onnxruntime.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+20691 INFO: Processing pre-safe-import-module hook 'hook-tensorflow.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\pre_safe_import_module'
+20733 INFO: Processing standard module hook 'hook-shapely.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+20894 INFO: Analyzing hidden import 'onnxruntime.capi.convert_npz_to_onnx_adapter'
+20896 INFO: Analyzing hidden import 'onnxruntime.datasets'
+20897 INFO: Analyzing hidden import 'onnxruntime.tools'
+20901 INFO: Analyzing hidden import 'onnxruntime.tools.check_onnx_model_mobile_usability'
+20929 INFO: Analyzing hidden import 'onnxruntime.tools.convert_onnx_models_to_ort'
+20961 INFO: Analyzing hidden import 'onnxruntime.tools.make_dynamic_shape_fixed'
+20965 INFO: Analyzing hidden import 'onnxruntime.tools.offline_tuning'
+20971 INFO: Analyzing hidden import 'onnxruntime.tools.onnx_randomizer'
+20973 INFO: Analyzing hidden import 'onnxruntime.tools.onnxruntime_test'
+20985 INFO: Analyzing hidden import 'onnxruntime.tools.optimize_onnx_model'
+20987 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py'
+20989 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs'
+20989 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.ArgType'
+20991 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.ArgTypeAndIndex'
+21035 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.Attribute'
+21046 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.AttributeType'
+21046 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.Checkpoint'
+21052 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.DeprecatedKernelCreateInfos'
+21056 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.DeprecatedNodeIndexAndKernelDefHash'
+21058 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.DeprecatedSessionState'
+21062 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.DeprecatedSubGraphSessionState'
+21066 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.Dimension'
+21068 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.DimensionValue'
+21072 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.DimensionValueType'
+21072 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.EdgeEnd'
+21074 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.FloatProperty'
+21076 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.Graph'
+21088 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.InferenceSession'
+21092 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.IntProperty'
+21094 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.KernelTypeStrArgsEntry'
+21098 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.KernelTypeStrResolver'
+21100 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.MapType'
+21104 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.Model'
+21111 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.ModuleState'
+21115 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.Node'
+21126 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.NodeEdge'
+21131 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.NodeType'
+21132 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.NodesToOptimizeIndices'
+21137 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.OpIdKernelTypeStrArgsEntry'
+21140 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.OperatorSetId'
+21143 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.OptimizerGroup'
+21148 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.ParameterOptimizerState'
+21151 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.PropertyBag'
+21155 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.RuntimeOptimizationRecord'
+21160 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.RuntimeOptimizationRecordContainerEntry'
+21164 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.RuntimeOptimizations'
+21166 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.SequenceType'
+21169 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.Shape'
+21172 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.SparseTensor'
+21176 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.StringProperty'
+21179 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.StringStringEntry'
+21182 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.Tensor'
+21188 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.TensorDataType'
+21189 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.TensorTypeAndShape'
+21192 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.TypeInfo'
+21195 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.TypeInfoValue'
+21196 INFO: Analyzing hidden import 'onnxruntime.tools.ort_format_model.ort_flatbuffers_py.fbs.ValueInfo'
+21199 INFO: Analyzing hidden import 'onnxruntime.tools.pytorch_export_contrib_ops'
+21202 INFO: Analyzing hidden import 'onnxruntime.tools.qdq_helpers'
+21204 INFO: Analyzing hidden import 'onnxruntime.tools.qdq_helpers.optimize_qdq_model'
+21204 INFO: Analyzing hidden import 'onnxruntime.tools.reduced_build_config_parser'
+21210 INFO: Analyzing hidden import 'onnxruntime.tools.remove_initializer_from_input'
+21211 INFO: Analyzing hidden import 'onnxruntime.tools.symbolic_shape_infer'
+21344 INFO: Processing pre-safe-import-module hook 'hook-packaging.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+21374 INFO: Analyzing hidden import 'onnxruntime.tools.update_onnx_opset'
+21374 INFO: Analyzing hidden import 'onnxruntime.transformers.affinity_helper'
+21376 INFO: Analyzing hidden import 'onnxruntime.transformers.benchmark'
+21396 INFO: Analyzing hidden import 'onnxruntime.transformers.benchmark_helper'
+21413 INFO: Analyzing hidden import 'onnxruntime.transformers.bert_perf_test'
+21427 INFO: Analyzing hidden import 'onnxruntime.transformers.bert_test_data'
+21441 INFO: Analyzing hidden import 'onnxruntime.transformers.compare_bert_results'
+21447 INFO: Analyzing hidden import 'onnxruntime.transformers.constants'
+21448 INFO: Analyzing hidden import 'onnxruntime.transformers.convert_generation'
+21613 INFO: Analyzing hidden import 'onnxruntime.transformers.convert_tf_models_to_pytorch'
+21621 INFO: Analyzing hidden import 'onnxruntime.transformers.convert_to_packing_mode'
+21633 INFO: Analyzing hidden import 'onnxruntime.transformers.dynamo_onnx_helper'
+21639 INFO: Analyzing hidden import 'onnxruntime.transformers.float16'
+21653 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_attention'
+21680 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_attention_clip'
+21689 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_attention_sam2'
+21700 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_attention_unet'
+21729 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_attention_vae'
+21737 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_bart_attention'
+21748 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_base'
+21754 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_bias_add'
+21756 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_biasgelu'
+21758 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_biassplitgelu'
+21762 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_conformer_attention'
+21770 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_constant_fold'
+21774 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_embedlayer'
+21790 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_fastgelu'
+21801 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_gelu'
+21807 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_gelu_approximation'
+21809 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_gemmfastgelu'
+21813 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_gpt_attention'
+21825 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_gpt_attention_megatron'
+21833 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_gpt_attention_no_past'
+21839 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_group_norm'
+21844 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_layernorm'
+21855 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_mha_dit'
+21867 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_mha_mmdit'
+21879 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_nhwc_conv'
+21881 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_options'
+21886 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_qordered_attention'
+21897 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_qordered_gelu'
+21900 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_qordered_layernorm'
+21902 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_qordered_matmul'
+21906 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_quickgelu'
+21910 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_reshape'
+21928 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_rotary_attention'
+21968 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_shape'
+21972 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_simplified_layernorm'
+21978 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_skip_group_norm'
+21985 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_skiplayernorm'
+21992 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_transpose'
+21996 INFO: Analyzing hidden import 'onnxruntime.transformers.fusion_utils'
+22006 INFO: Analyzing hidden import 'onnxruntime.transformers.huggingface_models'
+22008 INFO: Analyzing hidden import 'onnxruntime.transformers.import_utils'
+22008 INFO: Analyzing hidden import 'onnxruntime.transformers.io_binding_helper'
+22024 INFO: Analyzing hidden import 'onnxruntime.transformers.large_model_exporter'
+22036 INFO: Analyzing hidden import 'onnxruntime.transformers.metrics'
+22042 INFO: Analyzing hidden import 'onnxruntime.transformers.onnx_exporter'
+22058 INFO: Analyzing hidden import 'onnxruntime.transformers.onnx_model'
+22101 INFO: Analyzing hidden import 'onnxruntime.transformers.onnx_model_bart'
+22107 INFO: Analyzing hidden import 'onnxruntime.transformers.onnx_model_bert'
+22127 INFO: Analyzing hidden import 'onnxruntime.transformers.onnx_model_bert_keras'
+22139 INFO: Analyzing hidden import 'onnxruntime.transformers.onnx_model_bert_tf'
+22152 INFO: Analyzing hidden import 'onnxruntime.transformers.onnx_model_clip'
+22154 INFO: Analyzing hidden import 'onnxruntime.transformers.onnx_model_conformer'
+22156 INFO: Analyzing hidden import 'onnxruntime.transformers.onnx_model_gpt2'
+22160 INFO: Analyzing hidden import 'onnxruntime.transformers.onnx_model_mmdit'
+22224 INFO: Processing pre-safe-import-module hook 'hook-importlib_resources.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+22249 INFO: Analyzing hidden import 'onnxruntime.transformers.onnx_model_phi'
+22289 INFO: Analyzing hidden import 'onnxruntime.transformers.onnx_model_sam2'
+22295 INFO: Analyzing hidden import 'onnxruntime.transformers.onnx_model_t5'
+22315 INFO: Analyzing hidden import 'onnxruntime.transformers.onnx_model_tnlr'
+22321 INFO: Analyzing hidden import 'onnxruntime.transformers.onnx_model_unet'
+22329 INFO: Analyzing hidden import 'onnxruntime.transformers.onnx_model_vae'
+22333 INFO: Analyzing hidden import 'onnxruntime.transformers.onnx_utils'
+22335 INFO: Analyzing hidden import 'onnxruntime.transformers.optimizer'
+22349 INFO: Analyzing hidden import 'onnxruntime.transformers.past_helper'
+22353 INFO: Analyzing hidden import 'onnxruntime.transformers.profile_result_processor'
+22363 INFO: Analyzing hidden import 'onnxruntime.transformers.profiler'
+22371 INFO: Analyzing hidden import 'onnxruntime.transformers.quantize_helper'
+22807 INFO: Analyzing hidden import 'onnxruntime.transformers.shape_infer_helper'
+22811 INFO: Analyzing hidden import 'onnxruntime.transformers.shape_optimizer'
+22822 INFO: Analyzing hidden import 'onnxruntime.transformers.torch_onnx_export_helper'
+22824 INFO: Analyzing hidden import 'uvicorn.__main__'
+22824 INFO: Analyzing hidden import 'uvicorn.lifespan'
+22824 INFO: Analyzing hidden import 'uvicorn.lifespan.off'
+22826 INFO: Analyzing hidden import 'uvicorn.lifespan.on'
+22830 INFO: Analyzing hidden import 'uvicorn.loops'
+22832 INFO: Analyzing hidden import 'uvicorn.loops.asyncio'
+22832 INFO: Analyzing hidden import 'uvicorn.loops.auto'
+22834 INFO: Analyzing hidden import 'uvicorn.protocols.http.auto'
+22836 INFO: Analyzing hidden import 'uvicorn.protocols.websockets.auto'
+22836 INFO: Analyzing hidden import 'uvicorn.workers'
+22840 INFO: Analyzing hidden import 'fastapi'
+23033 INFO: Processing standard module hook 'hook-pydantic.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+23685 INFO: Processing standard module hook 'hook-zoneinfo.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+24911 INFO: Analyzing hidden import 'fastapi.__main__'
+24913 INFO: Analyzing hidden import 'fastapi.middleware.cors'
+24919 INFO: Analyzing hidden import 'fastapi.middleware.gzip'
+24925 INFO: Analyzing hidden import 'fastapi.middleware.httpsredirect'
+24927 INFO: Analyzing hidden import 'fastapi.middleware.trustedhost'
+24929 INFO: Analyzing hidden import 'fastapi.middleware.wsgi'
+24935 INFO: Analyzing hidden import 'fastapi.staticfiles'
+24937 INFO: Analyzing hidden import 'fastapi.templating'
+24942 INFO: Analyzing hidden import 'fastapi.testclient'
+25127 INFO: Processing standard module hook 'hook-certifi.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+25370 INFO: Processing standard module hook 'hook-pygments.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks'
+26265 INFO: Analyzing hidden import 'sqlalchemy'
+26273 INFO: Processing standard module hook 'hook-sqlalchemy.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks'
+26837 INFO: Processing pre-safe-import-module hook 'hook-importlib_metadata.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+29964 INFO: Analyzing hidden import 'sqlalchemy.connectors.aioodbc'
+29976 INFO: Analyzing hidden import 'sqlalchemy.dialects._typing'
+29978 INFO: Analyzing hidden import 'sqlalchemy.dialects.mssql'
+30106 INFO: Analyzing hidden import 'sqlalchemy.dialects.mssql.provision'
+30112 INFO: Analyzing hidden import 'sqlalchemy.dialects.mysql'
+30284 INFO: Analyzing hidden import 'sqlalchemy.dialects.mysql.provision'
+30288 INFO: Analyzing hidden import 'sqlalchemy.dialects.oracle'
+30423 INFO: Analyzing hidden import 'sqlalchemy.dialects.oracle.provision'
+30431 INFO: Analyzing hidden import 'sqlalchemy.dialects.postgresql'
+30698 INFO: Analyzing hidden import 'sqlalchemy.dialects.postgresql.provision'
+30704 INFO: Analyzing hidden import 'sqlalchemy.dialects.sqlite'
+30768 INFO: Processing standard module hook 'hook-sqlite3.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks'
+31016 INFO: Analyzing hidden import 'sqlalchemy.dialects.sqlite.provision'
+31022 INFO: Analyzing hidden import 'sqlalchemy.engine.strategies'
+31023 INFO: Analyzing hidden import 'sqlalchemy.events'
+31025 INFO: Analyzing hidden import 'sqlalchemy.ext.associationproxy'
+31075 INFO: Analyzing hidden import 'sqlalchemy.ext.automap'
+31088 INFO: Analyzing hidden import 'sqlalchemy.ext.baked'
+31101 INFO: Analyzing hidden import 'sqlalchemy.ext.declarative'
+31108 INFO: Analyzing hidden import 'sqlalchemy.ext.horizontal_shard'
+31120 INFO: Analyzing hidden import 'sqlalchemy.ext.hybrid'
+31134 INFO: Analyzing hidden import 'sqlalchemy.ext.indexable'
+31138 INFO: Analyzing hidden import 'sqlalchemy.ext.instrumentation'
+31146 INFO: Analyzing hidden import 'sqlalchemy.ext.mutable'
+31164 INFO: Analyzing hidden import 'sqlalchemy.ext.mypy'
+31164 INFO: Analyzing hidden import 'sqlalchemy.ext.mypy.apply'
+31197 INFO: Analyzing hidden import 'sqlalchemy.ext.mypy.decl_class'
+31207 INFO: Analyzing hidden import 'sqlalchemy.ext.mypy.plugin'
+31214 INFO: Analyzing hidden import 'sqlalchemy.ext.orderinglist'
+31220 INFO: Analyzing hidden import 'sqlalchemy.ext.serializer'
+31226 INFO: Analyzing hidden import 'sqlalchemy.testing'
+31687 INFO: Analyzing hidden import 'sqlalchemy.testing.pickleable'
+31691 INFO: Analyzing hidden import 'sqlalchemy.testing.plugin.bootstrap'
+31692 INFO: Analyzing hidden import 'sqlalchemy.testing.plugin.pytestplugin'
+31715 INFO: Processing standard module hook 'hook-pytest.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+31965 INFO: Processing standard module hook 'hook-py.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+32325 INFO: Processing pre-safe-import-module hook 'hook-tomli.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+33282 INFO: Processing standard module hook 'hook-pkg_resources.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks'
+34194 INFO: Analyzing hidden import 'sqlalchemy.testing.suite'
+34545 INFO: Analyzing hidden import 'sqlalchemy.util.tool_support'
+34550 INFO: Analyzing hidden import 'alembic'
+34988 INFO: Processing standard module hook 'hook-mako.codegen.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+35731 INFO: Analyzing hidden import 'alembic.__main__'
+35733 INFO: Analyzing hidden import 'alembic.environment'
+35733 INFO: Analyzing hidden import 'alembic.migration'
+35733 INFO: Analyzing hidden import 'alembic.testing'
+35767 INFO: Analyzing hidden import 'alembic.testing.plugin'
+35768 INFO: Analyzing hidden import 'alembic.testing.plugin.bootstrap'
+35769 INFO: Analyzing hidden import 'alembic.testing.requirements'
+35773 INFO: Analyzing hidden import 'alembic.testing.schemacompare'
+35779 INFO: Analyzing hidden import 'alembic.testing.warnings'
+35780 INFO: Analyzing hidden import 'pystray._info'
+35781 INFO: Processing module hooks (post-graph stage)...
+36251 WARNING: Hidden import "tzdata" not found!
+36526 INFO: Processing standard module hook 'hook-PIL.SpiderImagePlugin.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks'
+36580 INFO: Processing pre-safe-import-module hook 'hook-win32com.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\pre_safe_import_module'
+38583 INFO: Processing standard module hook 'hook-sqlalchemy.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks'
+38900 WARNING: Hidden import "pysqlite2" not found!
+38900 WARNING: Hidden import "MySQLdb" not found!
+38971 INFO: Performing binary vs. data reclassification (956 entries)
+39055 INFO: Looking for ctypes DLLs
+39207 INFO: Analyzing run-time hooks ...
+39217 INFO: Including run-time hook 'pyi_rth_inspect.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+39219 INFO: Including run-time hook 'pyi_rth_pkgutil.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+39221 INFO: Including run-time hook 'pyi_rth_multiprocessing.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+39223 INFO: Including run-time hook 'pyi_rth_pkgres.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+39300 INFO: Creating base_library.zip...
+39321 INFO: Looking for dynamic libraries
+41055 INFO: Extra DLL search directories (AddDllDirectory): ['C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\numpy.libs', 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\cv2\\../../x64/vc17/bin', 'C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\shapely.libs']
+41055 INFO: Extra DLL search directories (PATH): ['C:\\hostedtoolcache\\windows\\Python\\3.11.9\\x64\\Lib\\site-packages\\cv2\\../../x64/vc17/bin']
+42567 INFO: Warnings written to D:\a\PaperFlow-Stream\PaperFlow-Stream\build\PaperFlowHub\warn-PaperFlowHub.txt
+42788 INFO: Graph cross-reference written to D:\a\PaperFlow-Stream\PaperFlow-Stream\build\PaperFlowHub\xref-PaperFlowHub.html
+42880 INFO: checking PYZ
+42880 INFO: Building PYZ because PYZ-00.toc is non existent
+42880 INFO: Building PYZ (ZlibArchive) D:\a\PaperFlow-Stream\PaperFlow-Stream\build\PaperFlowHub\PYZ-00.pyz
+44712 INFO: Building PYZ (ZlibArchive) D:\a\PaperFlow-Stream\PaperFlow-Stream\build\PaperFlowHub\PYZ-00.pyz completed successfully.
+44764 INFO: checking PKG
+44764 INFO: Building PKG because PKG-00.toc is non existent
+44764 INFO: Building PKG (CArchive) PaperFlowHub.pkg
+44794 INFO: Building PKG (CArchive) PaperFlowHub.pkg completed successfully.
+44794 INFO: Bootloader C:\hostedtoolcache\windows\Python\3.11.9\x64\Lib\site-packages\PyInstaller\bootloader\Windows-64bit-intel\runw.exe
+44794 INFO: checking EXE
+44794 INFO: Building EXE because EXE-00.toc is non existent
+44794 INFO: Building EXE from EXE-00.toc
+44794 INFO: Copying bootloader EXE to D:\a\PaperFlow-Stream\PaperFlow-Stream\build\PaperFlowHub\PaperFlowHub.exe
+44798 INFO: Copying icon to EXE
+44799 INFO: Copying 0 resources to EXE
+44799 INFO: Embedding manifest in EXE
+44801 INFO: Appending PKG archive to EXE
+44810 INFO: Fixing EXE headers
+44912 INFO: Building EXE from EXE-00.toc completed successfully.
+44921 INFO: checking COLLECT
+44921 INFO: Building COLLECT because COLLECT-00.toc is non existent
+44921 INFO: Building COLLECT COLLECT-00.toc
+45762 INFO: Building COLLECT COLLECT-00.toc completed successfully.
+45783 INFO: Build complete! The results are available in: D:\a\PaperFlow-Stream\PaperFlow-Stream\dist
