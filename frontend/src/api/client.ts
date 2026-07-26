@@ -1,6 +1,6 @@
 /** API client bound to the discovered local PaperFlow Hub. */
 
-import { buildHubHeaders, getActiveHub } from "../hub/runtime";
+import { buildHubHeaders, getActiveHub, withHubNetworkAccess } from "../hub/runtime";
 
 const WS_AUTH_PREFIX = "paperflow-auth.";
 let webSocketAuthInstalled = false;
@@ -34,13 +34,17 @@ async function handle<T>(response: Response): Promise<T> {
 }
 
 function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const hub = getActiveHub();
   const headers = buildHubHeaders(init?.headers);
-  return fetch(apiUrl(path), {
-    ...init,
-    mode: "cors",
-    cache: "no-store",
-    headers,
-  }).then((response) => handle<T>(response));
+  return fetch(
+    apiUrl(path),
+    withHubNetworkAccess(hub.baseUrl, {
+      ...init,
+      mode: "cors",
+      cache: "no-store",
+      headers,
+    }),
+  ).then((response) => handle<T>(response));
 }
 
 export const api = {
@@ -71,11 +75,15 @@ export const api = {
 
   /** Download a binary endpoint and trigger the browser save-file flow. */
   async download(path: string, fallbackName: string): Promise<void> {
-    const response = await fetch(apiUrl(path), {
-      mode: "cors",
-      cache: "no-store",
-      headers: buildHubHeaders(),
-    });
+    const hub = getActiveHub();
+    const response = await fetch(
+      apiUrl(path),
+      withHubNetworkAccess(hub.baseUrl, {
+        mode: "cors",
+        cache: "no-store",
+        headers: buildHubHeaders(),
+      }),
+    );
     if (!response.ok) {
       let detail = response.statusText;
       try {
