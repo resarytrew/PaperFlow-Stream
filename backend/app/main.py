@@ -83,6 +83,10 @@ app.add_middleware(HubSecurityMiddleware, settings=settings, identity=hub_identi
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.all_cors_origins,
+    # A previously unknown HTTPS web app may only call the public discovery and
+    # pairing routes. HubSecurityMiddleware still rejects all private traffic
+    # until the exact Origin has been confirmed locally and stored as a client.
+    allow_origin_regex=r"^(https://[^/]+|http://(?:localhost|127(?:\.\d{1,3}){3})(?::\d+)?)$",
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=[
