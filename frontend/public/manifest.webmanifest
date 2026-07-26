@@ -1,0 +1,17 @@
+{
+  "name": "PaperFlow Web",
+  "short_name": "PaperFlow",
+  "description": "Веб-интерфейс локального PaperFlow Hub",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f3f6f8",
+  "theme_color": "#15202b",
+  "icons": [
+    {
+      "src": "/paperflow-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
