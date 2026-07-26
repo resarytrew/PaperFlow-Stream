@@ -22,6 +22,13 @@ const TABS: { id: string; label: string }[] = [
   { id: "rescan", label: "Пересканировать" },
 ];
 
+const IMAGE_LABELS = {
+  enhanced: "Улучшенное",
+  normalized: "Выровненное",
+  answer: "Зона ответа",
+  source: "Оригинал",
+} as const;
+
 export default function ReviewPage() {
   const { id } = useParams();
   const sessionId = Number(id);
@@ -32,7 +39,7 @@ export default function ReviewPage() {
   const sheets = useApi<ScannedSheet[]>(() => api.get(`/sessions/${sessionId}/review?tab=${tab}`), [sessionId, tab]);
 
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const selected = useMemo(() => sheets.data?.find((s) => s.id === selectedId) ?? null, [sheets.data, selectedId]);
+  const selected = useMemo(() => sheets.data?.find((sheet) => sheet.id === selectedId) ?? null, [sheets.data, selectedId]);
 
   const [teacherText, setTeacherText] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +50,6 @@ export default function ReviewPage() {
     [session.data?.class_id],
   );
 
-  // Live OCR progress: refresh the current lists when the queue reports done.
   useEffect(() => {
     const ws = new WebSocket(wsUrl("/ws/ocr"));
     let timer: number | null = null;
@@ -65,6 +71,13 @@ export default function ReviewPage() {
   }, [sessionId, tab]);
 
   useEffect(() => {
+    if (!selectedId && sheets.data?.length) setSelectedId(sheets.data[0].id);
+    if (selectedId && sheets.data && !sheets.data.some((sheet) => sheet.id === selectedId)) {
+      setSelectedId(sheets.data[0]?.id ?? null);
+    }
+  }, [selectedId, sheets.data]);
+
+  useEffect(() => {
     setTeacherText(selected?.review?.teacher_text || selected?.recognition?.recognized_text || "");
   }, [selectedId, selected?.recognition?.recognized_text, selected?.review?.teacher_text]);
 
@@ -83,231 +96,301 @@ export default function ReviewPage() {
     act(() => api.post(`/sheets/${selectedId}/review`, { decision, teacher_text: teacherText, comment: "" }));
 
   const confidence = selected?.recognition?.overall_confidence ?? 0;
-  const confColor = confidence >= 0.85 ? "var(--green)" : confidence >= 0.6 ? "var(--amber)" : "var(--red)";
+  const confidencePercent = Math.round(confidence * 100);
+  const confidenceClass = confidence >= 0.85 ? "good" : confidence >= 0.6 ? "medium" : "low";
+  const selectedPosition = selected ? (sheets.data ?? []).findIndex((sheet) => sheet.id === selected.id) + 1 : 0;
+
+  function moveSelection(direction: -1 | 1) {
+    const list = sheets.data ?? [];
+    if (!list.length) return;
+    const currentIndex = Math.max(0, list.findIndex((sheet) => sheet.id === selectedId));
+    const nextIndex = Math.min(list.length - 1, Math.max(0, currentIndex + direction));
+    setSelectedId(list[nextIndex].id);
+  }
 
   return (
-    <>
-      <h1 className="page-title">
-        Проверка: {session.data?.title ?? `сессия ${sessionId}`}
-        <span className="spacer" />
-        <button
-          className="btn small"
-          onClick={() => act(() => api.post(`/sessions/${sessionId}/recognize-all?only_missing=true`))}
-          title="Поставить в очередь OCR все листы без результата"
-        >
-          Распознать все
-        </button>
-        <button className="btn small" onClick={() => api.download(`/sessions/${sessionId}/export/xlsx`, `session_${sessionId}.xlsx`).catch((e) => setError(e.message))}>
-          Экспорт XLSX
-        </button>
-        <Link className="btn small" to={`/sessions/${sessionId}/scan`}>
-          ← К сканированию
-        </Link>
-      </h1>
+    <div className="review-page">
+      <section className="review-heading">
+        <div>
+          <div className="eyebrow">Проверочный стол</div>
+          <h1>{session.data?.title ?? `Сессия ${sessionId}`}</h1>
+          <p>Слева — очередь работ, по центру — оригинал, справа — решение учителя.</p>
+        </div>
+        <div className="review-heading-actions">
+          <button
+            className="btn"
+            onClick={() => act(() => api.post(`/sessions/${sessionId}/recognize-all?only_missing=true`))}
+            title="Поставить в очередь OCR все листы без результата"
+          >
+            Распознать пропущенные
+          </button>
+          <button
+            className="btn"
+            onClick={() => api.download(`/sessions/${sessionId}/export/xlsx`, `session_${sessionId}.xlsx`).catch((nextError) => setError(nextError.message))}
+          >
+            Экспорт XLSX
+          </button>
+          <Link className="btn primary" to={`/sessions/${sessionId}/scan`}>
+            Вернуться к камере
+          </Link>
+        </div>
+      </section>
 
       {error && <div className="error-box">{error}</div>}
 
-      <div className="tabs">
-        {TABS.map((t) => (
-          <button key={t.id} className={`tab${tab === t.id ? " active" : ""}`} onClick={() => setTab(t.id)}>
-            {t.label}
-            {counts.data ? ` (${counts.data[t.id] ?? 0})` : ""}
-          </button>
-        ))}
-      </div>
-
-      <div className="review-layout">
-        <div className="sheet-list">
-          {sheets.loading && <span className="muted">Загрузка…</span>}
-          {sheets.data?.length === 0 && <span className="muted">В этой вкладке листов нет.</span>}
-          {(sheets.data ?? []).map((s) => (
-            <div key={s.id} className={`sheet-item${s.id === selectedId ? " selected" : ""}`} onClick={() => setSelectedId(s.id)}>
-              <img src={sheetImageUrl(s.id, "thumbnail")} alt="" loading="lazy" />
-              <div className="meta">
-                <div className="name">
-                  #{s.sequence_number} {s.student_name || s.student_external_id || "Неизвестный ученик"}
-                </div>
-                <div className="sub">
-                  <Badge map={SCAN_STATUS_RU} value={s.scan_status} />{" "}
-                  {s.recognition && <Badge map={RECOG_STATUS_RU} value={s.recognition.status} />}{" "}
-                  {s.recognition?.analysis_json?.answerCheck && s.recognition.analysis_json.answerCheck.verdict !== "unknown" && (
-                    <span
-                      className={`badge ${ANSWER_VERDICT_RU[s.recognition.analysis_json.answerCheck.verdict]?.color ?? "gray"}`}
-                      title={ANSWER_VERDICT_RU[s.recognition.analysis_json.answerCheck.verdict]?.label}
-                    >
-                      {ANSWER_VERDICT_RU[s.recognition.analysis_json.answerCheck.verdict]?.icon}
-                    </span>
-                  )}
-                </div>
-                {s.recognition?.recognized_text && (
-                  <div className="sub" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 200 }}>
-                    «{s.recognition.recognized_text}»
-                  </div>
-                )}
-              </div>
-            </div>
+      <div className="review-filterbar">
+        <div className="review-filter-scroll">
+          {TABS.map((item) => (
+            <button key={item.id} className={`review-filter${tab === item.id ? " active" : ""}`} onClick={() => setTab(item.id)}>
+              <span>{item.label}</span>
+              <strong>{counts.data?.[item.id] ?? 0}</strong>
+            </button>
           ))}
         </div>
+        <div className="review-counter">
+          {selected ? `${selectedPosition} из ${sheets.data?.length ?? 0}` : `${sheets.data?.length ?? 0} работ`}
+        </div>
+      </div>
 
-        <div>
-          {!selected && <div className="panel muted">Выберите лист слева.</div>}
+      <div className="review-desk">
+        <aside className="review-queue" aria-label="Очередь работ">
+          <div className="review-queue-head">
+            <div>
+              <span>Очередь</span>
+              <strong>{sheets.data?.length ?? 0}</strong>
+            </div>
+            <div className="review-nav-buttons">
+              <button onClick={() => moveSelection(-1)} disabled={!selected || selectedPosition <= 1} aria-label="Предыдущая работа">
+                ↑
+              </button>
+              <button
+                onClick={() => moveSelection(1)}
+                disabled={!selected || selectedPosition >= (sheets.data?.length ?? 0)}
+                aria-label="Следующая работа"
+              >
+                ↓
+              </button>
+            </div>
+          </div>
+
+          <div className="review-queue-list">
+            {sheets.loading && <div className="review-empty-note">Загружаю работы…</div>}
+            {!sheets.loading && sheets.data?.length === 0 && <div className="review-empty-note">В этой категории работ нет.</div>}
+            {(sheets.data ?? []).map((sheet) => {
+              const recognitionConfidence = Math.round((sheet.recognition?.overall_confidence ?? 0) * 100);
+              const answerCheck = sheet.recognition?.analysis_json?.answerCheck;
+              return (
+                <button
+                  type="button"
+                  key={sheet.id}
+                  className={`review-queue-item${sheet.id === selectedId ? " selected" : ""}`}
+                  onClick={() => setSelectedId(sheet.id)}
+                >
+                  <img src={sheetImageUrl(sheet.id, "thumbnail")} alt="" loading="lazy" />
+                  <span className="review-queue-copy">
+                    <span className="review-queue-number">Лист {sheet.sequence_number}</span>
+                    <strong>{sheet.student_name || sheet.student_external_id || "Ученик не определён"}</strong>
+                    <span className="review-queue-status">
+                      {sheet.recognition?.recognized_text ? `«${sheet.recognition.recognized_text}»` : "Текст ещё не распознан"}
+                    </span>
+                  </span>
+                  <span className="review-queue-meta">
+                    <span>{recognitionConfidence ? `${recognitionConfidence}%` : "—"}</span>
+                    {answerCheck && answerCheck.verdict !== "unknown" && (
+                      <span className={`queue-verdict ${ANSWER_VERDICT_RU[answerCheck.verdict]?.color ?? "gray"}`}>
+                        {ANSWER_VERDICT_RU[answerCheck.verdict]?.icon}
+                      </span>
+                    )}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </aside>
+
+        <main className="review-document-stage">
+          {!selected && (
+            <div className="review-stage-empty">
+              <div className="empty-state-mark">✓</div>
+              <h2>Выбери работу в очереди</h2>
+              <p>Изображение листа и результат распознавания появятся здесь.</p>
+            </div>
+          )}
+
           {selected && (
-            <div className="panel">
-              <div className="row mb">
-                <strong>
-                  Лист #{selected.sequence_number} ·{" "}
-                  {selected.student_id ? (
-                    <Link to={`/students/${selected.student_id}`}>{selected.student_name}</Link>
-                  ) : (
-                    "ученик не определён"
-                  )}
-                </strong>
+            <>
+              <div className="review-document-toolbar">
+                <div>
+                  <span className="review-document-label">Лист #{selected.sequence_number}</span>
+                  <strong>{selected.student_name || selected.student_external_id || "Ученик не определён"}</strong>
+                </div>
+                <div className="review-image-switcher">
+                  {(Object.keys(IMAGE_LABELS) as Array<keyof typeof IMAGE_LABELS>).map((kind) => (
+                    <button key={kind} className={imageKind === kind ? "active" : ""} onClick={() => setImageKind(kind)}>
+                      {IMAGE_LABELS[kind]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="review-paper-frame">
+                <img src={sheetImageUrl(selected.id, imageKind)} alt={`Лист ${selected.sequence_number}`} />
+              </div>
+
+              <div className="review-document-footer">
                 <Badge map={SCAN_STATUS_RU} value={selected.scan_status} />
                 {selected.recognition && <Badge map={RECOG_STATUS_RU} value={selected.recognition.status} />}
-                <span className="muted">качество {(selected.quality_score * 100).toFixed(0)}%</span>
+                <span>Качество изображения {Math.round(selected.quality_score * 100)}%</span>
+                {selected.recognition?.provider && <span>{selected.recognition.provider}</span>}
               </div>
+            </>
+          )}
+        </main>
 
-              <div className="row mb">
-                {(["enhanced", "normalized", "answer", "source"] as const).map((k) => (
-                  <button key={k} className={`btn small${imageKind === k ? " primary" : ""}`} onClick={() => setImageKind(k)}>
-                    {{ enhanced: "Улучшенное", normalized: "Выровненное", answer: "Зона ответа", source: "Оригинал" }[k]}
-                  </button>
-                ))}
-              </div>
-
-              <div className="sheet-preview mb">
-                <img src={sheetImageUrl(selected.id, imageKind)} alt="Лист" />
+        <aside className="review-decision-panel" aria-label="Решение учителя">
+          {!selected && <div className="review-empty-note">Панель решения откроется после выбора листа.</div>}
+          {selected && (
+            <>
+              <div className="decision-panel-head">
+                <div>
+                  <span>Решение учителя</span>
+                  <h2>{selected.student_name || "Неизвестная работа"}</h2>
+                </div>
+                <span className={`confidence-seal ${confidenceClass}`}>{confidencePercent || "—"}%</span>
               </div>
 
               {selected.recognition && (
-                <>
-                  <div className="row mb">
-                    <span className="muted">Уверенность распознавания:</span>
-                    <div className="confidence-bar" style={{ flex: 1, maxWidth: 260 }}>
-                      <div style={{ width: `${Math.round(confidence * 100)}%`, background: confColor }} />
-                    </div>
-                    <span>{(confidence * 100).toFixed(0)}%</span>
-                    <span className="muted">
-                      {selected.recognition.provider}
-                      {selected.recognition.model_name ? ` · ${selected.recognition.model_name}` : ""}
-                    </span>
+                <div className="confidence-section">
+                  <div className="confidence-copy">
+                    <span>Уверенность OCR</span>
+                    <strong>{confidencePercent}%</strong>
                   </div>
-                  {selected.recognition.error_message && <div className="error-box">{selected.recognition.error_message}</div>}
+                  <div className={`confidence-track ${confidenceClass}`}>
+                    <span style={{ width: `${confidencePercent}%` }} />
+                  </div>
+                  {selected.recognition.error_message && <div className="error-box compact">{selected.recognition.error_message}</div>}
                   <AnswerHint check={selected.recognition.analysis_json?.answerCheck} />
-                </>
+                </div>
               )}
 
-              <label className="field">
-                <span>Текст ответа (распознанный / исправленный учителем)</span>
-                <textarea value={teacherText} onChange={(e) => setTeacherText(e.target.value)} rows={3} />
+              <label className="field review-text-field">
+                <span>Распознанный ответ</span>
+                <textarea value={teacherText} onChange={(event) => setTeacherText(event.target.value)} rows={7} />
               </label>
 
-              <div className="row">
-                <button className="btn success" onClick={() => submitDecision(teacherText === (selected.recognition?.recognized_text ?? "") ? "accepted" : "corrected")}>
-                  ✓ Принять
-                </button>
-                <button className="btn" onClick={() => act(() => api.post(`/sheets/${selected.id}/recognize`))}>
-                  ↻ Распознать заново
-                </button>
+              <div className="decision-primary-actions">
                 <button
-                  className="btn primary"
-                  title="Второй проход через Yandex Vision OCR. Требует явного разрешения в настройках приватности."
-                  onClick={() => act(() => api.post(`/sheets/${selected.id}/recognize-vision`))}
+                  className="decision-accept"
+                  onClick={() => submitDecision(teacherText === (selected.recognition?.recognized_text ?? "") ? "accepted" : "corrected")}
                 >
-                  ✨ Распознать Vision
+                  <span>✓</span>
+                  <strong>{teacherText === (selected.recognition?.recognized_text ?? "") ? "Принять ответ" : "Принять исправление"}</strong>
+                  <small>Работа будет отмечена проверенной</small>
                 </button>
-                <button className="btn" onClick={() => act(() => api.post(`/sheets/${selected.id}/blank-override?is_blank=true`))}>
-                  Пустой ответ
-                </button>
-                <button className="btn" onClick={() => submitDecision("rescan_required")}>
+
+                <button className="decision-rescan" onClick={() => submitDecision("rescan_required")}>
                   Пересканировать
                 </button>
-                <button className="btn danger" onClick={() => submitDecision("unreadable")}>
+                <button className="decision-unreadable" onClick={() => submitDecision("unreadable")}>
                   Нечитаемо
                 </button>
               </div>
 
-              <h3 className="section">Привязка к ученику</h3>
-              <div className="row">
-                <select
-                  value={selected.student_id ?? ""}
-                  onChange={(e) =>
-                    act(() =>
-                      api.patch(`/sheets/${selected.id}/assign`, {
-                        student_id: e.target.value ? Number(e.target.value) : null,
-                      }),
-                    )
-                  }
-                  style={{ maxWidth: 320 }}
-                >
-                  <option value="">— не привязан —</option>
-                  {(students.data ?? []).map((st) => (
-                    <option key={st.id} value={st.id}>
-                      {st.external_id} · {st.display_name}
-                    </option>
-                  ))}
-                </select>
-                {selected.duplicate_of_id && (
-                  <button className="btn small" onClick={() => act(() => api.patch(`/sheets/${selected.id}/assign`, { clear_duplicate: true }))}>
-                    Снять метку «дубликат» (№{selected.duplicate_of_id})
+              <details className="decision-tools">
+                <summary>Инструменты распознавания</summary>
+                <div>
+                  <button className="btn" onClick={() => act(() => api.post(`/sheets/${selected.id}/recognize`))}>
+                    Распознать заново
                   </button>
-                )}
-                <button
-                  className="btn small danger"
-                  onClick={() => {
-                    if (!confirm("Удалить лист?")) return;
-                    act(async () => {
-                      await api.delete(`/sheets/${selected.id}`);
-                      setSelectedId(null);
-                    });
-                  }}
-                >
-                  Удалить лист
-                </button>
-              </div>
+                  <button
+                    className="btn primary"
+                    title="Второй проход через Yandex Vision OCR. Требует явного разрешения в настройках приватности."
+                    onClick={() => act(() => api.post(`/sheets/${selected.id}/recognize-vision`))}
+                  >
+                    Yandex Vision
+                  </button>
+                  <button className="btn" onClick={() => act(() => api.post(`/sheets/${selected.id}/blank-override?is_blank=true`))}>
+                    Пустой ответ
+                  </button>
+                </div>
+              </details>
+
+              <details className="decision-tools">
+                <summary>Ученик и служебные действия</summary>
+                <div className="decision-service-stack">
+                  <label className="field">
+                    <span>Привязать к ученику</span>
+                    <select
+                      value={selected.student_id ?? ""}
+                      onChange={(event) =>
+                        act(() =>
+                          api.patch(`/sheets/${selected.id}/assign`, {
+                            student_id: event.target.value ? Number(event.target.value) : null,
+                          }),
+                        )
+                      }
+                    >
+                      <option value="">Не привязан</option>
+                      {(students.data ?? []).map((student) => (
+                        <option key={student.id} value={student.id}>
+                          {student.external_id} · {student.display_name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  {selected.student_id && <Link to={`/students/${selected.student_id}`}>Открыть карточку ученика</Link>}
+                  {selected.duplicate_of_id && (
+                    <button className="btn" onClick={() => act(() => api.patch(`/sheets/${selected.id}/assign`, { clear_duplicate: true }))}>
+                      Снять метку дубликата №{selected.duplicate_of_id}
+                    </button>
+                  )}
+                  <button
+                    className="btn danger"
+                    onClick={() => {
+                      if (!confirm("Удалить лист?")) return;
+                      void act(async () => {
+                        await api.delete(`/sheets/${selected.id}`);
+                        setSelectedId(null);
+                      });
+                    }}
+                  >
+                    Удалить лист
+                  </button>
+                </div>
+              </details>
 
               {selected.warnings && selected.warnings.length > 0 && (
-                <>
-                  <h3 className="section">Предупреждения</h3>
-                  <ul className="muted" style={{ margin: 0, paddingLeft: 18 }}>
-                    {selected.warnings.map((w, i) => (
-                      <li key={i}>{w}</li>
+                <div className="decision-warnings">
+                  <strong>Предупреждения</strong>
+                  <ul>
+                    {selected.warnings.map((warning, index) => (
+                      <li key={index}>{warning}</li>
                     ))}
                   </ul>
-                </>
+                </div>
               )}
-            </div>
+            </>
           )}
-        </div>
+        </aside>
       </div>
-    </>
+    </div>
   );
 }
 
-/** Hint block: recognized/corrected answer vs the task's expected answer.
- *  Never a grade — always rendered with the disclaimer. */
 function AnswerHint({ check }: { check?: AnswerCheck }) {
   if (!check || check.verdict === "unknown") return null;
   const info = ANSWER_VERDICT_RU[check.verdict] ?? ANSWER_VERDICT_RU.unknown;
   return (
-    <div className="row mb" title={check.disclaimer}>
-      <span className="muted">Сверка с эталоном:</span>
-      <span className={`badge ${info.color}`}>
-        {info.icon} {info.label}
-      </span>
-      {check.editDistance !== null && check.editDistance > 0 && (
-        <span className="muted" style={{ fontSize: 12 }}>
-          расхождение: {check.editDistance} симв.
-        </span>
-      )}
-      {check.source === "teacher_text" && (
-        <span className="muted" style={{ fontSize: 12 }}>
-          по исправленному тексту
-        </span>
-      )}
-      <span className="muted" style={{ fontSize: 12 }}>
-        {check.disclaimer}
-      </span>
+    <div className={`answer-hint-card ${info.color}`} title={check.disclaimer}>
+      <div className="answer-hint-icon">{info.icon}</div>
+      <div>
+        <span>Сверка с эталоном</span>
+        <strong>{info.label}</strong>
+        {check.editDistance !== null && check.editDistance > 0 && <small>Расхождение: {check.editDistance} символов</small>}
+        {check.source === "teacher_text" && <small>Рассчитано по исправленному тексту</small>}
+        <small>{check.disclaimer}</small>
+      </div>
     </div>
   );
 }
