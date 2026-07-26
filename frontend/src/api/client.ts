@@ -149,12 +149,10 @@ export function installHubWebSocketAuth(): void {
       : new NativeWebSocket(url, selectedProtocols);
   } as unknown as typeof WebSocket;
 
-  HubAwareWebSocket.prototype = NativeWebSocket.prototype;
-  Object.defineProperties(HubAwareWebSocket, {
-    CONNECTING: { value: NativeWebSocket.CONNECTING },
-    OPEN: { value: NativeWebSocket.OPEN },
-    CLOSING: { value: NativeWebSocket.CLOSING },
-    CLOSED: { value: NativeWebSocket.CLOSED },
+  Object.setPrototypeOf(HubAwareWebSocket, NativeWebSocket);
+  Object.defineProperty(HubAwareWebSocket, "prototype", {
+    value: NativeWebSocket.prototype,
+    writable: false,
   });
   window.WebSocket = HubAwareWebSocket;
 }
@@ -166,6 +164,6 @@ export function sheetImageUrl(
   const hub = getActiveHub();
   const url = new URL(`${hub.baseUrl}/api/sheets/${sheetId}/image/${kind}`);
   url.searchParams.set("workspace", hub.workspaceId);
-  if (hub.token) url.searchParams.set("hub_token", hub.token);
+  if (hub.mediaToken) url.searchParams.set("hub_token", hub.mediaToken);
   return url.toString();
 }
