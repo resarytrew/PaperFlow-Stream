@@ -15,6 +15,12 @@ on:
       - backend/app/desktop.py
       - backend/app/config.py
       - backend/tests/test_desktop_host.py
+      - frontend/index.html
+      - frontend/public/chistovik-icon.svg
+      - frontend/public/manifest.webmanifest
+      - frontend/src/App.tsx
+      - frontend/src/hub/HubProvider.tsx
+      - frontend/src/hub/runtime.ts
       - packaging/windows/PaperFlowHub.spec
       - packaging/windows/PaperFlowHub.iss
       - .github/workflows/release-personal-hub.yml
