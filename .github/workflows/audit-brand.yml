@@ -1,4 +1,4 @@
-name: Snapshot final Chistovik release
+name: Clean temporary Chistovik diagnostics
 
 on:
   push:
@@ -9,27 +9,45 @@ on:
 
 permissions:
   contents: write
-  actions: read
 
 jobs:
-  snapshot:
+  clean:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - name: Capture latest release status
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Remove one-time reports
         shell: bash
         run: |
-          gh run list --repo "$GITHUB_REPOSITORY" --workflow release-personal-hub.yml --limit 8 --json databaseId,status,conclusion,headSha,url,createdAt > final-release-status.json
-      - name: Commit snapshot
+          rm -f \
+            brand-audit.txt \
+            brand-audit-after.txt \
+            rebrand-status.json \
+            rebrand-log.txt \
+            rebrand-error.txt \
+            release-status.json \
+            release-log.txt \
+            release-artifacts.json \
+            release-snapshot.json \
+            release-publish-error.txt \
+            tag-status.json \
+            tag-log.txt \
+            final-release-status.json \
+            final-release-result.json \
+            final-release-log.txt \
+            final-release-artifacts.json \
+            final-release-snapshot.json
+      - name: Commit cleanup
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add final-release-status.json
-          git commit -m "chore: snapshot final Chistovik release"
-          git pull --rebase origin main
-          git push
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No temporary reports remain"
+          else
+            git commit -m "chore: remove temporary Chistovik diagnostics"
+            git pull --rebase origin main
+            git push
+          fi
