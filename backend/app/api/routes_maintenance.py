@@ -9,27 +9,23 @@ import tempfile
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import unquote, urlparse
 
 from fastapi import APIRouter, HTTPException, Response
 
+import app.db as app_db
 from app.api.deps import Config
 from app.config import get_settings
 
 router = APIRouter(tags=["maintenance"])
 
 
-def _sqlite_path(database_url: str) -> Path:
-    parsed = urlparse(database_url)
-    if parsed.scheme != "sqlite":
+def _sqlite_path() -> Path:
+    url = app_db.engine.url
+    if url.get_backend_name() != "sqlite":
         raise HTTPException(status_code=501, detail="Резервное копирование сейчас поддерживает только SQLite")
-
-    raw_path = unquote(parsed.path)
-    if parsed.netloc and parsed.netloc not in {"", "localhost"}:
-        raw_path = f"//{parsed.netloc}{raw_path}"
-    if not raw_path:
-        raise HTTPException(status_code=500, detail="Не удалось определить путь к базе данных")
-    return Path(raw_path)
+    if not url.database or url.database == ":memory:":
+        raise HTTPException(status_code=501, detail="Для временной базы резервная копия недоступна")
+    return Path(url.database)
 
 
 @router.get("/maintenance/backup")
@@ -42,22 +38,27 @@ def download_backup(config: Config) -> Response:
     the archive is a metadata/database recovery point.
     """
     settings = get_settings()
-    source_path = _sqlite_path(settings.resolved_database_url()).resolve()
+    source_path = _sqlite_path().resolve()
     if not source_path.is_file():
         raise HTTPException(status_code=404, detail="Файл базы данных не найден")
 
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
     with tempfile.TemporaryDirectory(prefix="paperflow-backup-") as temp_dir:
         snapshot_path = Path(temp_dir) / "paperflow.db"
+        source = None
+        target = None
         try:
             source = sqlite3.connect(f"file:{source_path.as_posix()}?mode=ro", uri=True)
             target = sqlite3.connect(snapshot_path)
             with target:
                 source.backup(target)
-            source.close()
-            target.close()
         except sqlite3.Error as exc:
             raise HTTPException(status_code=500, detail=f"Не удалось создать снимок базы: {exc}") from exc
+        finally:
+            if source is not None:
+                source.close()
+            if target is not None:
+                target.close()
 
         manifest = {
             "application": settings.app_name,
