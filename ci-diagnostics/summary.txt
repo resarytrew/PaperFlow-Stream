@@ -1,7 +1,0 @@
-frontend=success
-dependencies=success
-tests=success
-pyinstaller=success
-inno=success
-installer=success
-run=https://github.com/resarytrew/PaperFlow-Stream/actions/runs/30193315373
