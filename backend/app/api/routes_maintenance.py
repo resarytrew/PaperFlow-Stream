@@ -28,15 +28,38 @@ def _sqlite_path() -> Path:
     return Path(url.database)
 
 
+def _redact_snapshot_secrets(connection: sqlite3.Connection) -> None:
+    """Remove credentials from the backup copy without touching live data."""
+    try:
+        rows = connection.execute("select id, payload from app_settings").fetchall()
+    except sqlite3.OperationalError:
+        return
+
+    for row_id, raw_payload in rows:
+        if not raw_payload:
+            continue
+        try:
+            payload = json.loads(raw_payload) if isinstance(raw_payload, str) else raw_payload
+        except (TypeError, json.JSONDecodeError):
+            continue
+        if not isinstance(payload, dict):
+            continue
+        vision = payload.get("vision_ocr")
+        if isinstance(vision, dict) and "api_key" in vision:
+            vision = dict(vision)
+            vision.pop("api_key", None)
+            payload = dict(payload)
+            payload["vision_ocr"] = vision
+            connection.execute(
+                "update app_settings set payload = ? where id = ?",
+                (json.dumps(payload, ensure_ascii=False), row_id),
+            )
+    connection.commit()
+
+
 @router.get("/maintenance/backup")
 def download_backup(config: Config) -> Response:
-    """Create a consistent SQLite snapshot and return it as a ZIP archive.
-
-    SQLite's backup API is used instead of copying a live WAL database. Runtime
-    configuration in the manifest is redacted, so credentials are not leaked.
-    Stored sheet images are intentionally excluded to keep this operation fast;
-    the archive is a metadata/database recovery point.
-    """
+    """Create a consistent, credential-free SQLite snapshot as a ZIP archive."""
     settings = get_settings()
     source_path = _sqlite_path().resolve()
     if not source_path.is_file():
@@ -52,6 +75,7 @@ def download_backup(config: Config) -> Response:
             target = sqlite3.connect(snapshot_path)
             with target:
                 source.backup(target)
+            _redact_snapshot_secrets(target)
         except sqlite3.Error as exc:
             raise HTTPException(status_code=500, detail=f"Не удалось создать снимок базы: {exc}") from exc
         finally:
