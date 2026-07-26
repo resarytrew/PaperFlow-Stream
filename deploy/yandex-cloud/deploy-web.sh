@@ -55,10 +55,15 @@ fi
   --exclude "paperflow-icon.svg" \
   --cache-control "public,max-age=31536000,immutable"
 
-for file in index.html sw.js manifest.webmanifest paperflow-icon.svg; do
-  "${AWS[@]}" s3 cp "dist/${file}" "s3://${YC_WEB_BUCKET}/${file}" \
-    --cache-control "no-cache,no-store,must-revalidate"
-done
+NO_CACHE="no-cache,no-store,must-revalidate"
+"${AWS[@]}" s3 cp dist/index.html "s3://${YC_WEB_BUCKET}/index.html" \
+  --content-type "text/html; charset=utf-8" --cache-control "${NO_CACHE}"
+"${AWS[@]}" s3 cp dist/sw.js "s3://${YC_WEB_BUCKET}/sw.js" \
+  --content-type "application/javascript; charset=utf-8" --cache-control "${NO_CACHE}"
+"${AWS[@]}" s3 cp dist/manifest.webmanifest "s3://${YC_WEB_BUCKET}/manifest.webmanifest" \
+  --content-type "application/manifest+json; charset=utf-8" --cache-control "${NO_CACHE}"
+"${AWS[@]}" s3 cp dist/paperflow-icon.svg "s3://${YC_WEB_BUCKET}/paperflow-icon.svg" \
+  --content-type "image/svg+xml" --cache-control "${NO_CACHE}"
 
 cat <<EOF
 PaperFlow Web uploaded to bucket: ${YC_WEB_BUCKET}
